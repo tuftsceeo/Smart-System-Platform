@@ -21,7 +21,7 @@ print()
 networking.aen.echo(recipient_mac, message)
 print()
 
-#Message, sends the specified message to the recipient, supported formats are bytearrays, bytes, int, float, string, bool, list and dict, max 60928 bytes
+#Message, sends the specified message to the recipient, supported formats are bytearrays, bytes, int, float, string, bool, list and dict, if above 241 bytes, it will send in multiple packages: max 60928 bytes
 networking.aen.send(recipient_mac, message)
 print()
 
@@ -33,6 +33,10 @@ print()
 print(networking.aen.return_message()) #Returns none, none, none if there are no messages
 print()
 
+#Get the RSSI table
+print(networking.aen.rssi())
+print()
+
 #Get All Recieved Messages
 messages = networking.aen.return_messages()
 for mac, message, receive_time in messages:
@@ -40,7 +44,12 @@ for mac, message, receive_time in messages:
     
 #Set up an interrupt which runs a function as soon as possible after receiving a new message
 def receive():
-    for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the  
+    print("Receive")
+    for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
         print(mac, message, rtime)
 
+
 networking.aen.irq(receive) #interrupt handler
+print(networking.aen._irq_function)
+
+time.sleep(0.05)#There is a bug in thonny with some ESP32 devices, which makes this statement necessary. I don't know why, currently discussing and debugging this with thonny devs.
