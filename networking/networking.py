@@ -30,7 +30,7 @@ class Networking:
         
         self.id = ubinascii.hexlify(machine.unique_id()).decode()
         self.name = configname
-        if self.name == "":
+        if self.name == "" or self.name == None:
             self.name = str(self.id)
         
     def _iprint(self, message):
@@ -195,19 +195,19 @@ class Networking:
             
             self.master._iprint("ESP-NOW initialized and ready")
             
-        def update_peer(self, peer_mac, name="", new_channel=None, new_ifidx=None):
+        def update_peer(self, peer_mac, name=None, channel=None, ifidx=None):
             self.master._dprint("aen.update_peer")
-            for peer in self._peers:
-                if peer[0] == peer_mac:
-                    updated_peer = (
-                        peer[0],
-                        new_channel if new_channel is not None else peer[1],
-                        new_ifidx if new_ifidx is not None else peer[2],
-                        name if name is not "" else peer[3]
-                    )
-                    self._peers.remove(peer)
-                    self._peers.add(updated_peer)
-                    self.master._iprint(f"Peer {peer_mac} updated to channel {updated_peer[1]}, ifidx {updated_peer[2]} and name {updated_peer[3]}")
+            if peer_mac in self._peers:
+                try:
+                    if name != None:
+                        self._peers[peer_mac]['name'] = name
+                    if channel  !=  None:
+                        self._peers[peer_mac]['channel'] = channel
+                    if ifidx  !=  None:
+                        self._peers[peer_mac]['ifidx'] = ifidx
+                    self.master._iprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {name}")
+                except OSError as e:
+                    print(f"Error updating peer {peer_mac}: {e}")
                 return
             self.master._iprint(f"Peer {peer_mac} not found")
 
@@ -221,7 +221,7 @@ class Networking:
                     print(f"Error adding peer {peer_mac}: {e}")
             else:
                 self.master._dprint(f"Peer {peer_mac} already exists, updating")
-                self.update_peer(peer_mac, channel, ifidx, name)
+                self.update_peer(peer_mac, name, channel, ifidx)
 
         def remove_peer(self, peer_mac):
             self.master._dprint("aen.remove_peers")
@@ -236,12 +236,12 @@ class Networking:
             self.master._dprint("aen.peers")
             return self._peers
         
-        def name(self, key):
+        def peer_name(self, key):
             self.master._dprint("aen.name")
             if key in self._peers:
                 return self._peers[key]['name']
             else:
-                return ""
+                return None
         
         def rssi(self):
             self.master._dprint("aen.rssi")
@@ -254,15 +254,15 @@ class Networking:
             else:
                 channel = self.master.sta.channel()#make sure to account for sta send and ap send
             self._compose(mac, [channel,self.ifidx,self.master.name], 0x01, 0x10) #sends channel, ifidx and name
-            self.master._iprint(f"Sent ping to {mac} ({self.name(mac)})")
+            self.master._iprint(f"Sent ping to {mac} ({self.peer_name(mac)})")
             gc.collect()
         
         def echo(self, mac, message):
             self.master._dprint("aen.echo")
             try:
-                self.master._iprint(f"Sending echo ({message}) to {mac} ({self.name(mac)})")
+                self.master._iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
             except Exception as e:
-                self.master._iprint(f"Sending echo to {mac} ({self.name(mac)}), but error printing message content: {e}")
+                self.master._iprint(f"Sending echo to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
             self._compose(mac, message, 0x01, 0x15)
             gc.collect()
         
@@ -270,12 +270,12 @@ class Networking:
             self.master._dprint("aen.message")
             if len(str(message)) > 241:
                 try:
-                    self.master._iprint(f"Sending message ({str(message)[:50] + '... (truncated)'}) to {mac} ({self.name(mac)})")
+                    self.master._iprint(f"Sending message ({str(message)[:50] + '... (truncated)'}) to {mac} ({self.peer_name(mac)})")
                 except Exception as e:
-                    self.master._iprint(f"Sending message to {mac} ({self.name(mac)}), but error printing message content: {e}")
+                    self.master._iprint(f"Sending message to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
                     gc.collect()
             else:
-                self.master._iprint(f"Sending message ({message}) to {mac} ({self.name(mac)})")
+                self.master._iprint(f"Sending message ({message}) to {mac} ({self.peer_name(mac)})")
             #self.master._dprint(f"Free memory: {gc.mem_free()}")
             self._compose(mac, message, 0x02, 0x22)
             gc.collect()
@@ -340,7 +340,7 @@ class Networking:
                 if isinstance(peers_mac, bytes):
                     peers_mac = [peers_mac]
                 for peer_mac in peers_mac:
-                    try:    
+                    try:   
                         self._aen.del_peer(peer_mac)
                     except Exception as e:
                         print(f"Error removing {peer_mac} from buffer: {e}")
@@ -358,7 +358,7 @@ class Networking:
                         break
                     except Exception as e:
                         print(f"Error sending to {mac}: {e}")
-                self.master._dprint(f"Sent {messages[m]} to {mac} ({self.name(mac)})")
+                self.master._dprint(f"Sent {messages[m]} to {mac} ({self.peer_name(mac)})")
                 gc.collect()
                 #self.master._dprint(f"Free memory: {gc.mem_free()}")
             __aen_del_peer(peers_mac)
@@ -561,7 +561,7 @@ class Networking:
                 elif msg_type == b'\x03':  # Acknowledgement Message
                     __handle_ack(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload if payload else None)
                 else:
-                    self.master._iprint(f"Unknown message type from {sender_mac} ({self.name(sender_mac)}): {message}")
+                    self.master._iprint(f"Unknown message type from {sender_mac} ({self.peer_name(sender_mac)}): {message}")
 
             async def __request_missing_messages(sender_mac, payload, key, total_n=0, retries=3, waittime=2):
                 self.master._dprint("aen.__request_missing_messages")
@@ -576,34 +576,34 @@ class Networking:
             def __handle_cmd(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
                 self.master._dprint("aen.__handle_cmd")
                 if subtype == b'\x10': #Ping
-                    self.master._iprint(f"Ping command received from {sender_mac} ({self.name(sender_mac)})")
+                    self.master._iprint(f"Ping command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     info = __decode_payload(payload_type, payload)
                     self.add_peer(sender_mac, info[2], info[0], info[1])
                     if bool(self.ifidx):
                         channel = self.master.ap.channel()
                     else:
                         channel = self.master.sta.channel()
-                    response = [channel, ifidx, self.master.name, stimestamp]
+                    response = [channel, self.ifidx, self.master.name, stimestamp]
                     self._compose(sender_mac, response, 0x03, 0x10)
                 elif subtype == b'\x11': #Pair
-                    self.master._iprint(f"Pairing command received from {sender_mac} ({self.name(sender_mac)})")
+                    self.master._iprint(f"Pairing command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     # Insert pairing logic here
                 elif subtype == b'\x12': #Change Mode to Firmware Update
-                    self.master._iprint(f"Update command received from {sender_mac} ({self.name(sender_mac)})")
+                    self.master._iprint(f"Update command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     # Insert update logic here
                 elif subtype == b'\x13': #RSSI Boop
                     self.boops = self.boops + 1
-                    self.master._iprint(f"Boop command received from {sender_mac} ({self.name(sender_mac)}), Received total of {self.boops} boops!")
+                    self.master._iprint(f"Boop command received from {sender_mac} ({self.peer_name(sender_mac)}), Received total of {self.boops} boops!")
                     self._compose(sender_mac, self.rssi(), 0x02, 0x20)
                 elif subtype == b'\x14': #Reboot
-                    self.master._iprint(f"Reboot command received from {sender_mac} ({self.name(sender_mac)})")
+                    self.master._iprint(f"Reboot command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     machine.reset()
                 elif subtype == b'\x15': #Echo
-                    self.master._iprint(f"Echo command received from {sender_mac} ({self.name(sender_mac)}): {payload}")#Check i or d
+                    self.master._iprint(f"Echo command received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")#Check i or d
                     self._compose(sender_mac, __decode_payload(payload_type, payload), 0x03, 0x15)
                 elif subtype == b'\x16': #Run file
                     filename = __decode_payload(payload_type, payload)
-                    self.master._iprint(f"Run command received from {sender_mac} ({self.name(sender_mac)}): {filename}")    
+                    self.master._iprint(f"Run command received from {sender_mac} ({self.peer_name(sender_mac)}): {filename}")    
                     #try:    
                     #    task = asyncio.create_task(run_script(filename))
                         #Needs
@@ -649,7 +649,7 @@ class Networking:
                     self.master._iprint("Received setup AP command")
                     ssid = payload[0]
                     if ssid == "":
-                        ssid = self.name
+                        ssid = self.master.name
                     password = payload[1]
                     self.setap(ssid, password)
                 elif subtype == b'\x21': #Disable AP
@@ -660,32 +660,32 @@ class Networking:
                     self.master._iprint(f"Received set admin command: self.admin set to {payload}")
                     self.master._admin = payload
                 else:
-                    self.vprint(f"Unknown command subtype from {sender_mac} ({self.name(sender_mac)}): {subtype}")
+                    self.vprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_inf(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
                 self.master._dprint("aen.__inf")
                 if subtype == b'\x21': #Sensor Data
-                    self.master._iprint(f"Sensor data received from {sender_mac} ({self.name(sender_mac)}): {payload}")
+                    self.master._iprint(f"Sensor data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     # Process sensor data
                 elif subtype == b'\x20': #RSSI
-                    self.master._iprint(f"RSSI data received from {sender_mac} ({self.name(sender_mac)}): {payload}")
+                    self.master._iprint(f"RSSI data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     # Process RSSI data
                 elif subtype == b'\x22': #Other
-                    self.master._iprint(f"Message received from {sender_mac} ({self.name(sender_mac)}): {payload}")
+                    self.master._iprint(f"Message received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._saved_messages.append((sender_mac, payload, rtimestamp))
                 else:
-                    self.master._iprint(f"Unknown info subtype from {sender_mac} ({self.name(sender_mac)}): {subtype}")
+                    self.master._iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     
             def __handle_ack(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
                 self.master._dprint("aen.__handle_ack")
                 if subtype == b'\x10': #Pong
                     info = __decode_payload(payload_type, payload)
                     self.add_peer(sender_mac, info[2], info[0], info[1])
-                    self.master._iprint(f"Pong received from {sender_mac} ({self.name(sender_mac)}), {rtimestamp-info[3]}") #Always print this
+                    self.master._iprint(f"Pong received from {sender_mac} ({self.peer_name(sender_mac)}), {rtimestamp-info[3]}") #Always print this
                 elif subtype == b'\x15': #Echo
-                    self.master._iprint(f"Echo received from {sender_mac} ({self.name(sender_mac)}), {__decode_payload(payload_type, payload)}") #Always print this
+                    self.master._iprint(f"Echo received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}") #Always print this
                 else:    
-                    self.master._iprint(f"Unknown ack subtype from {sender_mac} ({self.name(sender_mac)}): {subtype}, Payload: {payload}")
+                    self.master._iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
                 # Insert more acknowledgement logic here add message to acknowledgement buffer
 
             if self._aen.any(): 
