@@ -178,6 +178,7 @@ class Networking:
             #self.received_messages = []
             self._saved_messages = []
             self._long_buffer = {}
+            self.received_data = {}
             #self._long_sent_buffer = {}
             #self.running = True
             self._irq_function = None
@@ -285,7 +286,15 @@ class Networking:
             self.master._dprint("aen.broadcast")
             mac = b'\xff\xff\xff\xff\xff\xff'
             self.send(mac, message)
-              
+
+        def send_sensor(self, mac, message):#message is a dict, key is the sensor type and the value is the sensor value
+            self.master._dprint("aen.message")
+            try:
+                self.master._iprint(f"Sending sensor data ({message}) to {mac} ({self.peer_name(mac)})")
+            except Exception as e:
+                self.master._iprint(f"Sending sensor data to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
+            self._compose(mac, message, 0x02, 0x21)
+
         def check_messages(self):
             self.master._dprint("aen.check_message")
             return len(self._saved_messages) > 0
@@ -366,8 +375,15 @@ class Networking:
                     
         def _compose(self, peer_mac, payload=None, msg_type=0x02, subtype=0x22, channel=None, ifidx=None):#rename the function
             self.master._dprint("aen._compose")
+            
+#             if isinstance(peer_mac, list):
+#                 for peer_macs in peer_mac:
+#                     if peer_macs not in self._peers:
+#                         self.add_peer(peer_macs, None, None, None)#Should automatically add it to the peer regsitry
             if peer_mac not in self._peers:
                 self.add_peer(peer_mac, None, None, None)#Should automatically add it to the peer regsitry
+            
+                
             #self.maste._dprint(f"Free memory: {gc.mem_free()}")
             
             def __encode_payload(payload):
@@ -599,8 +615,8 @@ class Networking:
                     self.master._iprint(f"Reboot command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     machine.reset()
                 elif subtype == b'\x15': #Echo
-                    self.master._iprint(f"Echo command received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")#Check i or d
-                    self._compose(sender_mac, __decode_payload(payload_type, payload), 0x03, 0x15)
+                    self.master._iprint(f"Echo command received from {sender_mac} ({self.peer_name(sender_mac)}): {__decode_payload(payload_type, payload)}")#Check i or d
+                    self._compose(sender_mac, payload, 0x03, 0x15)
                 elif subtype == b'\x16': #Run file
                     filename = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Run command received from {sender_mac} ({self.peer_name(sender_mac)}): {filename}")    
@@ -665,15 +681,21 @@ class Networking:
             def __handle_inf(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
                 self.master._dprint("aen.__inf")
                 if subtype == b'\x21': #Sensor Data
+                    payload = __decode_payload(payload_type, payload)
+                    payload["time_sent"] = stimestamp
+                    payload["time_recv"] = rtimestamp
                     self.master._iprint(f"Sensor data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
-                    # Process sensor data
+                    self.received_data[sender_mac] = payload
                 elif subtype == b'\x20': #RSSI
+                    payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"RSSI data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     # Process RSSI data
                 elif subtype == b'\x22': #Other
+                    payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Message received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._saved_messages.append((sender_mac, payload, rtimestamp))
                 else:
+                    payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     
             def __handle_ack(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
