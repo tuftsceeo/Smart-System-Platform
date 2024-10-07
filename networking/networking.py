@@ -309,8 +309,8 @@ class Networking:
             self.master._dprint("aen._irq")
             #self.maste._dprint(f"Free memory: {gc.mem_free()}")
             self._receive()
-            #if self._irq_function and self.check_messages():
-            #    self._irq_function()
+            if self._irq_function and self.check_messages():
+                self._irq_function()
             gc.collect()
             #self.maste._dprint(f"Free memory: {gc.mem_free()}")
             return
