@@ -70,12 +70,11 @@ class Networking:
             self.master._dprint("sta.connect")
             self._sta.connect(ssid, key)
             stime = time.time()
-            #self._sta.status() returns the current wlan status, update below functions with it
             while time.time() - stime < timeout:
                 if self._sta.ifconfig()[0] != '0.0.0.0':
                     self.master._iprint("Connected to WiFi")
                     return
-                time.sleep(1)
+                time.sleep(0.1)
             self.master._iprint(f"Failed to connect to WiFi: {self._sta.status()}")
         
         def disconnect(self):
@@ -94,7 +93,7 @@ class Networking:
             self.master._dprint("sta.mac_decoded")
             return ubinascii.hexlify(self._sta.config('mac'), ':').decode()
         
-        def channel(self):#Is there an equivalent for AP? How does setting channels work for ESP-Now????????
+        def channel(self):
             self.master._dprint("sta.channel")
             return self._sta.config('channel')
         
@@ -104,7 +103,6 @@ class Networking:
                 number = 0
             self._sta.config(channel=number)
             self.vprint(f"STA channel set to {number}")
-            #This will override the channel that was set as part of the add_peer function ???
         
         def get_joke(self):
             self.master._dprint("sta.get_joke")
@@ -150,11 +148,11 @@ class Networking:
             self.master._dprint("ap.mac")
             return bytes(self._ap.config('mac'))
         
-        def mac_decoded(self):#Necessary?
+        def mac_decoded(self):
             self.master._dprint("ap.mac_decoded")
             return ubinascii.hexlify(self._ap.config('mac'), ':').decode()
         
-        def channel(self): #How does setting channels work for ESP-Now????????
+        def channel(self):
             self.master._dprint("ap.channel")
             return self._ap.config('channel')
         
@@ -164,7 +162,6 @@ class Networking:
                 number = 0
             self._ap.config(channel=number)
             self.vprint(f"AP channel set to {number}")
-            #This will override the channel that was set as part of the add_peer function ???
 
 
 
@@ -175,15 +172,21 @@ class Networking:
             self._aen.active(True)
             
             self._peers = {}
-            #self.received_messages = []
-            self._saved_messages = []
+            self._received_messages = []
+            self._received_messages_size = []
             self._long_buffer = {}
-            self.received_data = {}
+            self.received_sensor_data = {}
+            self.received_rssi_data = {}
             #self._long_sent_buffer = {}
-            #self.running = True
             self._irq_function = None
+            self._pause_function = None
             self.boops = 0
             self.ifidx = 0 #0 sends via sta, 1 via ap
+            #self._channel = 0
+            
+            #Flags
+            self._pairing = True
+            self._running = True
             
             if self.master._admin:
                 try:
@@ -248,26 +251,26 @@ class Networking:
             self.master._dprint("aen.rssi")
             return self._aen.peers_table
         
-        def ping(self, mac):
+        def ping(self, mac, channel=None, ifidx=None):
             self.master._dprint("aen.ping")
             if bool(self.ifidx):
-                channel = self.master.ap.channel()#make sure to account for sta send and ap send
+                schannel = self.master.ap.channel()
             else:
-                channel = self.master.sta.channel()#make sure to account for sta send and ap send
-            self._compose(mac, [channel,self.ifidx,self.master.name], 0x01, 0x10) #sends channel, ifidx and name
+                schannel = self.master.sta.channel()
+            self._compose(mac, [schannel,self.ifidx,self.master.name], 0x01, 0x10, channel, ifidx) #sends channel, ifidx and name
             self.master._iprint(f"Sent ping to {mac} ({self.peer_name(mac)})")
             gc.collect()
         
-        def echo(self, mac, message):
+        def echo(self, mac, message, channel=None, ifidx=None):
             self.master._dprint("aen.echo")
             try:
                 self.master._iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
             except Exception as e:
                 self.master._iprint(f"Sending echo to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
-            self._compose(mac, message, 0x01, 0x15)
+            self._compose(mac, message, 0x01, 0x15, channel, ifidx)
             gc.collect()
         
-        def send(self, mac, message):#make a separate long message function?
+        def send(self, mac, message, channel=None, ifidx=None):
             self.master._dprint("aen.message")
             if len(str(message)) > 241:
                 try:
@@ -277,51 +280,50 @@ class Networking:
                     gc.collect()
             else:
                 self.master._iprint(f"Sending message ({message}) to {mac} ({self.peer_name(mac)})")
-            #self.master._dprint(f"Free memory: {gc.mem_free()}")
-            self._compose(mac, message, 0x02, 0x22)
+            self._compose(mac, message, 0x02, 0x22, channel, ifidx)
             gc.collect()
             self.master._dprint(f"Free memory: {gc.mem_free()}")
             
-        def broadcast(self, message):#needed?
+        def broadcast(self, message, channel=None, ifidx=None):
             self.master._dprint("aen.broadcast")
             mac = b'\xff\xff\xff\xff\xff\xff'
-            self.send(mac, message)
+            self.send(mac, message, channel, ifidx)
 
-        def send_sensor(self, mac, message):#message is a dict, key is the sensor type and the value is the sensor value
+        def send_sensor(self, mac, message, channel=None, ifidx=None):#message is a dict, key is the sensor type and the value is the sensor value
             self.master._dprint("aen.message")
             try:
                 self.master._iprint(f"Sending sensor data ({message}) to {mac} ({self.peer_name(mac)})")
             except Exception as e:
                 self.master._iprint(f"Sending sensor data to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
-            self._compose(mac, message, 0x02, 0x21)
+            self._compose(mac, message, 0x02, 0x21, channel, ifidx)
 
         def check_messages(self):
             self.master._dprint("aen.check_message")
-            return len(self._saved_messages) > 0
+            return len(self._received_messages) > 0
         
         def return_message(self):
             self.master._dprint("aen.return_message")
             if self.check_messages():
-                return self._saved_messages.pop()
+                self._received_messages_size.pop()
+                return self._received_messages.pop()
             return (None, None, None)
         
         def return_messages(self):
             self.master._dprint("aen.return_messages")
             if self.check_messages():
-                messages = self._saved_messages[:]
-                self._saved_messages.clear()
+                messages = self._received_messages[:]
+                self._received_messages.clear()
+                self._received_messages_size.clear()
                 gc.collect()
                 return messages
             return [(None, None, None)]
             
         def _irq(self, espnow):
             self.master._dprint("aen._irq")
-            #self.maste._dprint(f"Free memory: {gc.mem_free()}")
             self._receive()
-            if self._irq_function and self.check_messages():
+            if self._irq_function and self.check_messages() and self._isrunning:
                 self._irq_function()
             gc.collect()
-            #self.maste._dprint(f"Free memory: {gc.mem_free()}")
             return
         
         def irq(self, func):
@@ -331,13 +333,23 @@ class Networking:
         def _send(self, peers_mac, messages, channel, ifidx):
             self.master._dprint("aen._send")
             
-            def __aen_add_peer(peers_mac, channel, ifidx):
+            def __aen_add_peer(peers_mac, channel, ifidx): #Rethink the logic here!
                 if isinstance(peers_mac, bytes):
                     peers_mac = [peers_mac]
                 for peer_mac in peers_mac:
                     try:
                         if channel != None and ifidx != None:
                             self._aen.add_peer(peer_mac, channel=channel, ifidx=ifidx)
+                        elif channel != None:
+                            if peer_mac in self._peers:
+                                self._aen.add_peer(peer_mac, channel=channel, ifidx=self._peers[peer_mac]['ifidx'])
+                            else:
+                                self._aen.add_peer(peer_mac, channel=channel, ifidx=self.ifidx)
+                        elif ifidx != None:
+                            if peer_mac in self._peers:
+                                self._aen.add_peer(peer_mac, channel=channel=self._peers[peer_mac]['channel'], ifidx=ifidx)
+                            else:
+                                self._aen.add_peer(peer_mac, channel=0, ifidx=ifidx)
                         elif peer_mac in self._peers:
                             self._aen.add_peer(peer_mac, channel=self._peers[peer_mac]['channel'], ifidx=self._peers[peer_mac]['ifidx'])
                         else:
@@ -369,22 +381,18 @@ class Networking:
                         print(f"Error sending to {mac}: {e}")
                 self.master._dprint(f"Sent {messages[m]} to {mac} ({self.peer_name(mac)})")
                 gc.collect()
-                #self.master._dprint(f"Free memory: {gc.mem_free()}")
             __aen_del_peer(peers_mac)
             
                     
-        def _compose(self, peer_mac, payload=None, msg_type=0x02, subtype=0x22, channel=None, ifidx=None):#rename the function
+        def _compose(self, peer_mac, payload=None, msg_type=0x02, subtype=0x22, channel=None, ifidx=None):
             self.master._dprint("aen._compose")
             
-#             if isinstance(peer_mac, list):
-#                 for peer_macs in peer_mac:
-#                     if peer_macs not in self._peers:
-#                         self.add_peer(peer_macs, None, None, None)#Should automatically add it to the peer regsitry
-            if peer_mac not in self._peers:
-                self.add_peer(peer_mac, None, None, None)#Should automatically add it to the peer regsitry
-            
-                
-            #self.maste._dprint(f"Free memory: {gc.mem_free()}")
+            if isinstance(peer_mac, list):
+                 for peer_macs in peer_mac:
+                     if peer_macs not in self._peers:
+                         self.add_peer(peer_macs, None, channel, ifidx)
+            elif peer_mac not in self._peers:
+                self.add_peer(peer_mac, None, channel, ifidx)
             
             def __encode_payload(payload):
                 self.master._dprint("aen.__encode_payload")
@@ -417,7 +425,6 @@ class Networking:
             header[1] = msg_type
             header[2] = subtype
             header[3:7] = timestamp.to_bytes(4, 'big')
-            #self.maste._dprint(f"Free memory: {gc.mem_free()}")
             if len(payload_bytes) < 242: #250-9=241=max_length
                 header[7] = payload_type[0]
                 total_length = 1 + 1 + 1 + 4 + 1 + len(payload_bytes) + 1
@@ -454,7 +461,6 @@ class Networking:
                     
             message = bytearray()
             gc.collect()
-            #self.master._dprint(f"Free memory: {gc.mem_free()}")
             self._send(peer_mac, messages, channel, ifidx)
 
 
@@ -481,7 +487,6 @@ class Networking:
                     return bytes(payload_bytes)
                 else:
                     raise ValueError(f"Unsupported payload type: {payload_type} Message: {payload_bytes}")
-                    #return None
             
             def __process_message(sender_mac, message, rtimestamp):
                 self.master._dprint("aen.__process_message")
@@ -521,7 +526,7 @@ class Networking:
                     key.extend(subtype)
                     key.extend(message[3:7])
                     key.extend(payload_type)
-                    key.append(total_n)#does this work? Yes!
+                    key.append(total_n)
                     key = bytes(key)
                     self.master._dprint(f"Key: {key}")
                     
@@ -603,7 +608,8 @@ class Networking:
                     self._compose(sender_mac, response, 0x03, 0x10)
                 elif subtype == b'\x11': #Pair
                     self.master._iprint(f"Pairing command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    # Insert pairing logic here
+                    if self._pairing == True:
+                        # Insert pairing logic here
                 elif subtype == b'\x12': #Change Mode to Firmware Update
                     self.master._iprint(f"Update command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     # Insert update logic here
@@ -670,30 +676,49 @@ class Networking:
                     self.setap(ssid, password)
                 elif subtype == b'\x21': #Disable AP
                     self.master._iprint("Received disable AP command")
-                    #disaple ap command
+                    self.master.ap.deactivate()
                 elif subtype == b'\x22': #Set Admin Bool
                     payload = __decode_payload(payload_type, payload) #should return a bool
                     self.master._iprint(f"Received set admin command: self.admin set to {payload}")
                     self.master._admin = payload
+                elif subtype == b'\x23': #Set Pause
+                    payload = __decode_payload(payload_type, payload) #should return a bool
+                    self.master._iprint(f"Received set admin command: self.admin set to {payload}")
+                    self._running = False
+                    if self._pause_function:
+                        self._pause_function() #calls the custom set pause function to display a screen
+                    while not self._running:
+                        sleep(0.1)
+                elif subtype == b'\x24': #Set Continue
+                    payload = __decode_payload(payload_type, payload) #should return a bool
+                    self.master._iprint(f"Received set admin command: self.admin set to {payload}")
+                    self.master._running = True
                 else:
                     self.vprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_inf(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
                 self.master._dprint("aen.__inf")
-                if subtype == b'\x21': #Sensor Data
+                if subtype == b'\x20': #RSSI
+                    payload = __decode_payload(payload_type, payload)
+                    #payload["time_sent"] = stimestamp
+                    #payload["time_recv"] = rtimestamp
+                    self.master._iprint(f"RSSI data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
+                    self.received_rssi_data[sender_mac] = payload
+                    if 
+                elif subtype == b'\x21': #Sensor Data
                     payload = __decode_payload(payload_type, payload)
                     payload["time_sent"] = stimestamp
                     payload["time_recv"] = rtimestamp
                     self.master._iprint(f"Sensor data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
-                    self.received_data[sender_mac] = payload
-                elif subtype == b'\x20': #RSSI
-                    payload = __decode_payload(payload_type, payload)
-                    self.master._iprint(f"RSSI data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
-                    # Process RSSI data
-                elif subtype == b'\x22': #Other
+                    self.received_sensor_data[sender_mac] = payload
+                elif subtype == b'\x22': #Message / Other
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Message received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
-                    self._saved_messages.append((sender_mac, payload, rtimestamp))
+                    self._received_messages.append((sender_mac, payload, rtimestamp))
+                    self.received_messages_size.append(sys.getsizeof((sender_mac, payload, rtimestamp)))
+                    while len(self.received_messages) > 2048 or sum(_received_messages_size.pop) > 20000:
+                        self._received_messages.pop(0)
+                        self._received_messages_size.pop(0)
                 else:
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
@@ -719,7 +744,6 @@ class Networking:
                         rtimestamp = time.ticks_ms()
                         if sender_mac != None and data != None:
                             #self.received_messages.append((sender_mac, data, rtimestamp))#Messages will be saved here, this is only for debugging purposes
-                            #print(f"Received from {sender_mac}: {data}")
                             __process_message(sender_mac, data, rtimestamp)
                     if not self._aen.any():#this is necessary as the for loop gets stuck and does not exit properly.
                         break
