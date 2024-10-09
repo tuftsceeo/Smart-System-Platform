@@ -10,7 +10,7 @@ import asyncio
 import struct
 import json
 import random
-
+import sys
 
 boottime = time.ticks_ms()
 
@@ -175,6 +175,7 @@ class Networking:
             self._received_messages = []
             self._received_messages_size = []
             self._long_buffer = {}
+            self._long_buffer_size = {}
             self.received_sensor_data = {}
             self.received_rssi_data = {}
             #self._long_sent_buffer = {}
@@ -347,7 +348,7 @@ class Networking:
                                 self._aen.add_peer(peer_mac, channel=channel, ifidx=self.ifidx)
                         elif ifidx != None:
                             if peer_mac in self._peers:
-                                self._aen.add_peer(peer_mac, channel=channel=self._peers[peer_mac]['channel'], ifidx=ifidx)
+                                self._aen.add_peer(peer_mac, channel=self._peers[peer_mac]['channel'], ifidx=ifidx)
                             else:
                                 self._aen.add_peer(peer_mac, channel=0, ifidx=ifidx)
                         elif peer_mac in self._peers:
@@ -535,6 +536,7 @@ class Networking:
                         # If the part is None, add the payload
                         if self._long_buffer[key][part_n] is None:
                             self._long_buffer[key][part_n] = payload
+                            self._long_buffer_size[key] = self._long_buffer_size[key] + len(payload)
                             self.master._dprint(f"Long message: Key found, message added to entry in long_message_buffer, {sum(1 for item in self._long_buffer[key] if item is not None)} out of {total_n} packages received")
                             # If there are still missing parts, return
                             if any(value is None for value in self._long_buffer[key]):
@@ -545,7 +547,13 @@ class Networking:
                         payloads = [None] * total_n
                         payloads[part_n] = payload
                         self._long_buffer[key] = payloads
+                        self._long_buffer_size[key] = len(payload)
                         self.master._dprint(f"Long message: Key not found and new entry created in long_message_buffer, {sum(1 for item in self._long_buffer[key] if item is not None)} out of {total_n} packages received")
+                        
+                        while len(self._long_buffer) > 8 or sum(self._long_buffer_size.values()) > 75000:
+                            self.master._dprint(f"Maximum buffer size reached: {len(self._long_buffer)}, {sum(self._long_buffer_size.values())} bytes; Reducing!")
+                            self._long_buffer.popitem(last=False)
+                            self._long_buffer_size.popitem(last=False)
                         gc.collect()
 #                        # If there are missing parts, request missing messages, due to buffer constraints this is disabled
 #                         if any(value is None for value in self._long_buffer[key]):
@@ -568,6 +576,7 @@ class Networking:
                         for i in range(0, total_n):
                             payload.extend(self._long_buffer[key][i])
                         del self._long_buffer[key]
+                        del self._long_buffer_size[key]
                         self.master._dprint("Long message: All packages received!")
                     else:
                         self.master._dprint("Long Message: Safeguard triggered, code should not have gotten here")
@@ -608,7 +617,7 @@ class Networking:
                     self._compose(sender_mac, response, 0x03, 0x10)
                 elif subtype == b'\x11': #Pair
                     self.master._iprint(f"Pairing command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    if self._pairing == True:
+                    #if self._pairing == True:
                         # Insert pairing logic here
                 elif subtype == b'\x12': #Change Mode to Firmware Update
                     self.master._iprint(f"Update command received from {sender_mac} ({self.peer_name(sender_mac)})")
@@ -704,7 +713,6 @@ class Networking:
                     #payload["time_recv"] = rtimestamp
                     self.master._iprint(f"RSSI data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
-                    if 
                 elif subtype == b'\x21': #Sensor Data
                     payload = __decode_payload(payload_type, payload)
                     payload["time_sent"] = stimestamp
@@ -712,11 +720,13 @@ class Networking:
                     self.master._iprint(f"Sensor data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_sensor_data[sender_mac] = payload
                 elif subtype == b'\x22': #Message / Other
+                    payloadlength = len(payload)
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Message received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, rtimestamp))
-                    self.received_messages_size.append(sys.getsizeof((sender_mac, payload, rtimestamp)))
-                    while len(self.received_messages) > 2048 or sum(_received_messages_size.pop) > 20000:
+                    self.received_messages_size.append(payloadlength)
+                    while len(self.received_messages) > 2048 or sum(self._received_messages_size) > 20000:
+                        self.master._dprint(f"Maximum buffer size reached: {len(self.received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
                 else:
