@@ -175,6 +175,8 @@ switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
+print(networking.aen.rssi())
+
 while True:
     print(f"{int(time.ticks_ms()-start_time)/1000}: {gc.mem_free()}")
     #networking.aen.ping(peer_mac)
