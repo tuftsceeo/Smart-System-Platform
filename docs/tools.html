@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon.png" type="images/logo_icon.png">
+    <link rel="icon" type="image/png" href="images/favicon-48x48.png" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
+    <link rel="shortcut icon" href="images/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Smart System Platform" />
+    <link rel="manifest" href="images/site.webmanifest" />
 
     <title>Smart System Platform - Toolbox</title>
     <style>
@@ -11,23 +16,25 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            min-width: 1000px;
-            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         header {
             background-color: #333;
-            padding: 0;
+            padding: 10px 0;
         }
         .menu {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0;
+            margin: 0 10px;
         }
         .menu a {
             color: white;
             text-decoration: none;
-            margin: 0 20px;
+            margin: 0 10px;
             padding: 5px 0;
         }
         .menu a:hover {
@@ -36,12 +43,24 @@
         .menu a.active {
             font-weight: bold;
             text-decoration: underline;
-            color: #FFD700;
+            color: #FF9900;
         }
-        .logo {
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        .logo-container img {
+            height: 40px;
+            width: auto;
+            margin-right: 10px;
+        }
+        .logo-text {
             font-size: 24px;
             font-weight: bold;
             color: white;
+            line-height: 40px;
+            display: flex;
+            align-items: center;
         }
         .menu-items {
             display: flex;
@@ -49,15 +68,36 @@
             flex-grow: 1;
         }
         main {
+            flex-grow: 1;
             padding: 20px;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            width: 100%;
+        }
+        footer a {
+            color: #FF9900;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
 
 <header>
     <div class="menu">
-        <a href="index.html" class="logo"><img src="images/logo.png" alt="The Smart System Education Platform"></a>
+        <div class="logo-container">
+            <a href="index.html" style="display: flex; align-items: center;">
+                <img src="images/favicon.svg" alt="Logo">
+                <span class="logo-text">Smart System Education Platform</span>
+            </a>
+        </div>
         <div class="menu-items">
             <a href="index.html">Home</a>
             <a href="mission.html">Mission</a>
@@ -72,7 +112,31 @@
 <main>
     <h1>Tools</h1>
     <p>List of links to the different IDEs and UIs</p>
+
+    <section>
+        <h2>Useful Resources</h2>
+        <ul style="list-style-type: none; padding: 0;">
+            <li style="margin-bottom: 20px;">
+                <a href="page1.html" style="font-weight: bold; font-size: 18px;">Page 1</a>
+                <p style="margin: 5px 0;">Description of what Page 1 is about.</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="page2.html" style="font-weight: bold; font-size: 18px;">Page 2</a>
+                <p style="margin: 5px 0;">Description of what Page 2 is about.</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="page3.html" style="font-weight: bold; font-size: 18px;">Page 3</a>
+                <p style="margin: 5px 0;">Description of what Page 3 is about.</p>
+            </li>
+        </ul>
+    </section>
+
 </main>
+
+<footer>
+    <p>&copy; 2024 Smart System Education Platform. All rights reserved.</p>
+    <p><a href="contact.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+</footer>
 
 </body>
 </html>
