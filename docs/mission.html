@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<meta name="description" content="Welcome to the Smart System Education Platform, your go-to resource for innovative learning solutions in technology and engineering. Explore our system and tools to enhance your educational journey." />
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -138,15 +137,19 @@
             }
             .menu-items a {
                 padding: 10px 20px;
-                width: 100%; /* Full width for links */
+                width: 100%;
             }
             .hamburger {
-                display: block; /* Show hamburger button */
+                display: block;
                 background: none;
                 border: none;
                 font-size: 24px;
                 color: white;
             }
+            .menu.show {
+                display: flex;
+            }
+
             .footer-content {
                 flex-direction: column;
             }
@@ -182,8 +185,8 @@
             </a>
         </div>
         <div class="menu-items" id="menuItems">
-            <a href="index.html" class="active">Home</a>
-            <a href="mission.html">Mission</a>
+            <a href="index.html">Home</a>
+            <a href="mission.html" class="active">Mission</a>
             <a href="technology.html">Platform</a>
             <a href="start.html">Get Started</a>
             <a href="tools.html">Toolbox</a>
@@ -194,8 +197,8 @@
 </header>
 
 <main>
-    <h1>Welcome to the webpage.</h1>
-    <p>Some short introduction and showcase</p>
+    <h1>Mission</h1>
+    <p>Explain the goals and mission of the smart systems education platform.</p>
 </main>
 
 <footer>
@@ -212,7 +215,7 @@
 <script>
     function toggleMenu() {
         const menuItems = document.getElementById('menuItems');
-        menuItems.classList.toggle('show'); // Toggle the .show class
+        menuItems.classList.toggle('show');
     }
 </script>
 

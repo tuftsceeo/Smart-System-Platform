@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<meta name="description" content="Welcome to the Smart System Education Platform, your go-to resource for innovative learning solutions in technology and engineering. Explore our system and tools to enhance your educational journey." />
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -138,15 +137,19 @@
             }
             .menu-items a {
                 padding: 10px 20px;
-                width: 100%; /* Full width for links */
+                width: 100%;
             }
             .hamburger {
-                display: block; /* Show hamburger button */
+                display: block;
                 background: none;
                 border: none;
                 font-size: 24px;
                 color: white;
             }
+            .menu.show {
+                display: flex;
+            }
+
             .footer-content {
                 flex-direction: column;
             }
@@ -182,11 +185,11 @@
             </a>
         </div>
         <div class="menu-items" id="menuItems">
-            <a href="index.html" class="active">Home</a>
+            <a href="index.html">Home</a>
             <a href="mission.html">Mission</a>
             <a href="technology.html">Platform</a>
             <a href="start.html">Get Started</a>
-            <a href="tools.html">Toolbox</a>
+            <a href="tools.html" class="active">Toolbox</a>
             <a href="community.html">Community</a>
         </div>
         <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
@@ -194,8 +197,38 @@
 </header>
 
 <main>
-    <h1>Welcome to the webpage.</h1>
-    <p>Some short introduction and showcase</p>
+    <h1>Tools</h1>
+    <p>List of links to the different IDEs and UIs</p>
+
+    <section>
+        <h2>Useful Resources</h2>
+        <ul style="list-style-type: none; padding: 0;">
+            <li style="margin-bottom: 20px;">
+                <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A" style="font-weight: bold; font-size: 18px;">Module Management UI</a>
+                <p style="margin: 5px 0;">Update Firmware and load specific programs/projects on your modules from our Module Management pyscript page</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A" style="font-weight: bold; font-size: 18px;">Custom Web IDE</a>
+                <p style="margin: 5px 0;">Directly program and control your module from our online pyscript IDE</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A" style="font-weight: bold; font-size: 18px;">Cluster Management UI</a>
+                <p style="margin: 5px 0;">Manage and control a cluster of modules from our pyscript Cluster Management UI</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A" style="font-weight: bold; font-size: 18px;">Admin/Developer UI</a>
+                <p style="margin: 5px 0;">Directly program, control and manage your module or cluster of modules from our web IDE UI with admin/developer tools enabled</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="https://micropython.org/webrepl/" style="font-weight: bold; font-size: 18px;">Micropython WebREPL</a>
+                <p style="margin: 5px 0;">A Micropython WebREPL</p>
+            </li>
+            <li style="margin-bottom: 20px;">
+                <a href="https://thonny.org/" style="font-weight: bold; font-size: 18px;">Thonny</a>
+                <p style="margin: 5px 0;">A beginner python IDE</p>
+            </li>
+        </ul>
+    </section>
 </main>
 
 <footer>
@@ -212,7 +245,7 @@
 <script>
     function toggleMenu() {
         const menuItems = document.getElementById('menuItems');
-        menuItems.classList.toggle('show'); // Toggle the .show class
+        menuItems.classList.toggle('show');
     }
 </script>
 
