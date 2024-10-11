@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart System Platform" />
     <link rel="manifest" href="images/site.webmanifest" />
 
-    <title>Smart System Platform - Outreach</title>
+    <title>Smart System Education Platform</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,6 +19,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            min-width: 1000px;
         }
         header {
             background-color: #333;
@@ -59,8 +60,7 @@
             font-weight: bold;
             color: white;
             line-height: 40px;
-            display: flex;
-            align-items: center;
+            white-space: nowrap;
         }
         .menu-items {
             display: flex;
@@ -78,12 +78,93 @@
             padding: 20px 0;
             width: 100%;
         }
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-logo-left {
+            height: 63px;
+            width: auto;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+        .footer-logo-right {
+            height: 75px;
+            width: auto;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+        .footer-text {
+            text-align: center;
+            flex-grow: 1;
+        }
         footer a {
             color: #FF9900;
             text-decoration: none;
         }
         footer a:hover {
             text-decoration: underline;
+        }
+        .hamburger {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                min-width: 100%;
+            }
+            .logo-text {
+                font-size: 20px;
+                line-height: 1.2;
+                display: block;
+            }
+            .logo-text span {
+                display: block;
+            }
+            .menu-items {
+                display: none;
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+                background-color: #333;
+                position: absolute;
+                top: 60px;
+                left: 0;
+            }
+            .menu-items a {
+                padding: 10px 20px;
+                width: 100%;
+            }
+            .hamburger {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: white;
+            }
+            .menu.show {
+                display: flex;
+            }
+
+            .footer-content {
+                flex-direction: column;
+            }
+            .footer-logo-left, .footer-logo-right {
+                order: 2;
+                margin: 3px 0;
+            }
+            .footer-text {
+                order: 1;
+                margin-bottom: 10px;
+            }
+            .footer-text p:first-child {
+                display: block;
+                line-height: 1.5;
+            }
+            .footer-text p:first-child span {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -93,11 +174,14 @@
     <div class="menu">
         <div class="logo-container">
             <a href="index.html" style="display: flex; align-items: center;">
-                <img src="images/favicon.svg" alt="Logo">
-                <span class="logo-text">Smart System Education Platform</span>
+                <img src="images/favicon.svg" width="40" height="40" alt="Logo">
+                <span class="logo-text">
+                    <span>Smart System</span>
+                    <span>Education Platform</span>
+                </span>
             </a>
         </div>
-        <div class="menu-items">
+        <div class="menu-items" id="menuItems">
             <a href="index.html">Home</a>
             <a href="mission.html">Mission</a>
             <a href="technology.html">Platform</a>
@@ -105,6 +189,7 @@
             <a href="tools.html">Toolbox</a>
             <a href="community.html" class="active">Community</a>
         </div>
+        <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
     </div>
 </header>
 
@@ -114,9 +199,22 @@
 </main>
 
 <footer>
-    <p>&copy; 2024 Smart System Education Platform. All rights reserved.</p>
-    <p><a href="contact.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+    <div class="footer-content">
+        <img src="images/SOE_CEEO_horiz_white_RGB.png" alt="University Logo Left" class="footer-logo-left">
+        <div class="footer-text">
+            <p><span>© 2024 Smart System Education Platform.</span> All rights reserved.</p>
+            <p><a href="contact.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+        </div>
+        <img src="images/eth_logo_kurz_neg.png" alt="University Logo Right" class="footer-logo-right">
+    </div>
 </footer>
+
+<script>
+    function toggleMenu() {
+        const menuItems = document.getElementById('menuItems');
+        menuItems.classList.toggle('show');
+    }
+</script>
 
 </body>
 </html>
