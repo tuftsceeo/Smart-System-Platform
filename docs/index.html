@@ -132,21 +132,20 @@
                 top: 60px;
                 left: 0;
             }
+            .menu-items.show {
+                display: flex;
+            }
             .menu-items a {
                 padding: 10px 20px;
-                width: 100%;
+                width: 100%; /* Full width for links */
             }
             .hamburger {
-                display: block;
+                display: block; /* Show hamburger button */
                 background: none;
                 border: none;
                 font-size: 24px;
                 color: white;
             }
-            .menu.show {
-                display: flex;
-            }
-
             .footer-content {
                 flex-direction: column;
             }
@@ -212,7 +211,7 @@
 <script>
     function toggleMenu() {
         const menuItems = document.getElementById('menuItems');
-        menuItems.classList.toggle('show');
+        menuItems.classList.toggle('show'); // Toggle the .show class
     }
 </script>
 
