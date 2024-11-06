@@ -1,0 +1,47 @@
+---
+format: gfm
+execute:
+  echo: false
+  message: false
+  warning: false
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# 
+
+```{r setup, include=FALSE}
+file_path <- fs::path_real("README.qmd")
+path_components <- strsplit(file_path, "/")[[1]]
+shortened_path <- fs::path_join(path_components[-c(2, 3)])
+```
+
+## Location: `r shortened_path`
+
+### Description
+
+This directory hosts code for the smart modules.
+
+### Directories & Files
+
+The repository has the following directory tree.
+
+```{r}
+fs::dir_tree(recurse = 1)
+```
+
+A short description of the directories can be found below.
+
+```{r, include=TRUE}
+folders <- fs::dir_ls(path = ".", type = "directory")
+
+for (folder in folders) {
+  description_file <- fs::path(folder, "README.md")
+  if (fs::file_exists(description_file)) {
+    cat(paste("#### Description for", folder), "\n\n")
+    description_content <- readLines(description_file)
+    cat(paste(description_content, collapse = "\n"), "\n\n")
+  }
+}
+```
