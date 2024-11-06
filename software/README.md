@@ -1,3 +1,5 @@
+
+
 # Smart System Education Platform
 
 ## Location: /software/README.qmd
@@ -14,17 +16,15 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
-    ├── libraries
+    ├── applications
+    │   ├── MnS
     │   ├── README.md
     │   ├── README.qmd
-    │   └── variableLED.py
-    ├── networking
-    │   ├── README.md
-    │   ├── README.qmd
-    │   ├── config.py
-    │   ├── examples
-    │   └── networking.py
-    ├── old
+    │   ├── boop-o-meters
+    │   ├── display
+    │   ├── p2p
+    │   └── ping
+    ├── archive
     │   ├── 4sophie.py
     │   ├── aioespnow.py
     │   ├── hackathon
@@ -36,130 +36,54 @@ The repository has the following directory tree.
     │   ├── networking_old.py
     │   ├── networkingtest.py
     │   └── secrets.py
-    └── tools
-        ├── MnS
+    ├── libraries
+    │   ├── README.md
+    │   ├── README.qmd
+    │   └── variableLED.py
+    └── networking
         ├── README.md
         ├── README.qmd
-        ├── boop-o-meters
-        ├── display
-        ├── p2p
-        └── ping
-
-A short description of the directories can be found below.
-
-    #### Description for libraries 
-
-
-
-    # Smart System Education Platform
-
-    ## Location: /software/libraries/README.qmd
-
-    ### Description
-
-    This directory hosts used and useful libraries.
-
-    ### Directories & Files
-
-    The repository has the following directory tree.
-
-        .
-        ├── README.qmd
-        ├── README.rmarkdown
-        └── variableLED.py
-
-    A short description of the directories can be found below.
-
-    variableLED.py: variable LED library 
-
-    #### Description for networking 
-
-
-
-    # Smart System Education Platform
-
-    ## Location: /software/networking/README.qmd
-
-    ### Description
-
-    This directory hosts the networking code and examples. The networking
-    code builds on top of the ESP-Now p2p networking code by espressif,
-    which itself uses the WiFi capabilities of the ESP32 board.
-
-    Some facts and figures:
-
-    Range: up to 215 meters
-
-    Max Payload: 241 bytes
-
-    Channels: 14
-
-    ### Directories & Files
-
-    The repository has the following directory tree.
-
-        .
-        ├── README.qmd
-        ├── README.rmarkdown
         ├── config.py
         ├── examples
         └── networking.py
 
-    A short description of the directories can be found below.
+A short description of the directories can be found below.
 
-    | name | description | contribution |
-    |----|----|----|
-    | config.py | This file hosts configurations and secrets, such as the board name, WiFi name and password, as well as handshake keys which is used by some of the legacy networking code. | Nick |
-    | examples | This directory hosts example code | Nick |
-    | examples/example.py | This is some basic example code on how to use my networking library | Nick |
-    | examples/long_message_example.py | This code showcases the long message capabilities built into my code. By sending multiple messages that are then stitched back together by the recipient the max payload can be increased from 241 bytes to 256 x 238 = 60928 bytes, although in reality the ESP32 boards will start running out of memory with messages above 30 kilobytes. | Nick |
-    | networking.py | This is the main networking code that builds on ESP-NOW. There are many prepared functionalities (and some more that I am working on), such as long message support, sending of various variable types (bytes, bytearray, dicts, lists, int, float, char, string), as well as different types of messages such as ping, echo and more. There are also various features in place to make the networking more robust. It needs config.py to function. | Nick | 
+| name         | description                             | contribution |
+|--------------|-----------------------------------------|--------------|
+| libraries    | Useful libraries for inputs and outputs | Nick         |
+| networking   | Smart Module Networking library         | Nick         |
+| applications | Various coding tools and applications   | Nick         |
+| archive      | Old or outdated code or examples        | Nick         |
 
-    #### Description for tools 
+### Helpful links:
 
+<https://chrisrogers.pyscriptapps.com/nick-esp-now/latest/>
 
+<https://pyscript.com/@chrisrogers/nick-esp-now/latest?files=README.md,sample.py>
 
-    # Smart System Education Platform
+<https://pyscript.com/@nickart/chris-nick-esp-now/latest?files=main.py,index.html,pyscript.toml,styles.css>
 
-    ## Location: /software/tools/README.qmd
+<https://pyscript.com/@nickart/floral-firefly/latest?files=main.py,index.html,pyscript.toml,style.css>
 
-    ### Description
+<https://github.com/micropython/webrepl>
 
-    This directory hosts the code.
+<https://micropython.org/webrepl/?>
 
-    ### Directories & Files
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/andrea_terminal.py>
 
-    The repository has the following directory tree.
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/restapi.py>
 
-        .
-        ├── MnS
-        │   ├── master.py
-        │   └── slave.py
-        ├── README.md
-        ├── README.qmd
-        ├── README.rmarkdown
-        ├── boop-o-meters
-        │   ├── boop-o-meter 100.py
-        │   ├── boop-o-meter 200.py
-        │   └── boop-o-meter 300.py
-        ├── display
-        │   ├── display.py
-        │   └── networking_display.py
-        ├── p2p
-        │   └── main.py
-        └── ping
-            ├── echo.py
-            └── shout.py
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/file_os.py>
 
-    A short description of the directories can be found below.
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/file_transfer.py>
 
-    A short description of the directories can be found below.
+<https://cdn.jsdelivr.net/npm/micro-repl@0.5.1/serial/+esm>
 
-    | name | description | contribution |
-    |----|----|----|
-    | boop-o-meters | This code will allow you to send “boops” to any discovered mac address (i.e. every running smart motor that has networking.py initialised). It counts how many “boops” were sent and received. | Nick |
-    | display | Displays discovered smart modules with networking enabled. | Nick |
-    | MnS | This uses the networking code to control multiple smart motor using the sensor inputs of a “master” smart motor. The MAC is hard-coded. | Nick |
-    | p2p | This uses the networking code to have smart motors use their partners sensor inputs. The MAC is hard-coded. If there is no stream of sensor data received from the partner, the smart motor reverts back and uses their own inputs. | Nick |
-    | ping | Example code for pings and for returning pings (echo) | Nick | 
-    
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/Tabs.py>
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/andrea_terminal.py>
+
+<https://xtermjs.org/>
+
+<https://cdn.jsdelivr.net/npm/micro-repl@0.5.1/serial.js>

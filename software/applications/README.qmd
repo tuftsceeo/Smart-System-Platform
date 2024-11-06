@@ -17,13 +17,13 @@ path_components <- strsplit(file_path, "/")[[1]]
 shortened_path <- fs::path_join(path_components[-c(2, 3)])
 ```
 
-## Location: `r shortened_path`
+#### Location: `r shortened_path`
 
-### Description
+##### Description
 
 This directory hosts the code.
 
-### Directories & Files
+##### Directories & Files
 
 The repository has the following directory tree.
 

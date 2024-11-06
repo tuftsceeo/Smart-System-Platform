@@ -1,14 +1,14 @@
 
 
-# Smart System Education Platform
+# 
 
-## Location: /software/tools/README.qmd
+#### Location: /software/tools/README.qmd
 
-### Description
+##### Description
 
 This directory hosts the code.
 
-### Directories & Files
+##### Directories & Files
 
 The repository has the following directory tree.
 

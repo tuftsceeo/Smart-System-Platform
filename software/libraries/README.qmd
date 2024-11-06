@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# 
+# Smart System Education Platform
 
 ```{r setup, include=FALSE}
 file_path <- fs::path_real("README.qmd")
@@ -33,4 +33,6 @@ fs::dir_tree(recurse = FALSE)
 
 A short description of the directories can be found below.
 
-variableLED.py: variable LED library
+| name           | description                               | contribution |
+|----------------|-------------------------------------------|--------------|
+| variableLED.py | Library that powers the variable LED grid | Sophie       |

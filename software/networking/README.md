@@ -23,10 +23,13 @@ Channels: 14
 The repository has the following directory tree.
 
     .
+    ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
     ├── config.py
     ├── examples
+    │   ├── example.py
+    │   └── long_message_example.py
     └── networking.py
 
 A short description of the directories can be found below.

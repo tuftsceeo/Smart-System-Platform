@@ -18,20 +18,20 @@ The repository has the following directory tree.
     ├── README.qmd
     ├── README.rmarkdown
     ├── docs
-    │   ├── README.md
-    │   ├── README.qmd
-    │   ├── community.html
-    │   ├── images
-    │   ├── index.html
-    │   ├── mission.html
-    │   ├── start.html
-    │   ├── technology.html
-    │   └── tools.html
+    ├── firmware
+    ├── hardware
+    ├── overleaf
     ├── project.Rproj
+    ├── rstudio
     └── software
-        ├── libraries
-        ├── networking
-        ├── old
-        └── tools
 
 A short description of the directories can be found below.
+
+| name | description | contribution |
+|----|----|----|
+| docs | This directory hosts the files for the website | Nick |
+| firmware | This directory hosts the firmware | Nick |
+| hardware | This directory hosts files and information about the hardware | Nick |
+| software | This directory includes libraries, custom libraries and example code, such as the for example the networking library | Nick |
+| overleaf | Latex Report Code | Nick |
+| rstudio | R Code | Nick |

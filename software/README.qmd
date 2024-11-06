@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# 
+# Smart System Education Platform
 
 ```{r setup, include=FALSE}
 file_path <- fs::path_real("README.qmd")
@@ -33,15 +33,41 @@ fs::dir_tree(recurse = 1)
 
 A short description of the directories can be found below.
 
-```{r, include=TRUE}
-folders <- fs::dir_ls(path = ".", type = "directory")
+| name         | description                             | contribution |
+|--------------|-----------------------------------------|--------------|
+| libraries    | Useful libraries for inputs and outputs | Nick         |
+| networking   | Smart Module Networking library         | Nick         |
+| applications | Various coding tools and applications   | Nick         |
+| archive      | Old or outdated code or examples        | Nick         |
 
-for (folder in folders) {
-  description_file <- fs::path(folder, "README.md")
-  if (fs::file_exists(description_file)) {
-    cat(paste("#### Description for", folder), "\n\n")
-    description_content <- readLines(description_file)
-    cat(paste(description_content, collapse = "\n"), "\n\n")
-  }
-}
-```
+### Helpful links:
+
+<https://chrisrogers.pyscriptapps.com/nick-esp-now/latest/>
+
+[https://pyscript.com/\@chrisrogers/nick-esp-now/latest?files=README.md,sample.py](https://pyscript.com/@chrisrogers/nick-esp-now/latest?files=README.md,sample.py){.uri}
+
+[https://pyscript.com/\@nickart/chris-nick-esp-now/latest?files=main.py,index.html,pyscript.toml,styles.css](https://pyscript.com/@nickart/chris-nick-esp-now/latest?files=main.py,index.html,pyscript.toml,styles.css){.uri}
+
+[https://pyscript.com/\@nickart/floral-firefly/latest?files=main.py,index.html,pyscript.toml,style.css](https://pyscript.com/@nickart/floral-firefly/latest?files=main.py,index.html,pyscript.toml,style.css){.uri}
+
+<https://github.com/micropython/webrepl>
+
+<https://micropython.org/webrepl/?>
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/andrea_terminal.py>
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/restapi.py>
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/file_os.py>
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/file_transfer.py>
+
+[https://cdn.jsdelivr.net/npm/micro-repl\@0.5.1/serial/+esm](https://cdn.jsdelivr.net/npm/micro-repl@0.5.1/serial/+esm)
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/Tabs.py>
+
+<https://chrisrogers.pyscriptapps.com/cbr-libraries/latest/core/andrea_terminal.py>
+
+<https://xtermjs.org/>
+
+[https://cdn.jsdelivr.net/npm/micro-repl\@0.5.1/serial.js](https://cdn.jsdelivr.net/npm/micro-repl@0.5.1/serial.js)

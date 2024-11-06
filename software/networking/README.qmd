@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# 
+# Smart System Education Platform
 
 ```{r setup, include=FALSE}
 file_path <- fs::path_real("README.qmd")
@@ -42,7 +42,7 @@ fs::dir_tree(recurse = 1)
 A short description of the directories can be found below.
 
 | name                             | description                                                                                                                                                                                                                                                                                                                                                                                                                                         | contribution |
-|------------------|-----------------------------------|------------------|
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|
 | config.py                        | This file hosts configurations and secrets, such as the board name, WiFi name and password, as well as handshake keys which is used by some of the legacy networking code.                                                                                                                                                                                                                                                                          | Nick         |
 | examples                         | This directory hosts example code                                                                                                                                                                                                                                                                                                                                                                                                                   | Nick         |
 | examples/example.py              | This is some basic example code on how to use my networking library                                                                                                                                                                                                                                                                                                                                                                                 | Nick         |

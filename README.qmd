@@ -28,21 +28,16 @@ This is the main directory.
 The repository has the following directory tree.
 
 ```{r}
-fs::dir_tree(recurse = 1)
+fs::dir_tree(recurse = FALSE)
 ```
 
 A short description of the directories can be found below.
 
-```{r, include=FALSE}
-folders <- fs::dir_ls(path = ".", type = "directory")
-
-for (folder in folders) {
-  description_file <- fs::path(folder, "README.md")
-  if (fs::file_exists(description_file)) {
-    cat(paste("#### Description for", folder), "\n\n")
-    description_content <- readLines(description_file)
-    cat(paste(description_content, collapse = "\n"), "\n\n")
-  }
-}
-
-```
+| name     | description                                                                                                          | contribution |
+|----------------|-----------------------------------------|----------------|
+| docs     | This directory hosts the files for the website                                                                       | Nick         |
+| firmware | This directory hosts the firmware                                                                                    | Nick         |
+| hardware | This directory hosts files and information about the hardware                                                        | Nick         |
+| software | This directory includes libraries, custom libraries and example code, such as the for example the networking library | Nick         |
+| overleaf | Latex Report Code                                                                                                    | Nick         |
+| rstudio  | R Code                                                                                                               | Nick         |
