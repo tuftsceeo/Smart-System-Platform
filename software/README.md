@@ -58,6 +58,12 @@ A short description of the directories can be found below.
 
 ### Helpful links:
 
+ESP-NOW <https://docs.micropython.org/en/latest/library/espnow.html>  
+Networking
+<https://docs.micropython.org/en/latest/library/network.html>  
+AP / WiFi
+<https://docs.micropython.org/en/latest/library/network.WLAN.html>
+
 <https://chrisrogers.pyscriptapps.com/nick-esp-now/latest/>
 
 <https://pyscript.com/@chrisrogers/nick-esp-now/latest?files=README.md,sample.py>

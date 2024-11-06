@@ -34,7 +34,7 @@ fs::dir_tree(recurse = FALSE)
 A short description of the directories can be found below.
 
 | name     | description                                                                                                          | contribution |
-|----------------|-----------------------------------------|----------------|
+|----------|----------------------------------------------------------------------------------------------------------------------|--------------|
 | docs     | This directory hosts the files for the website                                                                       | Nick         |
 | firmware | This directory hosts the firmware                                                                                    | Nick         |
 | hardware | This directory hosts files and information about the hardware                                                        | Nick         |
