@@ -1,5 +1,3 @@
-
-
 # Smart System Education Platform
 
 ## Location: /software/README.qmd
@@ -164,3 +162,4 @@ A short description of the directories can be found below.
     | MnS | This uses the networking code to control multiple smart motor using the sensor inputs of a “master” smart motor. The MAC is hard-coded. | Nick |
     | p2p | This uses the networking code to have smart motors use their partners sensor inputs. The MAC is hard-coded. If there is no stream of sensor data received from the partner, the smart motor reverts back and uses their own inputs. | Nick |
     | ping | Example code for pings and for returning pings (echo) | Nick | 
+    

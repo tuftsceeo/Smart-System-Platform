@@ -65,12 +65,12 @@ networking.aen.add_peer(peer_mac)
 #networking.aen.send(peer_mac, b'Boop')
 message = b'Boop'
 # networking.aen.send(peer_mac, message)
-networking.aen.send(peer_mac, message, 0x01, 0x10)
+networking.aen.ping(peer_mac)
 #networking.aen.remove_peer(peer_mac)
 
 def ping():
-    networking.aen.send(peer_mac, message, 0x01, 0x10)
-    print(f" RSSI Table at {time.ticks_ms()}: {networking.aen.get_rssi_table()}")
+    networking.aen.ping(peer_mac)
+    print(f" RSSI Table at {time.ticks_ms()}: {networking.aen.rssi()}")
 
 async def main():
     global boopedn
@@ -200,11 +200,11 @@ def action(pin):
                 return  #Prevent Scan from being spammed
             update_last_press_time()
             show_message(" Scanning...")
-            show_message(f" {len(networking.aen.get_rssi_table())} peers found!")
+            show_message(f" {len(networking.aen.rssi())} peers found!")
             asyncio.create_task(clear_message(message_id))
             show_list(clist, hindex)
         elif hindex == 1:
-            clist = list(networking.aen.peers.keys()) + ["Back"]
+            clist = list(networking.aen.peers().keys()) + ["Back"]
             mindex = 1
             hindex = 0
             show_list(clist, hindex)
@@ -218,7 +218,7 @@ def action(pin):
         else:
             selected_peer = clist[hindex]
             print(f" Booping: {selected_peer}")
-            networking.aen.send(peer_mac, message, 0x01, 0x13)
+            networking.aen.echo(peer_mac, message)
             boopn += 1
             show_list(clist, hindex)
             show_message(f"Booping {selected_peer}!")

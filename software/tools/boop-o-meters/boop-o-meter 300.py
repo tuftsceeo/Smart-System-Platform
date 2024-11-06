@@ -2,7 +2,7 @@ from machine import Pin, SoftI2C, PWM, ADC
 
 
 #custom libraries
-import networking
+from networking import Networking
 from secrets import codes
 
 #libraries
