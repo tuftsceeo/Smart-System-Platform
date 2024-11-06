@@ -1,6 +1,6 @@
 
 
-# Smart System Education Platfrom
+# Smart System Education Platform
 
 ## Location: /README.qmd
 
@@ -20,7 +20,6 @@ The repository has the following directory tree.
     ├── docs
     │   ├── README.md
     │   ├── README.qmd
-    │   ├── READMEdescription.md
     │   ├── community.html
     │   ├── images
     │   ├── index.html

@@ -9,21 +9,19 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Smart System Education Platfrom
+# Smart System Education Platform
+
 ```{r setup, include=FALSE}
-# Get the absolute file path
-file_path <- fs::path_real("README.qmd")  # Adjust as needed for your file path
-# Remove the first two folders
+file_path <- fs::path_real("README.qmd")
 path_components <- strsplit(file_path, "/")[[1]]
 shortened_path <- fs::path_join(path_components[-c(2, 3)])
 ```
-## Location: `r shortened_path `
+
+## Location: `r shortened_path`
 
 ### Description
-```{r, include=TRUE}
-#| child: .READMEdescription.md
-```
 
+This is the main directory.
 
 ### Directories & Files
 
@@ -36,19 +34,12 @@ fs::dir_tree(recurse = 1)
 A short description of the directories can be found below.
 
 ```{r, include=FALSE}
-# List all directories in the current folder
 folders <- fs::dir_ls(path = ".", type = "directory")
 
-# Loop through the directories and read the description.md file if it exists
 for (folder in folders) {
-  description_file <- fs::path(folder, "READMEdescription.md")
-  
-  # Check if description.md exists in the folder
+  description_file <- fs::path(folder, "README.md")
   if (fs::file_exists(description_file)) {
-    # Print the folder name as a header
     cat(paste("#### Description for", folder), "\n\n")
-    
-    # Read and print the content of description.md
     description_content <- readLines(description_file)
     cat(paste(description_content, collapse = "\n"), "\n\n")
   }

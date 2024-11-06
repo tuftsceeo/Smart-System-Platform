@@ -1,1 +1,0 @@
-This directory hosts the website.
