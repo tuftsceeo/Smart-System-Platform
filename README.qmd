@@ -1,3 +1,14 @@
+---
+format: gfm
+execute:
+  echo: false
+  message: false
+  warning: false
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
 # Directories & Files
 
 The repository has the following directory tree.
