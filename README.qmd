@@ -1,1 +1,7 @@
-```{r} fs::dir_tree() ```
+# Directories & Files
+
+The repository has the following directory tree.
+
+```{r}
+fs::dir_tree()
+```
