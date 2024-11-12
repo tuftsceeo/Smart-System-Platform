@@ -1,6 +1,5 @@
 import network
 import machine
-from config import mysecrets, configname
 import time
 import ubinascii
 import urequests
@@ -29,7 +28,7 @@ class Networking:
         self.aen = self.Aen(self)
         
         self.id = ubinascii.hexlify(machine.unique_id()).decode()
-        self.name = configname
+        self.name = None
         if self.name == "" or self.name == None:
             self.name = str(self.id)
         
