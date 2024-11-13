@@ -19,9 +19,12 @@ jobs:
         sudo dpkg -i quarto-1.2.269-linux-amd64.deb
 
     - name: Install R and Required Packages
+      env:
+        R_LIBS_USER: ~/R/library  # Define a writable library path
       run: |
         sudo apt-get update
         sudo apt-get install -y r-base
+        mkdir -p "$R_LIBS_USER"  # Create the library path if it doesn't exist
         Rscript -e 'install.packages(c("rmarkdown", "jsonlite"), repos="https://cloud.r-project.org")'
 
     - name: Render README.qmd files to README.md
