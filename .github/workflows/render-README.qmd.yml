@@ -23,9 +23,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y r-base
         mkdir -p ~/R/library  # Ensure the writable library path exists
-        Rscript -e 'install.packages(c("rmarkdown", "jsonlite"), lib="~/R/library", repos="https://cloud.r-project.org")'
+        Rscript -e 'install.packages("rmarkdown", lib="~/R/library", repos="https://cloud.r-project.org")'
+        Rscript -e 'install.packages("jsonlite", lib="~/R/library", repos="https://cloud.r-project.org")'
 
     - name: Render README.qmd files to README.md
+      env:
+        R_LIBS_USER: ~/R/library  # Ensure Quarto sees the correct library path
       run: |
         for file in $(find . -name 'README.qmd'); do
           # Render each README.qmd to README.md
