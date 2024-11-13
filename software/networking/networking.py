@@ -618,16 +618,30 @@ class Networking:
                 elif subtype == b'\x11': #Pair
                     self.master._iprint(f"Pairing command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     #if self._pairing == True:
+                    try:
                         # Insert pairing logic here
+                        self.master._iprint("no pairing logic written just yet")
+                        self._compose(sender_mac, ["Pair (\x11)", None], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e} with payload: {payload}")
+                        self._compose(sender_mac, ["Pair (\x11)", e, None], 0x03, 0x12)
                 elif subtype == b'\x12': #Change Mode to Firmware Update
                     self.master._iprint(f"Update command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    # Insert update logic here
+                    payload = __decode_payload(payload_type, payload)
+                    try:
+                        # Insert update logic here
+                        self.master._iprint("no update logic written just yet")
+                        self._compose(sender_mac, ["Update (\x12)", payload], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e} with payload: {payload}")
+                        self._compose(sender_mac, ["Update (\x12)", e, payload], 0x03, 0x12)
                 elif subtype == b'\x13': #RSSI Boop
                     self.boops = self.boops + 1
                     self.master._iprint(f"Boop command received from {sender_mac} ({self.peer_name(sender_mac)}), Received total of {self.boops} boops!")
                     self._compose(sender_mac, self.rssi(), 0x02, 0x20)
                 elif subtype == b'\x14': #Reboot
                     self.master._iprint(f"Reboot command received from {sender_mac} ({self.peer_name(sender_mac)})")
+                    self._compose(sender_mac, ["Reboot (\x14)", None], 0x03, 0x13)
                     machine.reset()
                 elif subtype == b'\x15': #Echo
                     self.master._iprint(f"Echo command received from {sender_mac} ({self.peer_name(sender_mac)}): {__decode_payload(payload_type, payload)}")#Check i or d
@@ -671,21 +685,41 @@ class Networking:
                 elif subtype == b'\x18': #Connect to WiFi
                     payload = __decode_payload(payload_type, payload) #should return a list of ssid and password
                     self.master._iprint("Received connect to wifi command")
-                    self.connect(payload[0], payload[1])
+                    try:
+                        self.connect(payload[0], payload[1])
+                        self._compose(sender_mac, ["WiFi connect (\x18)", payload], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e} with payload: {payload}")
+                        self._compose(sender_mac, ["WiFi connect (\x18)", e, payload], 0x03, 0x12)
                 elif subtype == b'\x19': #Disconnect from WiFi
                     self.master._iprint("Received disconnect from wifi command")
-                    self.disconnect()
+                    try:
+                        self.disconnect()
+                        self._compose(sender_mac, ["WiFi disconnect (\x19)", payload], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e}")
+                        self._compose(sender_mac, ["WiFi disconnect (\x19)", e, None], 0x03, 0x12)
                 elif subtype == b'\x20': #Enable AP
                     payload = __decode_payload(payload_type, payload) #should return a list of desired name, password an max clients
                     self.master._iprint("Received setup AP command")
-                    ssid = payload[0]
-                    if ssid == "":
-                        ssid = self.master.name
-                    password = payload[1]
-                    self.setap(ssid, password)
+                    try:
+                        ssid = payload[0]
+                        if ssid == "":
+                            ssid = self.master.name
+                        password = payload[1]
+                        self.setap(ssid, password)
+                        self._compose(sender_mac, ["Setup AP (\x20)", payload], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e} with payload: {payload}")
+                        self._compose(sender_mac, ["Setup AP (\x20)", e, payload], 0x03, 0x12)
                 elif subtype == b'\x21': #Disable AP
                     self.master._iprint("Received disable AP command")
-                    self.master.ap.deactivate()
+                    try:
+                        self.master.ap.deactivate()
+                        self._compose(sender_mac, ["Disable AP (\x21)", payload], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e}")
+                        self._compose(sender_mac, ["Disable AP (\x21)", e, None], 0x03, 0x12)
                 elif subtype == b'\x22': #Set Admin Bool
                     payload = __decode_payload(payload_type, payload) #should return a bool
                     self.master._iprint(f"Received set admin command: self.admin set to {payload}")
@@ -702,6 +736,19 @@ class Networking:
                     payload = __decode_payload(payload_type, payload) #should return a bool
                     self.master._iprint(f"Received set admin command: self.admin set to {payload}")
                     self.master._running = True
+                elif subtype == b'\x25': #Download github files
+                    payload = __decode_payload(payload_type, payload) #should return a list with a link and the list of files to download
+                    try:
+                        import mip
+                        base = payload[0]
+                        files_to_copy = payload[1]
+                        for f in files_to_copy:
+                            print("Installing: ", f)
+                            mip.install(base + f)
+                        self._compose(sender_mac, ["Github Download (\x25)", payload], 0x03, 0x11)
+                    except Exception as e:
+                        self.master._iprint(f"Error: {e} with payload: {payload}")
+                        self._compose(sender_mac, ["Github Download (\x25)", e, payload], 0x03, 0x12)
                 else:
                     self.vprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
@@ -713,22 +760,25 @@ class Networking:
                     #payload["time_recv"] = rtimestamp
                     self.master._iprint(f"RSSI data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
+                    #self._compose(sender_mac, ["RSSI (\x20)", payload], 0x03, 0x13) #confirm message recv
                 elif subtype == b'\x21': #Sensor Data
                     payload = __decode_payload(payload_type, payload)
                     payload["time_sent"] = stimestamp
                     payload["time_recv"] = rtimestamp
                     self.master._iprint(f"Sensor data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_sensor_data[sender_mac] = payload
+                    #self._compose(sender_mac, ["Sensor Data (\x21)", payload], 0x03, 0x13) #confirm message recv
                 elif subtype == b'\x22': #Message / Other
                     payloadlength = len(payload)
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Message received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, rtimestamp))
-                    self.received_messages_size.append(payloadlength)
-                    while len(self.received_messages) > 2048 or sum(self._received_messages_size) > 20000:
-                        self.master._dprint(f"Maximum buffer size reached: {len(self.received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
+                    self._received_messages_size.append(payloadlength)
+                    while len(self._received_messages) > 2048 or sum(self._received_messages_size) > 20000:
+                        self.master._dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
+                    #self._compose(sender_mac, ["Other (\x20)", payload], 0x03, 0x13) #confirm message recv
                 else:
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
@@ -738,12 +788,24 @@ class Networking:
                 if subtype == b'\x10': #Pong
                     info = __decode_payload(payload_type, payload)
                     self.add_peer(sender_mac, info[2], info[0], info[1])
-                    self.master._iprint(f"Pong received from {sender_mac} ({self.peer_name(sender_mac)}), {rtimestamp-info[3]}") #Always print this
+                    self.master._iprint(f"Pong received from {sender_mac} ({self.peer_name(sender_mac)}), {rtimestamp-info[3]}")
                 elif subtype == b'\x15': #Echo
-                    self.master._iprint(f"Echo received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}") #Always print this
-                else:    
+                    self.master._iprint(f"Echo received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}")
+                elif subtype == b'\x11': #Success
+                    payload = __decode_payload(payload_type, payload)  # should return a list with a cmd type and payload
+                    self.master._iprint(f"Success received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
+                    #add to ack buffer
+                elif subtype == b'\x12': #Fail
+                    payload = __decode_payload(payload_type, payload)  # should return a list with a cmd type, error and payload
+                    self.master._iprint(f"Command fail received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with error {payload[1]} and payload {payload[2]}")")
+                    #add to ack buffer
+                elif subtype == b'\x13': #Confirm
+                    payload = __decode_payload(payload_type,payload)  # should return a list with message type and payload
+                    self.master._iprint(f"Receive confirmation received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")")
+                    #add to ack buffer
+                else:
                     self.master._iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
-                # Insert more acknowledgement logic here add message to acknowledgement buffer
+                # Insert more acknowledgement logic here and/or add message to acknowledgement buffer
 
             if self._aen.any(): 
                 for sender_mac, data in self._aen:
@@ -753,7 +815,7 @@ class Networking:
                     if data:
                         rtimestamp = time.ticks_ms()
                         if sender_mac != None and data != None:
-                            #self.received_messages.append((sender_mac, data, rtimestamp))#Messages will be saved here, this is only for debugging purposes
+                            #self._received_messages.append((sender_mac, data, rtimestamp))#Messages will be saved here, this is only for debugging purposes
                             __process_message(sender_mac, data, rtimestamp)
                     if not self._aen.any():#this is necessary as the for loop gets stuck and does not exit properly.
                         break
