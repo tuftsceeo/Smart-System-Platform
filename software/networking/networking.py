@@ -773,9 +773,9 @@ class Networking:
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Message received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, rtimestamp))
-                    self.received_messages_size.append(payloadlength)
-                    while len(self.received_messages) > 2048 or sum(self._received_messages_size) > 20000:
-                        self.master._dprint(f"Maximum buffer size reached: {len(self.received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
+                    self._received_messages_size.append(payloadlength)
+                    while len(self._received_messages) > 2048 or sum(self._received_messages_size) > 20000:
+                        self.master._dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
                     #self._compose(sender_mac, ["Other (\x20)", payload], 0x03, 0x13) #confirm message recv
@@ -815,7 +815,7 @@ class Networking:
                     if data:
                         rtimestamp = time.ticks_ms()
                         if sender_mac != None and data != None:
-                            #self.received_messages.append((sender_mac, data, rtimestamp))#Messages will be saved here, this is only for debugging purposes
+                            #self._received_messages.append((sender_mac, data, rtimestamp))#Messages will be saved here, this is only for debugging purposes
                             __process_message(sender_mac, data, rtimestamp)
                     if not self._aen.any():#this is necessary as the for loop gets stuck and does not exit properly.
                         break
