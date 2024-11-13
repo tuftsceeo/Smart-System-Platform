@@ -3,7 +3,7 @@ name: Render QMD Files
 on:
   push:
     branches:
-      - main  # Adjust as needed
+      - dev/nick  # Adjust as needed
 
 jobs:
   render_qmd:
