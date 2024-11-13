@@ -1,5 +1,24 @@
-# README
 
-## `data/map_data`
 
-Map date and images used in the report are stored here. All of the maps were taken from https://maps.zh.ch/
+# Smart System Education Platform
+
+## Location: /hardware/README.qmd
+
+### Description
+
+This directory will host files about the smart system hardware.
+
+### Directories & Files
+
+The repository has the following directory tree.
+
+    .
+    ├── README.md
+    ├── README.qmd
+    └── README.rmarkdown
+
+A short description of the directories can be found below.
+
+| name | description | contribution |
+|------|-------------|--------------|
+| NA   | NA          | Nick         |

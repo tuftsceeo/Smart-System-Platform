@@ -21,23 +21,18 @@ shortened_path <- fs::path_join(path_components[-c(2, 3)])
 
 ### Description
 
-This directory hosts the website.
+This directory hosts the rstudio files.
 
 ### Directories & Files
 
 The repository has the following directory tree.
 
 ```{r}
-fs::dir_tree(recurse = FALSE)
+fs::dir_tree(recurse = 1)
 ```
 
 A short description of the directories can be found below.
 
-| name            | description            | contribution |
-|-----------------|------------------------|--------------|
-| index.html      | Main page              | Nick         |
-| mission.html    | Mission statement      | Nick         |
-| technology.html | Technology explanation | Nick         |
-| tools.html      | Tool links             | Nick         |
-| community.html  | Community              | Nick         |
-| start.html      | ...                    | Nick         |
+| name              | description                                                   | contribution |
+|-------------------|---------------------------------------------------------------|--------------|
+| exampleREADME.qmd | This is the example README used to generate all the README.md | Nick         |

@@ -13,10 +13,13 @@ This directory hosts used and useful libraries.
 The repository has the following directory tree.
 
     .
+    ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
     └── variableLED.py
 
 A short description of the directories can be found below.
 
-variableLED.py: variable LED library
+| name           | description                               | contribution |
+|----------------|-------------------------------------------|--------------|
+| variableLED.py | Library that powers the variable LED grid | Sophie       |

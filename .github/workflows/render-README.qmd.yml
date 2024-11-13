@@ -1,0 +1,36 @@
+name: Render QMD Files
+
+on:
+  push:
+    branches:
+      - main  # Adjust as needed
+
+jobs:
+  render_qmd:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Install Quarto
+      run: |
+        wget https://github.com/quarto-dev/quarto-cli/releases/download/v1.2.269/quarto-1.2.269-linux-amd64.deb
+        sudo dpkg -i quarto-1.2.269-linux-amd64.deb
+
+    - name: Render README.qmd files to README.md
+      run: |
+        for file in $(find . -name 'README.qmd'); do
+          # Render each README.qmd to README.md
+          quarto render "$file" --to markdown
+        done
+
+    - name: Commit and Push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add **/README.md
+        git commit -m "Render README.qmd files to README.md"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
