@@ -792,16 +792,16 @@ class Networking:
                 elif subtype == b'\x15': #Echo
                     self.master._iprint(f"Echo received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}")
                 elif subtype == b'\x11': #Success
-                    payload = __decode_payload(payload_type, payload)  # should return a list with a cmd type and payload
+                    payload = __decode_payload(payload_type, payload) # should return a list with a cmd type and payload
                     self.master._iprint(f"Success received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
                     #add to ack buffer
                 elif subtype == b'\x12': #Fail
-                    payload = __decode_payload(payload_type, payload)  # should return a list with a cmd type, error and payload
-                    self.master._iprint(f"Command fail received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with error {payload[1]} and payload {payload[2]}")")
+                    payload = __decode_payload(payload_type, payload) # should return a list with a cmd type, error and payload
+                    self.master._iprint(f"Command fail received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with error {payload[1]} and payload {payload[2]}")
                     #add to ack buffer
                 elif subtype == b'\x13': #Confirm
-                    payload = __decode_payload(payload_type,payload)  # should return a list with message type and payload
-                    self.master._iprint(f"Receive confirmation received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")")
+                    payload = __decode_payload(payload_type,payload) # should return a list with message type and payload
+                    self.master._iprint(f"Receive confirmation received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
                     #add to ack buffer
                 else:
                     self.master._iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
