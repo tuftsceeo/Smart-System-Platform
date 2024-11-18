@@ -11,11 +11,13 @@ import struct
 import json
 import random
 import sys
+import uos
+import os
 
 boottime = time.ticks_ms()
 
 class Networking:       
-    def __init__(self, infmsg=True, dbgmsg=False, admin=False):
+    def __init__(self, infmsg=True, dbgmsg=False, admin=True):
         self.master = self
         self.infmsg = infmsg
         self.dbgmsg = dbgmsg
@@ -32,6 +34,13 @@ class Networking:
         self.name = configname
         if self.name == "" or self.name == None:
             self.name = str(self.id)
+            
+    def _cleanup(self):
+        self._dprint("._cleanup")
+        self.aen.irq(None)
+        self.aen._aen.active(False)
+        self._staif.active(False)
+        self._apif.active(False)
         
     def _iprint(self, message):
         if self.infmsg:
@@ -189,14 +198,7 @@ class Networking:
             self._pairing = True
             self._running = True
             
-            if self.master._admin:
-                try:
-                    self._aen.irq(self._irq)
-                except KeyboardInterrupt:#Trigger should be disabled when ctrl. C-ing
-                    self._aen.irq(trigger=0)
-                    self._aen.irq(handler=None)
-            else:
-                self._aen.irq(self._irq)#Processes the messages asap after receiving them, this should not be interrupted by doing ctrl c
+            self._aen.irq(self._irq)
             
             self.master._iprint("ESP-NOW initialized and ready")
             
@@ -321,11 +323,35 @@ class Networking:
             
         def _irq(self, espnow):
             self.master._dprint("aen._irq")
-            self._receive()
-            if self._irq_function and self.check_messages() and self._isrunning:
-                self._irq_function()
-            gc.collect()
-            return
+            if self.master._admin:
+                try:
+                    self._receive()
+                    if self._irq_function and self.check_messages() and self._isrunning:
+                        self._irq_function()
+                    gc.collect()
+                    return
+                except KeyboardInterrupt:
+                    #machine.disable_irq() #throws errors
+                    self.master._iprint("aen._irq except KeyboardInterrupt") 
+                    #self._aen.irq(None) #does not work
+                    self._aen.active(False)
+                    #self.master._cleanup()
+                    raise SystemExit("Stopping networking execution. ctrl-c or ctrl-d again to stop main code") #in thonny stops library code but main code keeps running, same in terminal
+                    #self._isrunning = False
+                    #raise KeyboardInterrupt #error in thonny but then stops running, just keeps running in terminal
+                    #sys.exit(0) #breaks thonny, keeps running and recv (although ctl-d-able and keps running main loop in terminal
+                    #machine.reset() #nogo keeps raising errors and running in terminal
+                    #uos.sysexit() #raises an error in thonny but keeps running in terminal (althouzgh ctrl-d able)
+                    #raise SystemExit #stops current library script, but main script keeps running, but now it just keeps the main code running in terminal...
+                    #os.execv(sys.argv[0], sys.argv) #error in thonny, keeps running recv in terminal
+                    #raise Exception("An error occurred!") #error in thonny, and then stops running due to keyboard interrupt, keeps running recv and irq in terminal
+                    #raise KeyboardInterrupt("User interrupt simulated.") #interrupts library code, but main code keeps running, recv just keeps running in terminal
+            else:
+                self._receive()
+                if self._irq_function and self.check_messages() and self._isrunning:
+                    self._irq_function()
+                gc.collect()
+                return
         
         def irq(self, func):
             self.master._dprint("aen.irq")
@@ -819,7 +845,7 @@ class Networking:
                             __process_message(sender_mac, data, rtimestamp)
                     if not self._aen.any():#this is necessary as the for loop gets stuck and does not exit properly.
                         break
-                    
-           
+
+
 #message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
 #| Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp(ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
