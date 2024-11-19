@@ -17,7 +17,7 @@ import os
 boottime = time.ticks_ms()
 
 class Networking:       
-    def __init__(self, infmsg=True, dbgmsg=False, admin=True):
+    def __init__(self, infmsg=False, dbgmsg=False, admin=True):
         self.master = self
         self.infmsg = infmsg
         self.dbgmsg = dbgmsg
@@ -212,7 +212,7 @@ class Networking:
                         self._peers[peer_mac]['channel'] = channel
                     if ifidx  !=  None:
                         self._peers[peer_mac]['ifidx'] = ifidx
-                    self.master._iprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {name}")
+                    self.master._dprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {name}")
                 except OSError as e:
                     print(f"Error updating peer {peer_mac}: {e}")
                 return
