@@ -1,6 +1,7 @@
 import network
 import machine
-from config import mysecrets, configname
+from config import mysecrets, configname, config, whitelist, i2c_dict, version
+#from version import version
 import time
 import ubinascii
 import urequests
@@ -17,7 +18,7 @@ import os
 boottime = time.ticks_ms()
 
 class Networking:       
-    def __init__(self, infmsg=True, dbgmsg=False, admin=True):
+    def __init__(self, infmsg=False, dbgmsg=False, admin=False):
         self.master = self
         self.infmsg = infmsg
         self.dbgmsg = dbgmsg
@@ -34,6 +35,9 @@ class Networking:
         self.name = configname
         if self.name == "" or self.name == None:
             self.name = str(self.id)
+        self.config = config
+        self.version = version
+        self.version_n = ''.join(str(value) for value in self.version.values())
             
     def _cleanup(self):
         self._dprint("._cleanup")
@@ -194,6 +198,8 @@ class Networking:
             self.ifidx = 0 #0 sends via sta, 1 via ap
             #self._channel = 0
             
+            self._whitelist = whitelist
+            
             #Flags
             self._pairing = True
             self._running = True
@@ -212,7 +218,7 @@ class Networking:
                         self._peers[peer_mac]['channel'] = channel
                     if ifidx  !=  None:
                         self._peers[peer_mac]['ifidx'] = ifidx
-                    self.master._iprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {name}")
+                    self.master._dprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {name}")
                 except OSError as e:
                     print(f"Error updating peer {peer_mac}: {e}")
                 return
@@ -643,32 +649,57 @@ class Networking:
                     self._compose(sender_mac, response, 0x03, 0x10)
                 elif subtype == b'\x11': #Pair
                     self.master._iprint(f"Pairing command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    #if self._pairing == True:
-                    try:
-                        # Insert pairing logic here
-                        self.master._iprint("no pairing logic written just yet")
-                        self._compose(sender_mac, ["Pair (\x11)", None], 0x03, 0x11)
-                    except Exception as e:
-                        self.master._iprint(f"Error: {e} with payload: {payload}")
-                        self._compose(sender_mac, ["Pair (\x11)", e, None], 0x03, 0x12)
+                    payload = __decode_payload(payload_type, payload)
+                    if self._pairing == True:
+                        try:
+                            # Insert pairing logic here
+                            self.master._iprint("no pairing logic written just yet")
+                            self._compose(sender_mac, ["Pair (\x11)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e} with payload: {payload}")
+                            self._compose(sender_mac, ["Pair (\x11)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Pair (\x11)", "Pairing disabled", payload], 0x03, 0x12)
+                elif subtype == b'\x26': #Set Pair
+                    self.master._iprint(f"Pairing command received from {sender_mac} ({self.peer_name(sender_mac)})")
+                    payload = __decode_payload(payload_type, payload) #should be a list with a bool
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            self._pairing = payload[0]
+                            self._compose(sender_mac, ["Set Pair (\x11)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e} with payload: {payload}")
+                            self._compose(sender_mac, ["Set Pair (\x11)", e, payload], 0x03, 0x12)
+                    else:
+                        elf._compose(sender_mac, ["Set Pair (\x11)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x12': #Change Mode to Firmware Update
                     self.master._iprint(f"Update command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     payload = __decode_payload(payload_type, payload)
-                    try:
-                        # Insert update logic here
-                        self.master._iprint("no update logic written just yet")
-                        self._compose(sender_mac, ["Update (\x12)", payload], 0x03, 0x11)
-                    except Exception as e:
-                        self.master._iprint(f"Error: {e} with payload: {payload}")
-                        self._compose(sender_mac, ["Update (\x12)", e, payload], 0x03, 0x12)
-                elif subtype == b'\x13': #RSSI Boop
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            # Insert update logic here
+                            self.master._iprint("no update logic written just yet")
+                            self._compose(sender_mac, ["Update (\x12)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e} with payload: {payload}")
+                            self._compose(sender_mac, ["Update (\x12)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Update (\x12)", "Not authorised", payload], 0x03, 0x12)
+                elif subtype == b'\x13': #RSSI/Status/Config Boop
                     self.boops = self.boops + 1
                     self.master._iprint(f"Boop command received from {sender_mac} ({self.peer_name(sender_mac)}), Received total of {self.boops} boops!")
-                    self._compose(sender_mac, self.rssi(), 0x02, 0x20)
+                    try:
+                        self._compose(sender_mac, [self.master.id, self.master.name, self.master.config, self.master.version_n, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20) #[ID, Name, Config, Version, sta mac, ap mac, rssi]
+                    except Exception as e:
+                        self._compose(sender_mac, ["RSSI Boop (\x13)", e, payload], 0x03, 0x12)
                 elif subtype == b'\x14': #Reboot
                     self.master._iprint(f"Reboot command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    self._compose(sender_mac, ["Reboot (\x14)", None], 0x03, 0x13)
-                    machine.reset()
+                    payload = __decode_payload(payload_type, payload)
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        self._compose(sender_mac, ["Reboot (\x14)", payload], 0x03, 0x13)
+                        machine.reset()
+                    else:
+                        self._compose(sender_mac, ["Reboot (\x14)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x15': #Echo
                     self.master._iprint(f"Echo command received from {sender_mac} ({self.peer_name(sender_mac)}): {__decode_payload(payload_type, payload)}")#Check i or d
                     self._compose(sender_mac, payload, 0x03, 0x15)
@@ -711,72 +742,137 @@ class Networking:
                 elif subtype == b'\x18': #Connect to WiFi
                     payload = __decode_payload(payload_type, payload) #should return a list of ssid and password
                     self.master._iprint("Received connect to wifi command")
-                    try:
-                        self.connect(payload[0], payload[1])
-                        self._compose(sender_mac, ["WiFi connect (\x18)", payload], 0x03, 0x11)
-                    except Exception as e:
-                        self.master._iprint(f"Error: {e} with payload: {payload}")
-                        self._compose(sender_mac, ["WiFi connect (\x18)", e, payload], 0x03, 0x12)
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            self.connect(payload[0], payload[1])
+                            self._compose(sender_mac, ["WiFi connect (\x18)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e} with payload: {payload}")
+                            self._compose(sender_mac, ["WiFi connect (\x18)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["WiFi connect (\x18)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x19': #Disconnect from WiFi
                     self.master._iprint("Received disconnect from wifi command")
-                    try:
-                        self.disconnect()
-                        self._compose(sender_mac, ["WiFi disconnect (\x19)", payload], 0x03, 0x11)
-                    except Exception as e:
-                        self.master._iprint(f"Error: {e}")
-                        self._compose(sender_mac, ["WiFi disconnect (\x19)", e, None], 0x03, 0x12)
+                    payload = __decode_payload(payload_type, payload)
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            self.disconnect()
+                            self._compose(sender_mac, ["WiFi disconnect (\x19)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e}")
+                            self._compose(sender_mac, ["WiFi disconnect (\x19)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["WiFi disconnect (\x19)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x20': #Enable AP
                     payload = __decode_payload(payload_type, payload) #should return a list of desired name, password an max clients
                     self.master._iprint("Received setup AP command")
-                    try:
-                        ssid = payload[0]
-                        if ssid == "":
-                            ssid = self.master.name
-                        password = payload[1]
-                        self.setap(ssid, password)
-                        self._compose(sender_mac, ["Setup AP (\x20)", payload], 0x03, 0x11)
-                    except Exception as e:
-                        self.master._iprint(f"Error: {e} with payload: {payload}")
-                        self._compose(sender_mac, ["Setup AP (\x20)", e, payload], 0x03, 0x12)
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            ssid = payload[0]
+                            if ssid == "":
+                                ssid = self.master.name
+                            password = payload[1]
+                            self.setap(ssid, password)
+                            self._compose(sender_mac, ["Setup AP (\x20)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e} with payload: {payload}")
+                            self._compose(sender_mac, ["Setup AP (\x20)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Setup AP (\x20)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x21': #Disable AP
                     self.master._iprint("Received disable AP command")
-                    try:
-                        self.master.ap.deactivate()
-                        self._compose(sender_mac, ["Disable AP (\x21)", payload], 0x03, 0x11)
-                    except Exception as e:
-                        self.master._iprint(f"Error: {e}")
-                        self._compose(sender_mac, ["Disable AP (\x21)", e, None], 0x03, 0x12)
+                    payload = __decode_payload(payload_type, payload) #should return a list of desired name, password an max clients
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            self.master.ap.deactivate()
+                            self._compose(sender_mac, ["Disable AP (\x21)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e}")
+                            self._compose(sender_mac, ["Disable AP (\x21)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Disable AP (\x21)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x22': #Set Admin Bool
-                    payload = __decode_payload(payload_type, payload) #should return a bool
-                    self.master._iprint(f"Received set admin command: self.admin set to {payload}")
-                    self.master._admin = payload
+                    payload = __decode_payload(payload_type, payload) #should return a bool in a list
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        self.master._iprint(f"Received set admin command: self.admin set to {payload[0]}")
+                        try:
+                            self.master._admin = payload[0]
+                            self._compose(sender_mac, ["Set Admin Bool (\x21)", "Success", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self._compose(sender_mac, ["Set Admin Bool (\x21)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Set Admin Bool (\x21)", "Not authorised", payload], 0x03, 0x12)
+                elif subtype == b'\x27': #Add Admin macs to _whitelist
+                    payload = __decode_payload(payload_type, payload) #should return a bool in a list
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        self.master._iprint(f"Received add admin macs to _whitelist command, added {payload[0]} and {payload[1]}")
+                        try:
+                            self._whitelist.append(payload[0])
+                            self._whitelist.append(payload[1])
+                            self._compose(sender_mac, ["Add admin macs to _whitelist (\x27)", "Success", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self._compose(sender_mac, ["Add admin macs to _whitelist (\x27)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Add admin macs to _whitelist (\x27)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x23': #Set Pause
                     payload = __decode_payload(payload_type, payload) #should return a bool
-                    self.master._iprint(f"Received set admin command: self.admin set to {payload}")
-                    self._running = False
-                    if self._pause_function:
-                        self._pause_function() #calls the custom set pause function to display a screen
-                    while not self._running:
-                        sleep(0.1)
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            self.master._iprint(f"Received pause command: {payload[0]}")
+                            self._running = False
+                            self._compose(sender_mac, ["Set Pause (\x23)", "Success", payload], 0x03, 0x11)
+                            if self._pause_function:
+                                self._pause_function() #calls the custom set pause function to display a screen
+                            while not self._running:
+                                sleep(0.5)
+                        except Exception as e:
+                            self._compose(sender_mac, ["Set Pause (\x23)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Set Pause (\x23)", "Not authorised", payload], 0x03, 0x12)
                 elif subtype == b'\x24': #Set Continue
                     payload = __decode_payload(payload_type, payload) #should return a bool
-                    self.master._iprint(f"Received set admin command: self.admin set to {payload}")
-                    self.master._running = True
-                elif subtype == b'\x25': #Download github files
+                    if sender_mac in self._whitelist or payload == "sudo" or payload[-1] == "sudo":
+                        try:
+                            self.master._iprint(f"Received continue command: {payload}")
+                            self.master._running = True
+                            self._compose(sender_mac, ["Set Continue (\x23)", "Success", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self._compose(sender_mac, ["Set Continue (\x23)", e, payload], 0x03, 0x12)
+                    else:
+                        self._compose(sender_mac, ["Set Continue (\x23)", "Not authorised", payload], 0x03, 0x12)
+                elif subtype == b'\x25': #Download github files  
+                    self.master._iprint(f"Received download files command")
                     payload = __decode_payload(payload_type, payload) #should return a list with a link and the list of files to download
+                    if sender_mac in self._whitelist or payload[-1] == "sudo":   
+                        try:
+                            import mip
+                            base = payload[0]
+                            files_to_copy = payload[1]
+                            for f in files_to_copy:
+                                print("Installing: ", f)
+                                mip.install(base + f)
+                            self._compose(sender_mac, ["Github Download (\x25)", payload], 0x03, 0x11)
+                        except Exception as e:
+                            self.master._iprint(f"Error: {e} with payload: {payload}")
+                            self._compose(sender_mac, ["Github Download (\x25)", e, payload], 0x03, 0x12)
+                    else: 
+                        self._compose(sender_mac, ["Github Download (\x25)", "Not authorised", payload], 0x03, 0x12)
+                elif subtype == b'\x28': #Get List of Files 
+                    self.master._iprint(f"Received list files command")   
                     try:
-                        import mip
-                        base = payload[0]
-                        files_to_copy = payload[1]
-                        for f in files_to_copy:
-                            print("Installing: ", f)
-                            mip.install(base + f)
-                        self._compose(sender_mac, ["Github Download (\x25)", payload], 0x03, 0x11)
+                        result = []
+                        entries = os.listdir()
+                        for entry in entries:
+                            full_path = f"{path}/{entry}"
+                            if os.stat(full_path)[0] & 0x4000:
+                                result.extend(list_all_paths(full_path))
+                            else:
+                                result.append(full_path)
+                            self._compose(sender_mac, result, 0x02, 0x20)
                     except Exception as e:
-                        self.master._iprint(f"Error: {e} with payload: {payload}")
-                        self._compose(sender_mac, ["Github Download (\x25)", e, payload], 0x03, 0x12)
+                        self._compose(sender_mac, ["List files (\x28)", e, payload], 0x03, 0x12)
                 else:
-                    self.vprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
+                    self.master._iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_inf(sender_mac, subtype, stimestamp, rtimestamp, payload_type, payload):
                 self.master._dprint("aen.__inf")
@@ -804,7 +900,11 @@ class Networking:
                         self.master._dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
-                    #self._compose(sender_mac, ["Other (\x20)", payload], 0x03, 0x13) #confirm message recv
+                    #self._compose(sender_mac, ["Other (\x22)", payload], 0x03, 0x13) #confirm message recv
+                elif subtype == b'\x23': #File Directory
+                    payload = __decode_payload(payload_type, payload)
+                    self.master._iprint(f"Directory received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
+                    #self._compose(sender_mac, ["Other (\x23)", payload], 0x03, 0x13) #confirm message recv
                 else:
                     payload = __decode_payload(payload_type, payload)
                     self.master._iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
@@ -825,7 +925,7 @@ class Networking:
                     payload = __decode_payload(payload_type, payload) # should return a list with a cmd type, error and payload
                     self.master._iprint(f"Command fail received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with error {payload[1]} and payload {payload[2]}")
                     #add to ack buffer
-                elif subtype == b'\x13': #Confirm
+                elif subtype == b'\x13': #Confirmation
                     payload = __decode_payload(payload_type,payload) # should return a list with message type and payload
                     self.master._iprint(f"Receive confirmation received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
                     #add to ack buffer
