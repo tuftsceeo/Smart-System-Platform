@@ -8,7 +8,7 @@ import time
 from networking import Networking
 
 #Network
-networking = Networking(False, False, True)
+networking = Networking(True, False, True)
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
 print(f"Name: {networking.name}, ID: {networking.id}, config: {networking.config}, Sta mac: {networking.sta.mac()}, Ap mac: {networking.ap.mac()}, Version: {networking.version_n}")
