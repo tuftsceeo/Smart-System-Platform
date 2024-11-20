@@ -8,9 +8,10 @@ import time
 from networking import Networking
 
 #Network
-networking = Networking(False, False, True)
+networking = Networking()
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
+print("Running default networking tool")
 print(f"Name: {networking.name}, ID: {networking.id}, config: {networking.config}, Sta mac: {networking.sta.mac()}, Ap mac: {networking.ap.mac()}, Version: {networking.version_n}")
 
 
@@ -39,5 +40,3 @@ while True:
     print(f"{int(time.ticks_ms()-start_time)/1000}: {gc.mem_free()} bytes")
     time.sleep(1)
     gc.collect()
-
-
