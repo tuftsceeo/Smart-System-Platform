@@ -1,6 +1,5 @@
 import os
 from machine import Pin
-import asyncio
 import gc
 gc.collect()
 
@@ -37,12 +36,7 @@ switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
-async def main_loop():
-    while True:
-        print(f"{int(time.ticks_ms() - start_time) / 1000}: {gc.mem_free()} bytes")
-        gc.collect()
-        await asyncio.sleep(1)
-
-asyncio.run(main_loop())
-
-
+while True:
+    print(f"{int(time.ticks_ms()-start_time)/1000}: {gc.mem_free()} bytes")
+    time.sleep(1)
+    gc.collect()
