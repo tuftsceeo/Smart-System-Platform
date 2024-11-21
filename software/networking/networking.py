@@ -1,7 +1,6 @@
 import network
 import machine
 from config import mysecrets, configname, config, whitelist, i2c_dict, version
-#from version import version
 import time
 import ubinascii
 import urequests
@@ -10,15 +9,15 @@ import gc
 import asyncio
 import struct
 import json
-import random
-import sys
-import uos
 import os
 
-boottime = time.ticks_ms()
+inittime = time.ticks_ms()
 
 class Networking:       
     def __init__(self, infmsg=False, dbgmsg=False, admin=False):
+        self.inittime = inittime
+        if infmsg:
+            print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Networking")
         self.master = self
         self.infmsg = infmsg
         self.dbgmsg = dbgmsg
@@ -38,6 +37,8 @@ class Networking:
         self.config = config
         self.version = version
         self.version_n = ''.join(str(value) for value in self.version.values())
+        if infmsg:
+            print(f"{(time.ticks_ms() - inittime) / 1000:.3f} seconds: Networking initialised and ready")
             
     def _cleanup(self):
         self._dprint("._cleanup")
@@ -49,17 +50,17 @@ class Networking:
     def _iprint(self, message):
         if self.infmsg:
             try:
-                print(f"{int((time.ticks_ms()-boottime))//1/1000} networking Info: {message}")
+                print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Networking Info: {message}")
             except Exception as e:
-                print(f"Error printing networking Info: {2}")
+                print(f"Error printing networking Info: {e}")
         return
             
     def _dprint(self, message):
         if self.dbgmsg:
             try:
-                print(f"{int((time.ticks_ms()-boottime))//1/1000} networking Debug: {message}")
+                print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Networking Debug: {message}")
             except Exception as e:
-                print(f"Error printing networking Debug: {2}")
+                print(f"Error printing networking Debug: {e}")
         return
     
     
@@ -69,7 +70,7 @@ class Networking:
             self.master = master
             self._sta = _staif
             self._sta.active(True)
-            self.master._iprint("STA initialized and ready")
+            self.master._iprint("STA initialised and ready")
             
         def scan(self):
             self.master._dprint("sta.scan")
@@ -135,7 +136,7 @@ class Networking:
             self.master = master
             self._ap = _apif
             self._ap.active(True)
-            self.master._iprint("AP initialized and ready")
+            self.master._iprint("AP initialised and ready")
         
         def set_ap(self, name="", password="", max_clients=10):
             self.master._dprint("ap.setap")
@@ -206,7 +207,7 @@ class Networking:
             
             self._aen.irq(self._irq)
             
-            self.master._iprint("ESP-NOW initialized and ready")
+            self.master._iprint("ESP-NOW initialised and ready")
             
         def update_peer(self, peer_mac, name=None, channel=None, ifidx=None):
             self.master._dprint("aen.update_peer")
@@ -332,7 +333,7 @@ class Networking:
             if self.master._admin:
                 try:
                     self._receive()
-                    if self._irq_function and self.check_messages() and self._isrunning:
+                    if self._irq_function and self.check_messages() and self._running:
                         self._irq_function()
                     gc.collect()
                     return
@@ -343,7 +344,7 @@ class Networking:
                     self._aen.active(False)
                     #self.master._cleanup()
                     raise SystemExit("Stopping networking execution. ctrl-c or ctrl-d again to stop main code") #in thonny stops library code but main code keeps running, same in terminal
-                    #self._isrunning = False
+                    #self._running = False
                     #raise KeyboardInterrupt #error in thonny but then stops running, just keeps running in terminal
                     #sys.exit(0) #breaks thonny, keeps running and recv (although ctl-d-able and keps running main loop in terminal
                     #machine.reset() #nogo keeps raising errors and running in terminal
@@ -354,7 +355,7 @@ class Networking:
                     #raise KeyboardInterrupt("User interrupt simulated.") #interrupts library code, but main code keeps running, recv just keeps running in terminal
             else:
                 self._receive()
-                if self._irq_function and self.check_messages() and self._isrunning:
+                if self._irq_function and self.check_messages() and self._running:
                     self._irq_function()
                 gc.collect()
                 return
