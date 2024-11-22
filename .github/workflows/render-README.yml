@@ -1,7 +1,7 @@
 name: Render README.qmd to Markdown
 
 on:
-  push:
+  push: # Trigger on every push to the repository
     branches:
       - '**' # Tracks all branches; you can restrict this to main if needed
 
@@ -16,15 +16,9 @@ jobs:
     - name: Set up Quarto
       uses: quarto-dev/quarto-actions/setup@v2
 
-    - name: Render README.qmd to Markdown
-      uses: quarto-dev/quarto-actions/render@v2
-      with:
-        to: markdown
-        path: . 
-
-    - name: Rename README.qmd output to README.md
+    - name: Find and Render README.qmd Files
       run: |
+        # Find all README.qmd files and render them to Markdown
         find . -name "README.qmd" | while read qmd_file; do
-          md_file="${qmd_file%.qmd}.md" # Replace .qmd with .md
-          mv "${qmd_file%.qmd}.md" "$md_file"
+          quarto render "$qmd_file" --to markdown
         done
