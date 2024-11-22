@@ -1,0 +1,30 @@
+name: Render README.qmd to Markdown
+
+on:
+  push:
+    branches:
+      - '**' # Tracks all branches; you can restrict this to main if needed
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Quarto
+      uses: quarto-dev/quarto-actions/setup@v2
+
+    - name: Render README.qmd to Markdown
+      uses: quarto-dev/quarto-actions/render@v2
+      with:
+        to: markdown
+        path: . 
+
+    - name: Rename README.qmd output to README.md
+      run: |
+        find . -name "README.qmd" | while read qmd_file; do
+          md_file="${qmd_file%.qmd}.md" # Replace .qmd with .md
+          mv "${qmd_file%.qmd}.md" "$md_file"
+        done
