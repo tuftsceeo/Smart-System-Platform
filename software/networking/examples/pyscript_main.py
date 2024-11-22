@@ -37,7 +37,7 @@ switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
 def heartbeat(timer):
     print("")
-    print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: {gc.mem_free()} bytes")
+    print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
     print("")
     gc.collect()
 
