@@ -3,7 +3,7 @@ name: Render README.qmd to Markdown
 on:
   push:
     branches:
-      - dev/nick
+      - stage
 
 jobs:
   render:
@@ -41,8 +41,10 @@ jobs:
         git add .
         git commit -m "Render README.qmd files to Markdown [skip ci]" || echo "No changes to commit"
         
-        # Set up authentication for git push
+        git fetch origin
+        git checkout stage || git checkout -b stage
+        
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
         
-        git push origin main
+        git push origin stage
     
