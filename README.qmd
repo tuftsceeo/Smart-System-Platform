@@ -33,7 +33,7 @@ cat(fs::dir_tree(recurse = FALSE))
 ```
 
 A short description of the directories can be found below.
-```{r echo=FALSE}
+
 | name     | description                                                                                                          | contribution |
 |----------|----------------------------------------------------------------------------------------------------------------------|--------------|
 | docs     | This directory hosts the files for the website                                                                       | Nick         |
@@ -42,4 +42,3 @@ A short description of the directories can be found below.
 | software | This directory includes libraries, custom libraries and example code, such as the for example the networking library | Nick         |
 | overleaf | Latex Report Code                                                                                                    | Nick         |
 | rstudio  | R Code                                                                                                               | Nick         |
-```
