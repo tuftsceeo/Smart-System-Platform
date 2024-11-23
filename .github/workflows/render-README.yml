@@ -20,7 +20,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y r-base
-        Rscript -e 'install.packages(c("knitr", "rmarkdown"), repos = "https://cloud.r-project.org/")'
+        R_LIBS_USER=$HOME/R/library Rscript -e 'dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE); install.packages(c("knitr", "rmarkdown"), repos = "https://cloud.r-project.org/")'
 
     - name: Find and Render README.qmd Files
       run: |
