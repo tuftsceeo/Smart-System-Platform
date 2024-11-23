@@ -1,8 +1,17 @@
-
+---
+editor: visual
+editor_options:
+  chunk_output_type: console
+execute:
+  echo: false
+  message: false
+  warning: false
+toc-title: Table of contents
+---
 
 # Smart System Education Platform
 
-## Location: /README.qmd
+## Location: /work/Smart-System-Platform/Smart-System-Platform/README.qmd
 
 ### Description
 
@@ -12,6 +21,8 @@ This is the main directory.
 
 The repository has the following directory tree.
 
+:::: cell
+::: {.cell-output .cell-output-stdout}
     .
     ├── LICENSE
     ├── README.md
@@ -24,14 +35,26 @@ The repository has the following directory tree.
     ├── project.Rproj
     ├── rstudio
     └── software
+:::
+::::
 
 A short description of the directories can be found below.
 
-| name | description | contribution |
-|----|----|----|
-| docs | This directory hosts the files for the website | Nick |
-| firmware | This directory hosts the firmware | Nick |
-| hardware | This directory hosts files and information about the hardware | Nick |
-| software | This directory includes libraries, custom libraries and example code, such as the for example the networking library | Nick |
-| overleaf | Latex Report Code | Nick |
-| rstudio | R Code | Nick |
+  -------------------------------------------------------------------------------------
+  name       description                                                 contribution
+  ---------- ----------------------------------------------------------- --------------
+  docs       This directory hosts the files for the website              Nick
+
+  firmware   This directory hosts the firmware                           Nick
+
+  hardware   This directory hosts files and information about the        Nick
+             hardware                                                    
+
+  software   This directory includes libraries, custom libraries and     Nick
+             example code, such as the for example the networking        
+             library                                                     
+
+  overleaf   Latex Report Code                                           Nick
+
+  rstudio    R Code                                                      Nick
+  -------------------------------------------------------------------------------------

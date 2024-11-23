@@ -21,7 +21,7 @@ This directory hosts the rstudio files.
 
 The repository has the following directory tree.
 
-::: cell
+:::: cell
 ::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
@@ -29,7 +29,7 @@ The repository has the following directory tree.
     ├── README.rmarkdown
     └── exampleREADME.qmd
 :::
-:::
+::::
 
 A short description of the directories can be found below.
 

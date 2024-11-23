@@ -21,7 +21,7 @@ This directory hosts the website.
 
 The repository has the following directory tree.
 
-::: cell
+:::: cell
 ::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
@@ -35,7 +35,7 @@ The repository has the following directory tree.
     ├── technology.html
     └── tools.html
 :::
-:::
+::::
 
 A short description of the directories can be found below.
 

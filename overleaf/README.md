@@ -21,14 +21,14 @@ This directory hosts the latex thesis report.
 
 The repository has the following directory tree.
 
-::: cell
+:::: cell
 ::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
     ├── README.qmd
     └── README.rmarkdown
 :::
-:::
+::::
 
 A short description of the directories can be found below.
 

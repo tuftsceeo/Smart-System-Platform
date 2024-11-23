@@ -21,7 +21,7 @@ This directory hosts code for the smart modules.
 
 The repository has the following directory tree.
 
-::: cell
+:::: cell
 ::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
@@ -33,6 +33,7 @@ The repository has the following directory tree.
     │   ├── README.qmd
     │   ├── boop-o-meters
     │   ├── display
+    │   ├── githubfiledownload
     │   ├── p2p
     │   └── ping
     ├── archive
@@ -58,7 +59,7 @@ The repository has the following directory tree.
         ├── examples
         └── networking.py
 :::
-:::
+::::
 
 A short description of the directories can be found below.
 
