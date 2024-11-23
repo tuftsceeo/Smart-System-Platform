@@ -13,18 +13,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install R and Required Packages
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y r-base
-        Rscript -e 'if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", repos = "https://cloud.r-project.org/")'
-        Rscript -e 'if (!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr", repos = "https://cloud.r-project.org/")'
-
     - name: Set up Quarto
       uses: quarto-dev/quarto-actions/setup@v2
 
-    - name: Find and Render README.qmd Files
+    - name: Find README.qmd Files
+      id: find-files
       run: |
-        find . -name "README.qmd" | while read qmd_file; do
-          quarto render "$qmd_file" --to markdown
+        files=$(find . -name "README.qmd")
+        if [ -z "$files" ]; then
+          echo "No README.qmd files found."
+          exit 0
+        fi
+        echo "::set-output name=files::$files"
+      shell: bash
+
+    - name: Render Files
+      if: steps.find-files.outputs.files != ''
+      run: |
+        for file in ${{ steps.find-files.outputs.files }}; do
+          quarto render "$file" --to markdown
         done
