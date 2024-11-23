@@ -28,8 +28,8 @@ jobs:
     - name: Find and Render README.qmd Files 
       run: |
         find . -name "README.qmd" | while read qmd_file; do
-          # quarto render "$qmd_file" --to markdown
-          rmarkdown::render(qmd_file)
+          quarto render "$qmd_file" --to markdown
+          # rmarkdown::render(qmd_file)
         done
 
     - name: Commit and Push Rendered Files
