@@ -11,7 +11,7 @@ toc-title: Table of contents
 
 # Smart System Education Platform
 
-## Location: Smart-System-Platform/Smart-System-Platform/README.qmd
+## Location: work/Smart-System-Platform/Smart-System-Platform/README.qmd
 
 ### Description
 
@@ -35,6 +35,7 @@ The repository has the following directory tree.
     ├── project.Rproj
     ├── rstudio
     └── software
+    LICENSE README.md README.qmd README.rmarkdown docs firmware hardware overleaf project.Rproj rstudio software
 :::
 ::::
 
