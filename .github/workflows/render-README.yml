@@ -3,7 +3,7 @@ name: Render README.qmd to Markdown
 on:
   push:
     branches:
-      - dev/nick
+      - stage
 
 jobs:
   render:
@@ -25,9 +25,10 @@ jobs:
     - name: Set up Quarto
       uses: quarto-dev/quarto-actions/setup@v2
 
-    - name: Find and Render README.qmd Files # quarto render "$qmd_file" --to markdown
+    - name: Find and Render README.qmd Files 
       run: |
         find . -name "README.qmd" | while read qmd_file; do
+          # quarto render "$qmd_file" --to markdown
           rmarkdown::render(qmd_file)
         done
 
@@ -39,9 +40,11 @@ jobs:
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         git add .
         git commit -m "Render README.qmd files to Markdown [skip ci]" || echo "No changes to commit"
+
+        git fetch origin
+        git checkout stage || git checkout -b stage
         
-        # Set up authentication for git push
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
         
-        git push origin main
+        git push origin stage
     
