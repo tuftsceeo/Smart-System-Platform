@@ -11,7 +11,7 @@ toc-title: Table of contents
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/README.qmd
+## Location: Smart-System-Platform/Smart-System-Platform/README.qmd
 
 ### Description
 
