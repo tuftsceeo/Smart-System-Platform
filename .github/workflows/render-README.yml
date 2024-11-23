@@ -3,7 +3,7 @@ name: Render README.qmd to Markdown
 on:
   push: # Trigger on every push to the repository
     branches:
-      - '**' # Tracks all branches; you can restrict this to main if needed
+      - '**' # Tracks all branches; restrict if needed
 
 jobs:
   render:
@@ -15,6 +15,12 @@ jobs:
 
     - name: Set up Quarto
       uses: quarto-dev/quarto-actions/setup@v2
+
+    - name: Install R and Required Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y r-base
+        Rscript -e 'install.packages(c("knitr", "rmarkdown"), repos = "https://cloud.r-project.org/")'
 
     - name: Find and Render README.qmd Files
       run: |
