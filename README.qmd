@@ -28,7 +28,7 @@ This is the main directory.
 
 The repository has the following directory tree.
 
-```{r echo=FALSE}
+```{r echo=FALSE, results='asis'}
 cat(fs::dir_tree(recurse = FALSE))
 ```
 
