@@ -16,15 +16,8 @@ jobs:
     - name: Set up Quarto
       uses: quarto-dev/quarto-actions/setup@v2
 
-    - name: Install R and Required Packages
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y r-base
-        R_LIBS_USER=$HOME/R/library Rscript -e 'dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE); install.packages(c("knitr", "rmarkdown"), repos = "https://cloud.r-project.org/")'
-
     - name: Find and Render README.qmd Files
-      run: |
-        # Find all README.qmd files and render them to Markdown
+      run:
         find . -name "README.qmd" | while read qmd_file; do
           quarto render "$qmd_file" --to markdown
         done
