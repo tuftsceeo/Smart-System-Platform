@@ -3,7 +3,7 @@ name: Render README.qmd to Markdown
 on:
   push:
     branches:
-      - stage
+      - main
 
 jobs:
   render:
@@ -28,8 +28,7 @@ jobs:
     - name: Find and Render README.qmd Files 
       run: |
         find . -name "README.qmd" | while read qmd_file; do
-          # quarto render "$qmd_file" --to markdown
-          rmarkdown::render(qmd_file)
+          quarto render "$qmd_file" --to gfm
         done
 
     - name: Commit and Push Rendered Files
@@ -39,12 +38,11 @@ jobs:
         git config --local user.name "$GITHUB_ACTOR"
         git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
         git add .
-        git commit -m "Render README.qmd files to Markdown [skip ci]" || echo "No changes to commit"
+        git commit -m "Render README.qmd files to gfm" || echo "No changes to commit"
 
         git fetch origin
-        git checkout stage || git checkout -b stage
+        #git checkout stage || git checkout -b stage
         
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
         
-        git push origin stage
-    
+        git push origin main

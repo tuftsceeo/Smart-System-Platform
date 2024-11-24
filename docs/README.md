@@ -1,17 +1,8 @@
----
-editor: visual
-editor_options:
-  chunk_output_type: console
-execute:
-  echo: false
-  message: false
-  warning: false
-toc-title: Table of contents
----
+
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/docs/README.qmd
+## Location: /runner/work/Smart-System-Platform/docs/README.qmd
 
 ### Description
 
@@ -21,8 +12,6 @@ This directory hosts the website.
 
 The repository has the following directory tree.
 
-::: cell
-::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
     ├── README.qmd
@@ -34,16 +23,14 @@ The repository has the following directory tree.
     ├── start.html
     ├── technology.html
     └── tools.html
-:::
-:::
 
 A short description of the directories can be found below.
 
-  name              description              contribution
-  ----------------- ------------------------ --------------
-  index.html        Main page                Nick
-  mission.html      Mission statement        Nick
-  technology.html   Technology explanation   Nick
-  tools.html        Tool links               Nick
-  community.html    Community                Nick
-  start.html        ...                      Nick
+| name            | description            | contribution |
+|-----------------|------------------------|--------------|
+| index.html      | Main page              | Nick         |
+| mission.html    | Mission statement      | Nick         |
+| technology.html | Technology explanation | Nick         |
+| tools.html      | Tool links             | Nick         |
+| community.html  | Community              | Nick         |
+| start.html      | …                      | Nick         |

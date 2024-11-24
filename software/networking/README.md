@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /software/networking/README.qmd
+## Location: /work/Smart-System-Platform/Smart-System-Platform/software/networking/README.qmd
 
 ### Description
 
@@ -28,8 +28,10 @@ The repository has the following directory tree.
     ├── README.rmarkdown
     ├── config.py
     ├── examples
+    │   ├── default_main.py
     │   ├── example.py
-    │   └── long_message_example.py
+    │   ├── long_message_example.py
+    │   └── pyscript_main.py
     └── networking.py
 
 A short description of the directories can be found below.

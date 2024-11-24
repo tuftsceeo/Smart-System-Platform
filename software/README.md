@@ -1,17 +1,8 @@
----
-editor: visual
-editor_options:
-  chunk_output_type: console
-execute:
-  echo: false
-  message: false
-  warning: false
-toc-title: Table of contents
----
+
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/software/README.qmd
+## Location: /runner/work/Smart-System-Platform/software/README.qmd
 
 ### Description
 
@@ -21,8 +12,6 @@ This directory hosts code for the smart modules.
 
 The repository has the following directory tree.
 
-::: cell
-::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
     ├── README.qmd
@@ -33,6 +22,7 @@ The repository has the following directory tree.
     │   ├── README.qmd
     │   ├── boop-o-meters
     │   ├── display
+    │   ├── githubfiledownload
     │   ├── p2p
     │   └── ping
     ├── archive
@@ -57,28 +47,21 @@ The repository has the following directory tree.
         ├── config.py
         ├── examples
         └── networking.py
-:::
-:::
 
 A short description of the directories can be found below.
 
-  ------------------------------------------------------------------------
-  name           description                                contribution
-  -------------- ------------------------------------------ --------------
-  libraries      Useful libraries for inputs and outputs    Nick
-
-  networking     Smart Module Networking library            Nick
-
-  applications   Various coding tools and applications      Nick
-
-  archive        Old or outdated code or examples           Nick
-  ------------------------------------------------------------------------
+| name         | description                             | contribution |
+|--------------|-----------------------------------------|--------------|
+| libraries    | Useful libraries for inputs and outputs | Nick         |
+| networking   | Smart Module Networking library         | Nick         |
+| applications | Various coding tools and applications   | Nick         |
+| archive      | Old or outdated code or examples        | Nick         |
 
 ### Helpful links:
 
-ESP-NOW <https://docs.micropython.org/en/latest/library/espnow.html>\
+ESP-NOW <https://docs.micropython.org/en/latest/library/espnow.html>  
 Networking
-<https://docs.micropython.org/en/latest/library/network.html>\
+<https://docs.micropython.org/en/latest/library/network.html>  
 AP / WiFi
 <https://docs.micropython.org/en/latest/library/network.WLAN.html>
 
