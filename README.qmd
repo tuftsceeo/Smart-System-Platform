@@ -13,10 +13,7 @@ editor_options:
 ```{r setup, include=FALSE}
 file_path <- fs::path_real("README.qmd")
 path_components <- strsplit(as.character(file_path), "/")[[1]]
-shortened_path <- fs::path_join(path_components[-(1:6)])
-if (!startsWith(shortened_path, "/")) {
-  shortened_path <- paste0("/", shortened_path)
-}
+shortened_path <- fs::path_join(path_components[-c(2, 6)])
 ```
 
 ## Location: `r shortened_path`
