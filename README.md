@@ -12,10 +12,29 @@ This is the main directory.
 
 The repository has the following directory tree.
 
-. ├── LICENSE ├── README.md ├── README.qmd ├── README.rmarkdown ├── docs
-├── firmware ├── hardware ├── overleaf ├── project.Rproj ├── rstudio └──
-software LICENSE README.md README.qmd README.rmarkdown docs firmware
-hardware overleaf project.Rproj rstudio software
+    .
+    ├── LICENSE
+    ├── README.md
+    ├── README.qmd
+    ├── README.rmarkdown
+    ├── docs
+    ├── firmware
+    ├── hardware
+    ├── overleaf
+    ├── project.Rproj
+    ├── rstudio
+    └── software
+    LICENSE
+    README.md
+    README.qmd
+    README.rmarkdown
+    docs
+    firmware
+    hardware
+    overleaf
+    project.Rproj
+    rstudio
+    software
 
 A short description of the directories can be found below.
 
