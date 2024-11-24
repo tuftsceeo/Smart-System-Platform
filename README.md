@@ -2,6 +2,10 @@
 
 # Smart System Education Platform
 
+/home/runner/work/Smart-System-Platform/Smart-System-Platform/README.qmd
+, home, runner, work, Smart-System-Platform, Smart-System-Platform,
+README.qmd
+
 ## Location: work/Smart-System-Platform/Smart-System-Platform/README.qmd
 
 ### Description
