@@ -4,9 +4,8 @@ execute:
   echo: false
   message: false
   warning: false
-editor: visual
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 # Smart System Education Platform
@@ -15,7 +14,6 @@ editor_options:
 file_path <- fs::path_real("README.qmd")
 path_components <- strsplit(file_path, "/")[[1]]
 shortened_path <- fs::path_join(path_components[-(1:3)])
-
 ```
 
 ## Location: `r shortened_path`
@@ -29,7 +27,7 @@ This is the main directory.
 The repository has the following directory tree.
 
 ```{r echo=FALSE, results='asis'}
-cat(fs::dir_tree(recurse = FALSE))
+print(cat(fs::dir_tree(recurse = FALSE)))
 ```
 
 A short description of the directories can be found below.
