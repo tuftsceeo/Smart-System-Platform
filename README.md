@@ -1,12 +1,4 @@
----
-editor_options:
-  chunk_output_type: inline
-execute:
-  echo: false
-  message: false
-  warning: false
-toc-title: Table of contents
----
+
 
 # Smart System Education Platform
 
@@ -27,21 +19,11 @@ hardware overleaf project.Rproj rstudio softwareNULL
 
 A short description of the directories can be found below.
 
-  -------------------------------------------------------------------------------------
-  name       description                                                 contribution
-  ---------- ----------------------------------------------------------- --------------
-  docs       This directory hosts the files for the website              Nick
-
-  firmware   This directory hosts the firmware                           Nick
-
-  hardware   This directory hosts files and information about the        Nick
-             hardware                                                    
-
-  software   This directory includes libraries, custom libraries and     Nick
-             example code, such as the for example the networking        
-             library                                                     
-
-  overleaf   Latex Report Code                                           Nick
-
-  rstudio    R Code                                                      Nick
-  -------------------------------------------------------------------------------------
+| name | description | contribution |
+|----|----|----|
+| docs | This directory hosts the files for the website | Nick |
+| firmware | This directory hosts the firmware | Nick |
+| hardware | This directory hosts files and information about the hardware | Nick |
+| software | This directory includes libraries, custom libraries and example code, such as the for example the networking library | Nick |
+| overleaf | Latex Report Code | Nick |
+| rstudio | R Code | Nick |

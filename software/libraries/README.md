@@ -1,13 +1,4 @@
----
-editor: visual
-editor_options:
-  chunk_output_type: console
-execute:
-  echo: false
-  message: false
-  warning: false
-toc-title: Table of contents
----
+
 
 # Smart System Education Platform
 
@@ -21,21 +12,14 @@ This directory hosts used and useful libraries.
 
 The repository has the following directory tree.
 
-:::: cell
-::: {.cell-output .cell-output-stdout}
     .
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
     └── variableLED.py
-:::
-::::
 
 A short description of the directories can be found below.
 
-  -------------------------------------------------------------------------
-  name             description                               contribution
-  ---------------- ----------------------------------------- --------------
-  variableLED.py   Library that powers the variable LED grid Sophie
-
-  -------------------------------------------------------------------------
+| name           | description                               | contribution |
+|----------------|-------------------------------------------|--------------|
+| variableLED.py | Library that powers the variable LED grid | Sophie       |
