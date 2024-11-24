@@ -5,7 +5,7 @@ execute:
   message: false
   warning: false
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 # Smart System Education Platform
@@ -26,7 +26,7 @@ This is the main directory.
 
 The repository has the following directory tree.
 
-```{r echo=FALSE, results='asis'}
+```{r echo=FALSE}
 cat(fs::dir_tree(recurse = FALSE), sep = "\n")
 ```
 
