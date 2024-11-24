@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/rstudio/README.qmd
+## Location: /runner/work/Smart-System-Platform/rstudio/README.qmd
 
 ### Description
 
