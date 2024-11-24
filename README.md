@@ -1,7 +1,6 @@
 ---
-editor: visual
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 execute:
   echo: false
   message: false
@@ -24,7 +23,7 @@ The repository has the following directory tree.
 . ├── LICENSE ├── README.md ├── README.qmd ├── README.rmarkdown ├── docs
 ├── firmware ├── hardware ├── overleaf ├── project.Rproj ├── rstudio └──
 software LICENSE README.md README.qmd README.rmarkdown docs firmware
-hardware overleaf project.Rproj rstudio software
+hardware overleaf project.Rproj rstudio softwareNULL
 
 A short description of the directories can be found below.
 
