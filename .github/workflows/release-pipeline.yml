@@ -1,0 +1,72 @@
+name: Check and Copy Updated Files
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-and-copy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Parse File List from software/release/README.qmd
+      id: parse
+      run: |
+        cd software
+        cd release
+        
+        # Extract the table section and parse the file paths
+        raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' README.qmd | tr -d ' ')
+        
+        # Add the software/ prefix to each file path
+        file_list=$(echo "$raw_file_list" | sed 's/^/software\//')
+
+        # Output the file list
+        echo "Files to monitor:"
+        echo "$file_list"
+        
+        # Save to an environment variable for later use
+        echo "file_list=$file_list" >> $GITHUB_ENV
+
+    - name: Identify Changed Files
+      id: changes
+      run: |
+        # Identify changed files in this push
+        changed_files=$(git diff --name-only ${{ github.event.before }} HEAD)
+        
+        # Filter to include only monitored files
+        updated_files=()
+        for file in $file_list; do
+          if echo "$changed_files" | grep -q "^$file$"; then
+            updated_files+=("$file")
+          fi
+        done
+
+        # Save the list of updated files to an output file
+        if [ ${#updated_files[@]} -eq 0 ]; then
+          echo "No monitored files were updated."
+          echo "updated_files=" >> $GITHUB_ENV
+        else
+          echo "The following monitored files were updated:"
+          printf "%s\n" "${updated_files[@]}"
+          printf "%s\n" "${updated_files[@]}" > updated_files.txt
+          echo "updated_files=$(printf "%s " "${updated_files[@]}")" >> $GITHUB_ENV
+        fi
+
+    - name: Copy Updated Files to Release Folder
+      if: env.updated_files != ""
+      run: |
+        mkdir -p release  # Ensure the release folder exists
+        while read file; do
+          cp "$file" release/  # Copy files directly to the root of the release folder
+        done < updated_files.txt
+        
+    - name: List Files in Release Folder
+      if: env.updated_files != ""
+      run: |
+        echo "Files copied to the release folder:"
+        find release -type f
