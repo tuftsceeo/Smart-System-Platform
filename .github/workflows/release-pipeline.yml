@@ -70,10 +70,13 @@ jobs:
 
     - name: Commit and Push Changes
       run: |
+        # Configure Git
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        # Add, commit, and push changes
-        git add software/release/
-        git commit -m "Copy updated files to the release folder and update file_list.py"
-        git push origin main
+        # Check if there are changes to commit
+        git diff --exit-code || (git add software/release/ && git commit -m "Copy updated files to the release folder and update file_list.py")
+
+        # Push the changes if there were any
+        git push origin main || echo "No changes to push"
+
