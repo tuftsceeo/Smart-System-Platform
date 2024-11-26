@@ -21,7 +21,7 @@ jobs:
         
         # Extract the table section and parse the file paths
         raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' README.qmd | tr -d ' ')
-        
+
         # Add the software/ prefix to each file path
         file_list=$(echo "$raw_file_list" | sed 's/^/software\//')
 
@@ -58,7 +58,7 @@ jobs:
         fi
 
     - name: Copy Updated Files to Release Folder
-      if: env.updated_files != ""
+      if: ${{ env.updated_files != '' }}
       run: |
         mkdir -p release  # Ensure the release folder exists
         while read file; do
@@ -66,7 +66,7 @@ jobs:
         done < updated_files.txt
         
     - name: List Files in Release Folder
-      if: env.updated_files != ""
+      if: ${{ env.updated_files != '' }}
       run: |
         echo "Files copied to the release folder:"
         find release -type f
