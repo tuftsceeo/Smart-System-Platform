@@ -37,7 +37,7 @@ A short description of the directories can be found below.
 |--------------|-----------------------------------------|--------------|
 | release/config.py    | Smart Module Configuration File	 | Nick         |
 | main/main.py      | Smart Module Main.py		         | Nick         |
-| networking/networking.py| This is the main networking code that builds on ESP-NOW. There are many prepared functionalities (and some more that I am working on), such as long message support, sending of various variable types (bytes, bytearray, dicts, lists, int, float, char, string), as well as different types of messages such as ping, echo and more. There are also various features in place to make the networking more robust. It needs config.py to function. | Nick         |
+| networking/networking.py | This is the main networking code that builds on ESP-NOW. There are many prepared functionalities (and some more that I am working on), such as long message support, sending of various variable types (bytes, bytearray, dicts, lists, int, float, char, string), as well as different types of messages such as ping, echo and more. There are also various features in place to make the networking more robust. It needs config.py to function. | Nick         |
 | libraries/adxl345.py	 | Support for the built in accelerometer https://github.com/DFRobot/micropython-dflib/blob/master/ADXL345/user_lib/ADXL345.py | Milan        |
 | libraries/files.py	 | Custom save to file library		     | Milan        |
 | libraries/icons.py	 | Icon support for the smart motor module   | Milan        |
