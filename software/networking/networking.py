@@ -14,6 +14,7 @@ import os
 
 class Networking:       
     def __init__(self, infmsg=False, dbgmsg=False, admin=False, inittime=time.ticks_ms()):
+        gc.collect()
         self.inittime = inittime
         if infmsg:
             print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Initialising Networking")
@@ -287,63 +288,67 @@ class Networking:
 
         def reboot(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.reboot")
-            send_command("Reboot", mac, None, channel, ifidx, sudo)
+            self.send_command("Reboot", mac, None, channel, ifidx, sudo)
 
         def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.firmware_update")
-            send_command("Firmware-Update", mac, None, channel, ifidx, sudo)
+            self.send_command("Firmware-Update", mac, None, channel, ifidx, sudo)
 
         def file_update(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.file_update")
-            send_command("File-Update", mac, None, channel, ifidx, sudo)
+            self.send_command("File-Update", mac, None, channel, ifidx, sudo)
 
         def file_download(self, mac, link, list=None, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.file_download")
-            send_command("File-Download", mac, [link, list], None, channel, ifidx, sudo)
+            self.send_command("File-Download", mac, [link, list], None, channel, ifidx, sudo)
 
         def web_repl(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.web_repl")
             self.master.ap.set_ap(ap_name := self.master.name, password := networking_keys["default_ap_key"])
-            send_command("Web-Repl", mac, [ap_name, password], channel, ifidx, sudo)
+            self.send_command("Web-Repl", mac, [ap_name, password], channel, ifidx, sudo)
             #await success message and if success False disable AP or try again
 
         def file_run(self, mac, filename, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.file_run")
-            send_command("File-Run", mac, filename, None, channel, ifidx, sudo)
+            self.send_command("File-Run", mac, filename, None, channel, ifidx, sudo)
 
         def admin_set(self, mac, new_bool, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.admin_set")
-            send_command("Admin-Set", mac, new_bool, None, channel, ifidx, sudo)
+            self.send_command("Admin-Set", mac, new_bool, None, channel, ifidx, sudo)
 
         def whitelist_add(self, mac, list=None, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.whitelist_add")
             if list is not None:
                 list = [self.master.sta.mac,self.master.ap.mac]
-            send_command("Whitelist-Add", mac, list, None, channel, ifidx, sudo)
+            self.send_command("Whitelist-Add", mac, list, None, channel, ifidx, sudo)
 
         def config_change(self, mac, new_config, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.config_chain")
-            send_command("Config-Chain", mac, new_config, channel, ifidx, sudo)
+            self.send_command("Config-Chain", mac, new_config, channel, ifidx, sudo)
 
         def ping(self, mac, channel=None, ifidx=None):
             self.master.dprint("aen.ping")
-            send_command("Ping", mac, [send_channel,self.ifidx,self.master.name], channel, ifidx) #sends channel, ifidx and name
+            if bool(self.ifidx):
+                send_channel = self.master.ap.channel()
+            else:
+                send_channel = self.master.sta.channel()
+            self.send_command("Ping", mac, [send_channel,self.ifidx,self.master.name], channel, ifidx) # sends channel, ifidx and name
 
         def pair(self, mac, key=networking_keys["handshake_key1"], channel=None, ifidx=None):
             self.master.dprint("aen.pair")
-            send_command("Pair", mac, key, channel, ifidx)
+            self.send_command("Pair", mac, key, channel, ifidx)
 
         def pair_enable(self, mac, bool, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.pair")
-            send_command("Set-Pair", mac, bool, channel, ifidx, sudo)
+            self.send_command("Set-Pair", mac, bool, channel, ifidx, sudo)
 
         def boop(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.boop")
-            send_command("RSSI/Status/Config-Boop", mac, None, channel, ifidx, sudo)
+            self.send_command("RSSI/Status/Config-Boop", mac, None, channel, ifidx, sudo)
 
         def directory_get(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.directory_get")
-            send_command("Directory-Get", mac, None, channel, ifidx, sudo)
+            self.send_command("Directory-Get", mac, None, channel, ifidx, sudo)
 
         def echo(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.echo")
@@ -358,27 +363,27 @@ class Networking:
 
         def wifi_connect(self, mac, name, password, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.wifi_connect")
-            send_command("Wifi-Connect", mac, [name, password], channel, ifidx, sudo)
+            self.send_command("Wifi-Connect", mac, [name, password], channel, ifidx, sudo)
 
         def wifi_disconnect(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.wifi_disconnect")
-            send_command("Wifi-Disconnect", mac, None, channel, ifidx, sudo)
+            self.send_command("Wifi-Disconnect", mac, None, channel, ifidx, sudo)
 
         def ap_enable(self, mac, name, password, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.ap_enable")
-            send_command("AP-Enable", mac, name, password, channel, ifidx, sudo)
+            self.send_command("AP-Enable", mac, name, password, channel, ifidx, sudo)
 
         def ap_disable(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.ap_disable")
-            send_command("AP-Disable", mac, None, channel, ifidx, sudo)
+            self.send_command("AP-Disable", mac, None, channel, ifidx, sudo)
 
         def pause(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.pause")
-            send_command("Pause", mac, None, channel, ifidx, sudo)
+            self.send_command("Pause", mac, None, channel, ifidx, sudo)
 
         def resume(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.resume")
-            send_command("Resume", mac, None, channel, ifidx, sudo)
+            self.send_command("Resume", mac, None, channel, ifidx, sudo)
 
         def send(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.message")
@@ -689,7 +694,7 @@ class Networking:
                 #Handle the message based on type
                 if msg_type == (msg_key := msg_codes["cmd"]):  # Command Message
                     __handle_cmd(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload if payload else None, msg_key)
-                elif msg_type == (msg_key := cmsg_codes["inf"]):  # Informational Message
+                elif msg_type == (msg_key := msg_codes["inf"]):  # Informational Message
                     __handle_inf(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload if payload else None, msg_key)
                 elif msg_type == (msg_key := msg_codes["ack"]):  # Acknowledgement Message
                     __handle_ack(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload if payload else None, msg_key)
@@ -952,7 +957,7 @@ class Networking:
                             if self._pause_function:
                                 self._pause_function() #calls the custom set pause function to display a screen
                             while not self._running:
-                                sleep(0.5)
+                                time.sleep(0.5)
                         except Exception as e:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
@@ -1006,7 +1011,7 @@ class Networking:
                 payload = __decode_payload(payload_type, payload)
                 if (msg_subkey := "Pong") and subtype == msg_subcodes[msg_key][msg_subkey]: #Pong
                     self.add_peer(sender_mac, payload[2], payload[0], payload[1])
-                    self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp-info[3]}")
+                    self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp-payload[3]}")
                 elif (msg_subkey := "Echo") and subtype == msg_subcodes[msg_key][msg_subkey]: #Echo
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}")
                 elif (msg_subkey := "Success") and subtype == msg_subcodes[msg_key][msg_subkey]: #Success
