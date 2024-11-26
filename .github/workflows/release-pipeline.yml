@@ -72,11 +72,11 @@ jobs:
 
         # Process each file in file_list.txt
         while read file; do
-          # Check if the file has been modified (either staged or new file)
-          if echo "$all_changed_files" | grep -q "$(basename $file)"; then
-            # Get the base name of the file (without path)
-            base_file=$(basename $file)
+          # Extract the base file name from the full path
+          base_file=$(basename "$file")
 
+          # Check if the file has been modified (either staged or new file)
+          if echo "$all_changed_files" | grep -q "$base_file"; then
             # Check if the file exists in the version dictionary
             if grep -q "$base_file" current_version.json; then
               # Get the current version number
@@ -104,18 +104,6 @@ jobs:
             echo "No change detected for $base_file"
           fi
         done < file_list.txt
-
-    - name: Rename file_list.txt to file_list.py and add Python list
-      run: |
-        # Rename file_list.txt to file_list.py in the release folder
-        mv file_list.txt software/release/file_list.py
-
-        # Create Python list and add file paths to software/release/file_list.py
-        echo "file_list = [" > software/release/file_list.py
-        cat software/release/file_list.py | while read file; do
-          echo "    '$file'," >> software/release/file_list.py
-        done
-        echo "]" >> software/release/file_list.py
 
     - name: Commit and Push Changes
       run: |
