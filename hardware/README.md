@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /runner/work/Smart-System-Platform/hardware/README.qmd
+## Location: /hardware/README.qmd
 
 ### Description
 

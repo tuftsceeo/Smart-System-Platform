@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/software/networking/README.qmd
+## Location: /software/networking/README.qmd
 
 ### Description
 
@@ -26,7 +26,6 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
-    ├── config.py
     ├── examples
     │   ├── default_main.py
     │   ├── example.py
@@ -38,7 +37,7 @@ A short description of the directories can be found below.
 
 | name | description | contribution |
 |----|----|----|
-| config.py | This file hosts configurations and secrets, such as the board name, WiFi name and password, as well as handshake keys which is used by some of the legacy networking code. | Nick |
+| config.py | This file hosts configurations and secrets, such as the board name, WiFi name and password, as well as handshake keys which is used by some of the legacy networking code. This file is now located in release. | Nick |
 | examples | This directory hosts example code | Nick |
 | examples/example.py | This is some basic example code on how to use my networking library | Nick |
 | examples/long_message_example.py | This code showcases the long message capabilities built into my code. By sending multiple messages that are then stitched back together by the recipient the max payload can be increased from 241 bytes to 256 x 238 = 60928 bytes, although in reality the ESP32 boards will start running out of memory with messages above 30 kilobytes. | Nick |

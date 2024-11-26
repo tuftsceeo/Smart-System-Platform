@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /runner/work/Smart-System-Platform/overleaf/README.qmd
+## Location: /overleaf/README.qmd
 
 ### Description
 
