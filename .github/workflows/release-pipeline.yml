@@ -13,24 +13,22 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Parse File List from software/release/README.qmd
+    - name: Parse File List from release/README.qmd
       id: parse
       run: |
+        # Navigate to the release folder
         cd software
         cd release
-        
+
         # Extract the table section and parse the file paths
         raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' README.qmd | tr -d ' ')
 
         # Add the software/ prefix to each file path
-        file_list=$(echo "$raw_file_list" | sed 's/^/software\//')
+        echo "$raw_file_list" | sed 's/^/software\//' > file_list.txt
 
-        # Output the file list
+        # Debugging output
         echo "Files to monitor:"
-        echo "$file_list"
-        
-        # Save to an environment variable for later use
-        echo "file_list=$file_list" >> $GITHUB_ENV
+        cat file_list.txt
 
     - name: Identify Changed Files
       id: changes
@@ -40,33 +38,31 @@ jobs:
         
         # Filter to include only monitored files
         updated_files=()
-        for file in $file_list; do
+        while read file; do
           if echo "$changed_files" | grep -q "^$file$"; then
             updated_files+=("$file")
           fi
-        done
+        done < file_list.txt
 
         # Save the list of updated files to an output file
         if [ ${#updated_files[@]} -eq 0 ]; then
           echo "No monitored files were updated."
           echo "updated_files=" >> $GITHUB_ENV
         else
-          echo "The following monitored files were updated:"
-          printf "%s\n" "${updated_files[@]}"
           printf "%s\n" "${updated_files[@]}" > updated_files.txt
-          echo "updated_files=$(printf "%s " "${updated_files[@]}")" >> $GITHUB_ENV
+          echo "updated_files=true" >> $GITHUB_ENV
         fi
 
     - name: Copy Updated Files to Release Folder
-      if: ${{ env.updated_files != '' }}
+      if: ${{ env.updated_files == 'true' }}
       run: |
         mkdir -p release  # Ensure the release folder exists
         while read file; do
           cp "$file" release/  # Copy files directly to the root of the release folder
         done < updated_files.txt
-        
+
     - name: List Files in Release Folder
-      if: ${{ env.updated_files != '' }}
+      if: ${{ env.updated_files == 'true' }}
       run: |
         echo "Files copied to the release folder:"
         find release -type f
