@@ -13,6 +13,7 @@ This directory hosts the main code for the smart modules.
 The repository has the following directory tree.
 
     .
+    ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
     └── main.py

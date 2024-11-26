@@ -49,6 +49,7 @@ The repository has the following directory tree.
     │   ├── ssd1306.py
     │   └── variableLED.py
     ├── main
+    │   ├── README.md
     │   ├── README.qmd
     │   └── main.py
     ├── networking
@@ -57,6 +58,7 @@ The repository has the following directory tree.
     │   ├── examples
     │   └── networking.py
     └── release
+        ├── README.md
         ├── README.qmd
         ├── adxl345.py
         ├── config.py
