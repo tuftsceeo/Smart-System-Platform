@@ -13,18 +13,24 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        ssh-key: ${{ secrets.RENDER_KEY }}  # SSH key from your secrets
-        persist-credentials: false  # Prevent GitHub Actions from overwriting the credentials
+        ssh-key: ${{ secrets.RENDER_KEY }}
+        persist-credentials: false
+
+    - name: Set up SSH for Git
+      run: |
+        # Set up SSH key authentication for git
+        mkdir -p ~/.ssh
+        echo "${{ secrets.RENDER_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+        # Add GitHub to known hosts to avoid authenticity prompts
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
 
     - name: Parse File List from release/README.qmd
       id: parse
       run: |
-        # Navigate to the release folder
-        cd software
-        cd release
-
         # Extract the table section and parse the file paths
-        raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' README.qmd | tr -d ' ')
+        raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' software/release/README.qmd | tr -d ' ')
 
         # Add the software/ prefix to each file path
         echo "$raw_file_list" | sed 's/^/software\//' > file_list.txt
@@ -35,15 +41,15 @@ jobs:
 
     - name: Copy Files to Release Folder
       run: |
-        mkdir -p release  # Ensure the release folder exists
+        mkdir -p software/release  # Ensure the release folder exists
         while read file; do
-          cp "$file" release/  # Copy files directly to the root of the release folder
-        done < release/file_list.txt
+          cp "$file" software/release/  # Copy files directly to the root of the release folder
+        done < file_list.txt
 
     - name: List Files in Release Folder
       run: |
         echo "Files copied to the release folder:"
-        find release -type f
+        find software/release -type f
 
     - name: Commit and Push Changes
       run: |
@@ -52,9 +58,6 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
         # Add, commit and push changes
-        git add release/
+        git add software/release/
         git commit -m "Copy updated files to the release folder"
-        git fetch origin
         git push origin main
-      env:
-        GITHUB_TOKEN: ${{ secrets.RENDER_KEY }}
