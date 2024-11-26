@@ -13,8 +13,8 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        ssh-key: ${{ secrets.RENDER_KEY }}
-        #persist-credentials: false 
+        ssh-key: ${{ secrets.RENDER_KEY }}  # SSH key from your secrets
+        persist-credentials: false  # Prevent GitHub Actions from overwriting the credentials
 
     - name: Parse File List from release/README.qmd
       id: parse
