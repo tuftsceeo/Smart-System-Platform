@@ -43,5 +43,5 @@ jobs:
         #git checkout stage || git checkout -b stage
         
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-        
         git push origin main
+
