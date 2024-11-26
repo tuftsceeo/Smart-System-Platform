@@ -60,6 +60,7 @@ The repository has the following directory tree.
     └── release
         ├── README.md
         ├── README.qmd
+        ├── __pycache__
         ├── adxl345.py
         ├── config.py
         ├── file_list.py

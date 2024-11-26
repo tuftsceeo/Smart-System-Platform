@@ -17,7 +17,9 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
+    ├── current_version.json
     ├── docs
+    ├── file_list.txt
     ├── firmware
     ├── hardware
     ├── overleaf
