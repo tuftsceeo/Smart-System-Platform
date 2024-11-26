@@ -12,6 +12,9 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        ssh-key: ${{ secrets.RENDER_KEY }}
+        #persist-credentials: false 
 
     - name: Parse File List from release/README.qmd
       id: parse
@@ -30,39 +33,28 @@ jobs:
         echo "Files to monitor:"
         cat file_list.txt
 
-    - name: Identify Changed Files
-      id: changes
-      run: |
-        # Identify changed files in this push
-        changed_files=$(git diff --name-only ${{ github.event.before }} HEAD)
-        
-        # Filter to include only monitored files
-        updated_files=()
-        while read file; do
-          if echo "$changed_files" | grep -q "^$file$"; then
-            updated_files+=("$file")
-          fi
-        done < file_list.txt
-
-        # Save the list of updated files to an output file
-        if [ ${#updated_files[@]} -eq 0 ]; then
-          echo "No monitored files were updated."
-          echo "updated_files=" >> $GITHUB_ENV
-        else
-          printf "%s\n" "${updated_files[@]}" > updated_files.txt
-          echo "updated_files=true" >> $GITHUB_ENV
-        fi
-
-    - name: Copy Updated Files to Release Folder
-      if: ${{ env.updated_files == 'true' }}
+    - name: Copy Files to Release Folder
       run: |
         mkdir -p release  # Ensure the release folder exists
         while read file; do
           cp "$file" release/  # Copy files directly to the root of the release folder
-        done < updated_files.txt
+        done < release/file_list.txt
 
     - name: List Files in Release Folder
-      if: ${{ env.updated_files == 'true' }}
       run: |
         echo "Files copied to the release folder:"
         find release -type f
+
+    - name: Commit and Push Changes
+      run: |
+        # Configure Git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Add, commit and push changes
+        git add release/
+        git commit -m "Copy updated files to the release folder"
+        git fetch origin
+        git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.RENDER_KEY }}
