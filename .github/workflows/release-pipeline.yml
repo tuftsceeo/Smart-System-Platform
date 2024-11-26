@@ -13,13 +13,13 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        ssh-key: ${{ secrets.DEPLOYMENT_KEY }}
+        ssh-key: ${{ secrets.RENDER_KEY }}
 
     - name: Set up SSH for Git
       run: |
         # Set up SSH key authentication for git
         mkdir -p ~/.ssh
-        echo "${{ secrets.DEPLOYMENT_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.RENDER_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
         # Add GitHub to known hosts to avoid authenticity prompts
