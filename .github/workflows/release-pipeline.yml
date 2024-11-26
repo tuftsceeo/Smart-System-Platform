@@ -17,15 +17,10 @@ jobs:
 
     - name: Set up SSH for Git
       run: |
-        # Set up SSH key authentication for git
         mkdir -p ~/.ssh
         echo "${{ secrets.RENDER_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-
-        # Add GitHub to known hosts to avoid authenticity prompts
         ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-        # Start SSH agent and add the deploy key
         eval "$(ssh-agent -s)"
         ssh-add ~/.ssh/id_rsa
 
@@ -60,24 +55,25 @@ jobs:
       run: |
         echo "Files copied to the release folder:"
         find software/release -type f
-    
+
     - name: Rename file_list.txt to file_list.py and add Python list
       run: |
-        # Rename file_list.txt to file_list.py
-        mv file_list.txt file_list.py
-        echo "file_list = [" > file_list.py
-        cat file_list.txt | while read file; do
-          echo "    '$file'," >> file_list.py
+        # Rename file_list.txt to file_list.py in the release folder
+        mv file_list.txt software/release/file_list.py
+
+        # Create Python list and add file paths to software/release/file_list.py
+        echo "file_list = [" > software/release/file_list.py
+        cat software/release/file_list.py | while read file; do
+          echo "    '$file'," >> software/release/file_list.py
         done
-        echo "]" >> file_list.py
+        echo "]" >> software/release/file_list.py
 
     - name: Commit and Push Changes
       run: |
-        # Configure Git
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        # Add, commit and push changes
+        # Add, commit, and push changes
         git add software/release/
-        git commit -m "Copy updated files to the release folder"
+        git commit -m "Copy updated files to the release folder and update file_list.py"
         git push origin main
