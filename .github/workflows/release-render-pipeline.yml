@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  check-copy-render:
+  release-render:
     runs-on: ubuntu-latest
 
     steps:
