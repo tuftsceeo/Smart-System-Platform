@@ -13,18 +13,21 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        ssh-key: ${{ secrets.RENDER_KEY }}
-        persist-credentials: false
+        ssh-key: ${{ secrets.DEPLOYMENT_KEY }}
 
     - name: Set up SSH for Git
       run: |
         # Set up SSH key authentication for git
         mkdir -p ~/.ssh
-        echo "${{ secrets.RENDER_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.DEPLOYMENT_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
         # Add GitHub to known hosts to avoid authenticity prompts
         ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+        # Start SSH agent and add the deploy key
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_rsa
 
     - name: Parse File List from release/README.qmd
       id: parse
@@ -43,7 +46,14 @@ jobs:
       run: |
         mkdir -p software/release  # Ensure the release folder exists
         while read file; do
-          cp "$file" software/release/  # Copy files directly to the root of the release folder
+          # Skip the config.py file
+          if [[ "$(basename $file)" == "config.py" ]]; then
+            echo "Skipping config.py"
+            continue
+          fi
+          
+          # Copy the file, overwriting if it already exists
+          cp "$file" software/release/  # Overwrite files directly to the root of the release folder
         done < file_list.txt
 
     - name: List Files in Release Folder
