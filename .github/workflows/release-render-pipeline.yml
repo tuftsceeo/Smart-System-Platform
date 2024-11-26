@@ -133,7 +133,7 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
         # Check if there are changes to commit (release folder or rendered README files)
-        git diff --exit-code || (git add software/release/ && git add . && git commit -m "Copy updated files, update versions, and render README.qmd files")
+        git diff --exit-code || (git add software/release/ && git add . && git commit -m "Release and Render")
 
         # Push the changes if there were any
         git push origin main || echo "No changes to push"
