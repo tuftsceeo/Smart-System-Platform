@@ -1,0 +1,139 @@
+name: release-render-pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-copy-render:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        ssh-key: ${{ secrets.RENDER_KEY }}
+
+    - name: Set up SSH for Git
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.RENDER_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_rsa
+
+    # --- Step 1: Parse and Copy Files to Release Folder ---
+    - name: Parse File List from release/README.qmd
+      id: parse
+      run: |
+        # Extract the table section and parse the file paths
+        raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' software/release/README.qmd | tr -d ' ')
+
+        # Add the software/ prefix to each file path
+        echo "$raw_file_list" | sed 's/^/software\//' > file_list.txt
+
+        # Debugging output
+        echo "Files to monitor:"
+        cat file_list.txt
+
+    - name: Copy Files to Release Folder
+      run: |
+        mkdir -p software/release  # Ensure the release folder exists
+        while read file; do
+          # Skip the config.py file
+          if [[ "$(basename $file)" == "config.py" ]]; then
+            echo "Skipping config.py"
+            continue
+          fi
+          
+          # Copy the file, overwriting if it already exists
+          cp "$file" software/release/  # Overwrite files directly to the root of the release folder
+        done < file_list.txt
+
+    - name: List Files in Release Folder
+      run: |
+        echo "Files copied to the release folder:"
+        find software/release -type f
+
+    # --- Step 2: Update Version in Config.py ---
+    - name: Update Version in Config.py
+      run: |
+        # Get the list of changed (staged) files using git diff
+        changed_files=$(git diff --name-only)
+
+        # Get the list of untracked files (new files that haven't been added yet)
+        new_files=$(git ls-files --others --exclude-standard)
+
+        # Combine the changed and new files
+        all_changed_files=$(echo "$changed_files $new_files" | tr ' ' '\n')
+
+        # Read the current version dictionary from config.py
+        python3 -c "from software.release.config import version; print(version)" > current_version.json
+
+        # Process each file in file_list.txt
+        while read file; do
+          # Extract the base file name from the full path
+          base_file=$(basename "$file")
+
+          # Check if the file has been modified (either staged or new file)
+          if echo "$all_changed_files" | grep -q "$base_file"; then
+            # Check if the file exists in the version dictionary
+            if grep -q "$base_file" current_version.json; then
+              # Get the current version number
+              current_version=$(python3 -c "from software.release.config import version; print(version['$base_file'])")
+              
+              # Increment the version number by 1
+              new_version=$((current_version + 1))
+              python3 -c "from software.release.config import version; version['$base_file'] = $new_version; \
+                          import json; \
+                          with open('software/release/config.py', 'w') as f: json.dump(version, f, indent=4)"
+              
+              # Debugging: Print the file name and updated version
+              echo "Updated $base_file version from $current_version to $new_version"
+            else
+              # Add the file with version 1 if it's not already in the dictionary
+              python3 -c "from software.release.config import version; version['$base_file'] = 1; \
+                          import json; \
+                          with open('software/release/config.py', 'w') as f: json.dump(version, f, indent=4)"
+              
+              # Debugging: Print that the file was added with version 1
+              echo "Added $base_file with version 1"
+            fi
+          else
+            # Debugging: Print that the file has not changed
+            echo "No change detected for $base_file"
+          fi
+        done < file_list.txt
+
+    # --- Step 3: Render README.qmd to Markdown ---
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+
+    - name: Install Required R Packages
+      run: |
+        Rscript -e 'if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", repos = "https://cloud.r-project.org/")'
+        Rscript -e 'if (!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr", repos = "https://cloud.r-project.org/")'
+
+    - name: Set up Quarto
+      uses: quarto-dev/quarto-actions/setup@v2
+
+    - name: Find and Render README.qmd Files 
+      run: |
+        find . -name "README.qmd" | while read qmd_file; do
+          quarto render "$qmd_file" --to gfm
+        done
+
+    # --- Step 4: Commit and Push All Changes Once ---
+    - name: Commit and Push All Changes
+      run: |
+        # Configure Git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Check if there are changes to commit (release folder or rendered README files)
+        git diff --exit-code || (git add software/release/ && git add . && git commit -m "Copy updated files, update versions, and render README.qmd files")
+
+        # Push the changes if there were any
+        git push origin main || echo "No changes to push"
