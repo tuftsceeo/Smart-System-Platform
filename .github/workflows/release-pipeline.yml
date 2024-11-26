@@ -60,6 +60,16 @@ jobs:
       run: |
         echo "Files copied to the release folder:"
         find software/release -type f
+    
+    - name: Rename file_list.txt to file_list.py and add Python list
+      run: |
+        # Rename file_list.txt to file_list.py
+        mv file_list.txt file_list.py
+        echo "file_list = [" > file_list.py
+        cat file_list.txt | while read file; do
+          echo "    '$file'," >> file_list.py
+        done
+        echo "]" >> file_list.py
 
     - name: Commit and Push Changes
       run: |
