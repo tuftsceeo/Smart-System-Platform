@@ -1,0 +1,11 @@
+software/release/config.py
+software/main/main.py
+software/networking/networking.py
+software/libraries/adxl345.py
+software/libraries/files.py
+software/libraries/icons.py
+software/libraries/sensors.py
+software/libraries/servo.py
+software/libraries/smartmotor.py
+software/libraries/ssd1306.py
+software/libraries/variableLED.py

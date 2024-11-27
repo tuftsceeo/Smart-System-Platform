@@ -2,7 +2,7 @@
 
 # 
 
-#### Location: /work/Smart-System-Platform/Smart-System-Platform/software/applications/README.qmd
+#### Location: /software/applications/README.qmd
 
 ##### Description
 

@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /runner/work/Smart-System-Platform/README.qmd
+## Location: /README.qmd
 
 ### Description
 
@@ -17,7 +17,9 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
+    ├── current_version.json
     ├── docs
+    ├── file_list.txt
     ├── firmware
     ├── hardware
     ├── overleaf

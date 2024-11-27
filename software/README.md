@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /runner/work/Smart-System-Platform/software/README.qmd
+## Location: /software/README.qmd
 
 ### Description
 
@@ -40,13 +40,39 @@ The repository has the following directory tree.
     ├── libraries
     │   ├── README.md
     │   ├── README.qmd
+    │   ├── adxl345.py
+    │   ├── files.py
+    │   ├── icons.py
+    │   ├── sensors.py
+    │   ├── servo.py
+    │   ├── smartmotor.py
+    │   ├── ssd1306.py
     │   └── variableLED.py
-    └── networking
+    ├── main
+    │   ├── README.md
+    │   ├── README.qmd
+    │   └── main.py
+    ├── networking
+    │   ├── README.md
+    │   ├── README.qmd
+    │   ├── examples
+    │   └── networking.py
+    └── release
         ├── README.md
         ├── README.qmd
+        ├── __pycache__
+        ├── adxl345.py
         ├── config.py
-        ├── examples
-        └── networking.py
+        ├── file_list.py
+        ├── files.py
+        ├── icons.py
+        ├── main.py
+        ├── networking.py
+        ├── sensors.py
+        ├── servo.py
+        ├── smartmotor.py
+        ├── ssd1306.py
+        └── variableLED.py
 
 A short description of the directories can be found below.
 
