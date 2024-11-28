@@ -1,7 +1,9 @@
 name: release-render-pipeline
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - main
 
