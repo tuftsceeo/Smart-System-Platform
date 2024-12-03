@@ -1,11 +1,12 @@
 import network
 import machine
-from config import mysecrets, config, whitelist, i2c_dict, version, msg_codes, msg_subcodes, networking_keys
+from config import mysecrets, configname, config, whitelist, i2c_dict, version, msg_codes, msg_subcodes, networking_keys
 import time
 import ubinascii
 import urequests
 import espnow
 import gc
+import asyncio
 import struct
 import json
 import os
@@ -22,28 +23,37 @@ class Networking:
         self.dbgmsg = dbgmsg
         self.errmsg = errmsg
         self.admin = admin
-
-        self._staif = network.WLAN(network.STA_IF)
-        self._apif = network.WLAN(network.AP_IF)
+        
+        try:
+            self._staif = network.WLAN(network.STA_IF)
+        except Exception as e:
+            print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} STA: {e}")
+            machine.reset()
+        try:
+            self._apif = network.WLAN(network.AP_IF)
+        except Exception as e:
+            print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} AP: {e}")
+            machine.reset()
 
         self.sta = self.Sta(self, self._staif)
         self.ap = self.Ap(self, self._apif)
         self.aen = self.Aen(self)
-        
+
+        self.id = ubinascii.hexlify(machine.unique_id()).decode()
+        self.name = configname
+        if not self.name:
+            self.name = str(self.id)
         self.config = config
-        self.config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
-        self.config["version"] = ''.join(str(value) for value in version.values())
         self.version = version
+        self.version_n = ''.join(str(value) for value in self.version.values())
         if infmsg:
             print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking initialised and ready")
 
     def cleanup(self):
         self.dprint(".cleanup")
-        self.aen.cleanup()
+        #self.aen.cleanup()
         self._staif.active(False)
         self._apif.active(False)
-        #timer.deinit()
-        irq_handler = None
 
     def iprint(self, message):
         if self.infmsg:
@@ -143,7 +153,7 @@ class Networking:
         def set_ap(self, name="", password="", max_clients=10):
             self.master.dprint("ap.set_ap")
             if name == "":
-                name = self.master.config["name"]
+                name = self.master.name
             self._ap.active(True)
             self._ap.config(essid=name)
             if password:
@@ -213,7 +223,7 @@ class Networking:
 
         def cleanup(self):
             self.master.iprint("aen.cleanup")
-            self.irq(None)
+            #self.irq(None)
             self._aen.active(False)
             # add delete buffers and stuff
 
@@ -233,11 +243,11 @@ class Networking:
                 return
             self.master.iprint(f"Peer {peer_mac} not found")
 
-        def add_peer(self, peer_mac, peer_name=None, peer_id=None, peer_configuration=None, peer_version=None, channel=None, ifidx=None):
+        def add_peer(self, peer_mac, name=None, channel=None, ifidx=None):
             self.master.dprint("aen.add_peer")
             if peer_mac not in self._peers:
                 try:
-                    self._peers[peer_mac] = {'channel': channel, 'ifidx': ifidx, 'name': peer_name, 'id': peer_id, 'configuration': peer_configuration, 'version': peer_version}
+                    self._peers[peer_mac] = {'channel': channel, 'ifidx': ifidx, 'name': name}
                     self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {name}")
                 except OSError as e:
                     self.master.eprint(f"Error adding peer {peer_mac}: {e}")
@@ -285,17 +295,70 @@ class Networking:
                 self.master.iprint(f"Command {msg_subkey} not found")
             gc.collect()
 
+        def reboot(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.reboot")
+            self.send_command("Reboot", mac, None, channel, ifidx, sudo)
+
+        def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.firmware_update")
+            self.send_command("Firmware-Update", mac, None, channel, ifidx, sudo)
+
+        def file_update(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.file_update")
+            self.send_command("File-Update", mac, None, channel, ifidx, sudo)
+
+        def file_download(self, mac, link, file_list=None, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.file_download")
+            self.send_command("File-Download", mac, [link, file_list], channel, ifidx, sudo)
+
+        def web_repl(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.web_repl")
+            self.master.ap.set_ap(ap_name := self.master.name, password := networking_keys["default_ap_key"])
+            webrepl.start()
+            self.send_command("Web-Repl", mac, [ap_name, password], channel, ifidx, sudo)
+            # await success message and if success False disable AP or try again
+
+        def file_run(self, mac, filename, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.file_run")
+            self.send_command("File-Run", mac, filename, channel, ifidx, sudo)
+
+        def admin_set(self, mac, new_bool, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.admin_set")
+            self.send_command("Admin-Set", mac, new_bool, channel, ifidx, sudo)
+
+        def whitelist_add(self, mac, mac_list=None, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.whitelist_add")
+            if mac_list is not None:
+                mac_list = [self.master.sta.mac, self.master.ap.mac]
+            self.send_command("Whitelist-Add", mac, mac_list, channel, ifidx, sudo)
+
+        def config_change(self, mac, new_config, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.config_chain")
+            self.send_command("Config-Chain", mac, new_config, channel, ifidx, sudo)
+
         def ping(self, mac, channel=None, ifidx=None):
             self.master.dprint("aen.ping")
             if bool(self.ifidx):
                 send_channel = self.master.ap.channel()
             else:
                 send_channel = self.master.sta.channel()
-            self.send_command("Ping", mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
+            self.send_command("Ping", mac, [send_channel, self.ifidx, self.master.name], channel, ifidx)  # sends channel, ifidx and name
+
+        def pair(self, mac, key=networking_keys["handshake_key1"], channel=None, ifidx=None):
+            self.master.dprint("aen.pair")
+            self.send_command("Pair", mac, key, channel, ifidx)
+
+        def pair_enable(self, mac, pair_bool, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.pair")
+            self.send_command("Set-Pair", mac, pair_bool, channel, ifidx, sudo)
 
         def boop(self, mac, channel=None, ifidx=None, sudo=False):
             self.master.dprint("aen.boop")
             self.send_command("RSSI/Status/Config-Boop", mac, None, channel, ifidx, sudo)
+
+        def directory_get(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.directory_get")
+            self.send_command("Directory-Get", mac, None, channel, ifidx, sudo)
 
         def echo(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.echo")
@@ -305,6 +368,32 @@ class Networking:
                 self.master.eprint(f"Sending echo to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
             self._compose(mac, message, 0x01, 0x15, channel, ifidx)
             gc.collect()
+
+        # resend cmd
+
+        def wifi_connect(self, mac, name, password, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.wifi_connect")
+            self.send_command("Wifi-Connect", mac, [name, password], channel, ifidx, sudo)
+
+        def wifi_disconnect(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.wifi_disconnect")
+            self.send_command("Wifi-Disconnect", mac, None, channel, ifidx, sudo)
+
+        def ap_enable(self, mac, name, password, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.ap_enable")
+            self.send_command("AP-Enable", mac, [name, password], channel, ifidx, sudo)
+
+        def ap_disable(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.ap_disable")
+            self.send_command("AP-Disable", mac, None, channel, ifidx, sudo)
+
+        def pause(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.pause")
+            self.send_command("Pause", mac, None, channel, ifidx, sudo)
+
+        def resume(self, mac, channel=None, ifidx=None, sudo=False):
+            self.master.dprint("aen.resume")
+            self.send_command("Resume", mac, None, channel, ifidx, sudo)
 
         def send(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.message")
@@ -320,6 +409,11 @@ class Networking:
             self._compose(mac, message, 0x02, 0x22, channel, ifidx)
             gc.collect()
             self.master.dprint(f"Free memory: {gc.mem_free()}")
+
+        def broadcast(self, message, channel=None, ifidx=None):
+            self.master.dprint("aen.broadcast")
+            mac = b'\xff\xff\xff\xff\xff\xff'
+            self.send(mac, message, channel, ifidx)
 
         def send_sensor(self, mac, message, channel=None,
                         ifidx=None):  # message is a dict, key is the sensor type and the value is the sensor value
@@ -361,8 +455,12 @@ class Networking:
                     gc.collect()
                     return
                 except KeyboardInterrupt:
+                    # machine.disable_irq() #throws errors
                     self.master.eprint("aen._irq except KeyboardInterrupt")
-                    self.master.cleanup() #network cleanup
+                    # self._aen.irq(None) #does not work
+                    # self._aen.active(False)
+                    # self.master.cleanup() #network cleanup
+                    # self.cleanup() #aen cleanup
                     raise SystemExit("Stopping networking execution. ctrl-c or ctrl-d again to stop main code")  # in thonny stops library code but main code keeps running, same in terminal
             else:
                 self._receive()
@@ -374,7 +472,7 @@ class Networking:
         def irq(self, func):
             self.master.dprint("aen.irq")
             self._irq_function = func
- 
+
         def _send(self, peers_mac, messages, channel, ifidx):
             self.master.dprint("aen._send")
 
@@ -426,9 +524,9 @@ class Networking:
             if isinstance(peer_mac, list):
                 for peer_macs in peer_mac:
                     if peer_macs not in self._peers:
-                        self.add_peer(peer_macs, None, None, None, None, channel, ifidx)
+                        self.add_peer(peer_macs, None, channel, ifidx)
             elif peer_mac not in self._peers:
-                self.add_peer(peer_mac, None, None, None, None, channel, ifidx)
+                self.add_peer(peer_mac, None, channel, ifidx)
 
             def __encode_payload():
                 self.master.dprint("aen.__encode_payload")
@@ -492,7 +590,7 @@ class Networking:
                     gc.collect()
             gc.collect()
             self._send(peer_mac, messages, channel, ifidx)
- 
+
         def _receive(self):  # Processes all the messages in the buffer
             self.master.dprint("aen._receive")
 
@@ -684,7 +782,6 @@ class Networking:
                     if __check_authorisation(sender_mac, payload):
                         try:
                             # add logic to connect to Wi-Fi and set up webrepl
-                            webrepl.start()
                             self.master.sta.connect(payload[0], payload[1])
                             link = "webrepl link"
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", link)
@@ -731,37 +828,7 @@ class Networking:
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            self.master.config["configuration"] = payload[0]
-                            if payload[1]:
-                                file_path = "config.py"
-                                with open(file_path, "r") as f:
-                                    lines = f.readlines()
-                                with open(file_path, "w") as f:
-                                    for line in lines:
-                                        if line.startswith('    "configuration": '):
-                                            f.write(f'    "configuration": "{payload[0]}",\n')
-                                        else:
-                                            f.write(line)
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Name-Change") and subtype == msg_subcodes[msg_key][msg_subkey]:  # change name
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            self.master.config["name"] = payload[0]
-                            if payload[1]:
-                                file_path = "config.py"
-                                with open(file_path, "r") as f:
-                                    lines = f.readlines()
-                                with open(file_path, "w") as f:
-                                    for line in lines:
-                                        if line.startswith('    "name": '):
-                                            f.write(f'    "name": "{payload[0]}"\n')
-                                        else:
-                                            f.write(line)
+                            self.master.iprint(f"Not yet implemented")
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
@@ -769,152 +836,144 @@ class Networking:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "Ping") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Ping
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    self.add_peer(sender_mac, payload[2]["name"], payload[2]["id"], payload[2]["configuration"], payload[2]["version"], payload[0], payload[1])
+                    self.add_peer(sender_mac, payload[2], payload[0], payload[1])
                     if bool(self.ifidx):
                         channel = self.master.ap.channel()
                     else:
                         channel = self.master.sta.channel()
-                    response = [channel, self.ifidx, self.master.config, send_timestamp]
+                    response = [channel, self.ifidx, self.master.name, send_timestamp]
                     self._compose(sender_mac, response, 0x03, 0x10)
-#                 elif (msg_subkey := "Pair") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Pair #add something that checks that the messages are from the same mac # BREAKS NETWORK
+                elif (msg_subkey := "Pair") and subtype == msg_subcodes[msg_key][
+                    msg_subkey]:  # Pair #add something that checks that the messages are from the same mac
+                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+                    if self._pairing_enabled and networking_keys["handshake_key_1"] == payload:
+                        self._pairing = True
+                        self.pair(sender_mac, networking_keys["handshake_key_2"])
+                        # some timer for if key 3 is not received to reset states
+                    elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_2"] == payload:
+                        self._paired = True
+                        self._paired_macs.append(sender_mac)
+                        self.pair(sender_mac, networking_keys["handshake_key_3"])
+                        # some timer that sets to false if key 4 is not received
+                    elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_3"] == payload:
+                        try:
+                            # Insert pairing logic here do a reverse handshake
+                            self._paired = True
+                            self._paired_macs.append(sender_mac)
+                            self.pair(sender_mac, networking_keys["handshake_key_4"])
+                            self.master.iprint("no pairing logic written just yet")
+                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+                        except Exception as e:
+                            self.master.eprint(f"Error: {e} with payload: {payload}")
+                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                    elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_3"] == payload:
+                        self._paired = True
+                        # remove timer from before
+                    else:
+                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", "Pairing disabled", payload)
+                elif (msg_subkey := "Set-Pair") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Enable pairing mode
+                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+                    if __check_authorisation(sender_mac, payload):
+                        try:
+                            self._pairing_enabled = payload[0]
+                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+                        except Exception as e:
+                            self.master.eprint(f"Error: {e} with payload: {payload}")
+                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                    else:
+                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+                elif (msg_subkey := "RSSI/Status/Config-Boop") and subtype == msg_subcodes[msg_key][msg_subkey]:  # RSSI/Status/Config Boop
+                    self.boops = self.boops + 1
+                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}), Received total of {self.boops} boops!")
+                    try:
+                        self._compose(sender_mac,[self.master.id, self.master.name, self.master.config, self.master.version_n, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
+                    except Exception as e:
+                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+#                 elif (msg_subkey := "Directory-Get") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Get List of Files #THIS BREAKS IT?
 #                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-#                     if self._pairing_enabled and networking_keys["handshake_key_1"] == payload:
-#                         self._pairing = True
-#                         self.pair(sender_mac, networking_keys["handshake_key_2"])
-#                         # some timer for if key 3 is not received to reset states
-#                     elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_2"] == payload:
-#                         self._paired = True
-#                         self._paired_macs.append(sender_mac)
-#                         self.pair(sender_mac, networking_keys["handshake_key_3"])
-#                         # some timer that sets to false if key 4 is not received
-#                     elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_3"] == payload:
-#                         try:
-#                             # Insert pairing logic here do a reverse handshake
-#                             self._paired = True
-#                             self._paired_macs.append(sender_mac)
-#                             self.pair(sender_mac, networking_keys["handshake_key_4"])
-#                             self.master.iprint("no pairing logic written just yet")
-#                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-#                         except Exception as e:
-#                             self.master.eprint(f"Error: {e} with payload: {payload}")
-#                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-#                     elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_3"] == payload:
-#                         self._paired = True
-#                         # remove timer from before
-#                     else:
-#                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", "Pairing disabled", payload)
-#                 elif (msg_subkey := "Set-Pair") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Enable pairing mode
+#                     try:
+#                         result = []
+#                         entries = os.listdir()
+#                         # for entry in entries:
+#                         #     full_path = f"{path}/{entry}"
+#                         #     if os.stat(full_path)[0] & 0x4000:
+#                         #         result.extend(list_all_paths(full_path))
+#                         #     else:
+#                         #         result.append(full_path)
+#                         self._compose(sender_mac, result, 0x02, 0x20)
+#                     except Exception as e:
+#                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+#                 elif (msg_subkey := "Echo") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Echo
+#                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}): {__decode_payload(payload_type, payload)}")  # Check i or d
+#                     self._compose(sender_mac, payload, 0x03, 0x15)
+#                 elif (msg_subkey := "Resend") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Resend lost long messages
+#                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+#                     self.master.iprint("Long_sent_buffer disabled due to memory constraints")
+#                 elif (msg_subkey := "WiFi-Connect") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Connect to Wi-Fi
 #                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
 #                     if __check_authorisation(sender_mac, payload):
 #                         try:
-#                             self._pairing_enabled = payload[0]
+#                             self.master.sta.connect(payload[0], payload[1])
 #                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
 #                         except Exception as e:
 #                             self.master.eprint(f"Error: {e} with payload: {payload}")
 #                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
 #                     else:
 #                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "RSSI/Status/Config-Boop") and subtype == msg_subcodes[msg_key][msg_subkey]:  # RSSI/Status/Config Boop
-                    self.boops = self.boops + 1
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}), Received total of {self.boops} boops!")
-                    try:
-                        self._compose(sender_mac, [self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
-                    except Exception as e:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                elif (msg_subkey := "Directory-Get") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Get List of Files # BREAKS NETWORK
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    try:
-                        def ___list_all_files(path):
-                            result = []
-                            entries = os.listdir(path)
-                            for entry in entries:
-                                full_path = path + "/" + entry
-                                try:
-                                    if os.stat(full_path)[0] & 0x4000:
-                                        result.extend(___list_all_files(full_path))
-                                    else:
-                                        result.append(full_path)
-                                except OSError:
-                                    # Handle inaccessible files or directories
-                                    continue
-                            return result
-
-                        start_path = '.'
-                        all_files = ___list_all_files(start_path)
-                        self._compose(sender_mac, all_files, 0x02, 0x20)
-                    except Exception as e:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                elif (msg_subkey := "Echo") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Echo
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}): {__decode_payload(payload_type, payload)}")  # Check i or d
-                    self._compose(sender_mac, payload, 0x03, 0x15)
-                elif (msg_subkey := "Resend") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Resend lost long messages
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    self.master.iprint("Long_sent_buffer disabled due to memory constraints")
-                elif (msg_subkey := "WiFi-Connect") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Connect to Wi-Fi
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            self.master.sta.connect(payload[0], payload[1])
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            self.master.eprint(f"Error: {e} with payload: {payload}")
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "WiFi-Disconnect") and subtype == msg_subcodes[msg_key][
-                    msg_subkey]:  # Disconnect from Wi-Fi
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            self.master.sta.disconnect()
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            self.master.eprint(f"Error: {e}")
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "AP-Enable") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Enable AP
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            ssid = payload[0]
-                            if ssid == "":
-                                ssid = self.master.config["name"]
-                            password = payload[1]
-                            self.master.ap.setap(ssid, password)
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            self.master.eprint(f"Error: {e} with payload: {payload}")
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "AP-Disable") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Disable AP
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    payload = __decode_payload(payload_type, payload) # should return a list of desired name, password and max clients
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            self.master.ap.deactivate()
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            self.master.iprint(f"Error: {e}")
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Pause") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Set Pause
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            self.master.iprint(f"Received pause command: {payload[0]}")
-                            self._running = False
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                            if self._pause_function:
-                                self._pause_function()  # calls the custom set pause function to display a screen
-                            while not self._running:
-                                time.sleep(0.5)
-                        except Exception as e:
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+#                 elif (msg_subkey := "WiFi-Disconnect") and subtype == msg_subcodes[msg_key][
+#                     msg_subkey]:  # Disconnect from Wi-Fi
+#                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+#                     if __check_authorisation(sender_mac, payload):
+#                         try:
+#                             self.master.sta.disconnect()
+#                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+#                         except Exception as e:
+#                             self.master.eprint(f"Error: {e}")
+#                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+#                     else:
+#                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+#                 elif (msg_subkey := "AP-Enable") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Enable AP
+#                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+#                     if __check_authorisation(sender_mac, payload):
+#                         try:
+#                             ssid = payload[0]
+#                             if ssid == "":
+#                                 ssid = self.master.name
+#                             password = payload[1]
+#                             self.master.ap.setap(ssid, password)
+#                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+#                         except Exception as e:
+#                             self.master.eprint(f"Error: {e} with payload: {payload}")
+#                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+#                     else:
+#                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+#                 elif (msg_subkey := "AP-Disable") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Disable AP
+#                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+#                     payload = __decode_payload(payload_type, payload) # should return a list of desired name, password and max clients
+#                     if __check_authorisation(sender_mac, payload):
+#                         try:
+#                             self.master.ap.deactivate()
+#                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+#                         except Exception as e:
+#                             self.master.iprint(f"Error: {e}")
+#                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+#                     else:
+#                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+#                 elif (msg_subkey := "Pause") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Set Pause
+#                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
+#                     if __check_authorisation(sender_mac, payload):
+#                         try:
+#                             self.master.iprint(f"Received pause command: {payload[0]}")
+#                             self._running = False
+#                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+#                             if self._pause_function:
+#                                 self._pause_function()  # calls the custom set pause function to display a screen
+#                             while not self._running:
+#                                 time.sleep(0.5)
+#                         except Exception as e:
+#                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+#                     else:
+#                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "Resume") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Set Continue
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
@@ -932,7 +991,9 @@ class Networking:
             def __handle_inf(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload, msg_key):
                 self.master.dprint("aen.__handle_inf")
                 payload = __decode_payload(payload_type, payload)
-                if (msg_subkey := "RSSI/Status/Config-Boop") and subtype == msg_subcodes[msg_key][msg_subkey]:  # RSSI/Status/Config-Boop
+                if (msg_subkey := "RSSI") and subtype == msg_subcodes[msg_key][msg_subkey]:  # RSSI
+                    # payload["time_sent"] = send_timestamp
+                    # payload["time_recv"] = receive_timestamp
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
                     # __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
@@ -961,7 +1022,7 @@ class Networking:
                 self.master.dprint("aen.__handle_ack")
                 payload = __decode_payload(payload_type, payload)
                 if (msg_subkey := "Pong") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Pong
-                    self.add_peer(sender_mac, payload[2]["name"], payload[2]["id"], payload[2]["configuration"], payload[2]["version"], payload[0], payload[1])
+                    self.add_peer(sender_mac, payload[2], payload[0], payload[1])
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp - payload[3]}")
                 elif (msg_subkey := "Echo") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Echo
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}")
@@ -995,3 +1056,5 @@ class Networking:
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
 # | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp(ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
+
+
