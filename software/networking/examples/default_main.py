@@ -1,12 +1,11 @@
-import os
 from machine import Pin
+import machine
+
 import gc
 gc.collect()
 
-import time
-
-#fixes startup issues somehow
 import network
+
 sta = network.WLAN(network.STA_IF)
 ap = network.WLAN(network.AP_IF)
 sta.active(True)
@@ -14,18 +13,27 @@ ap.active(True)
 sta.active(False)
 ap.active(False)
 
+print("Running pyscript networking tool")
+
 from networking import Networking
 
 #Network
-networking = Networking()
+networking = Networking(False, False, True)
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
-print("Running default networking tool")
-print(f"Name: {networking.name}, ID: {networking.id}, config: {networking.config}, Sta mac: {networking.sta.mac()}, Ap mac: {networking.ap.mac()}, Version: {networking.version_n}")
+import time
 
+print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
+    (time.ticks_ms() - networking.inittime) / 1000,
+    networking.config["name"],
+    networking.config["id"],
+    networking.config["configuration"],
+    networking.sta.mac(),
+    networking.ap.mac(),
+    networking.config["version"]
+))
 
 lastPressed = 0
-start_time = time.ticks_ms()
 
 message="Boop!"
 
@@ -36,8 +44,8 @@ def boop(pin):
         networking.aen.ping(peer_mac)
         networking.aen.echo(peer_mac, message)
         networking.aen.send(peer_mac, message)
-        print(f"Sent {message} to {peer_mac}")
-        print(networking.aen.rssi())
+        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
+        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.aen.rssi()}")
 
 switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 
@@ -45,7 +53,16 @@ switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
-while True:
-    print(f"{int(time.ticks_ms()-start_time)/1000}: {gc.mem_free()} bytes")
-    time.sleep(1)
+def heartbeat(timer):
+    print("")
+    print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
+    print("")
     gc.collect()
+
+timer = machine.Timer(0)
+timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
+
+def deinit():
+    networking.cleanup()
+    timer.deinit()
+    machine.reset()
