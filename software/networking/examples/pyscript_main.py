@@ -7,6 +7,15 @@ import time
 
 print("Running pyscript networking tool")
 
+#fixes startup issues somehow
+import network
+sta = network.WLAN(network.STA_IF)
+ap = network.WLAN(network.AP_IF)
+sta.active(True)
+ap.active(True)
+sta.active(False)
+ap.active(False)
+
 from networking import Networking
 
 #Network
