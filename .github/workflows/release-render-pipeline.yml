@@ -139,9 +139,16 @@ jobs:
       env:
           GH_TOKEN: ${{ github.token }}
       run: |
+        # Ensure the latest changes from remote are fetched
+        git fetch origin
+        
         # Get the original branch from the pull request
-        original_branch=$(echo "${{ github.event.pull_request.head.ref }}")
-
-        # Create a pull request from main to the original branch
-        gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "Pull request already exists or failed"
-
+        original_branch="dev/nick"
+        
+        # Check if the original branch exists
+        if git show-ref --verify --quiet "refs/remotes/origin/$original_branch"; then
+          # Create a pull request from main to the original branch
+          gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "Pull request already exists or failed"
+        else
+          echo "Error: The branch '$original_branch' does not exist remotely."
+        fi
