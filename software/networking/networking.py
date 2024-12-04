@@ -12,7 +12,7 @@ import os
 
 
 class Networking:
-    def __init__(self, infmsg=False, dbgmsg=False, errmsg=True, admin=False, inittime=time.ticks_ms()):
+    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.ticks_ms()):
         gc.collect()
         self.inittime = inittime
         if infmsg:

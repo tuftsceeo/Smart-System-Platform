@@ -136,11 +136,12 @@ jobs:
         git push origin main || echo "No changes to push"
 
     - name: Set up Pull Request from main to original branch
+      env:
+          GH_TOKEN: ${{ github.token }}
       run: |
         # Get the original branch from the pull request
         original_branch=$(echo "${{ github.event.pull_request.head.ref }}")
 
         # Create a pull request from main to the original branch
         gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "Pull request already exists or failed"
-
 
