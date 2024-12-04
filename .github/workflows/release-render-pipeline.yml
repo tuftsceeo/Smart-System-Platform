@@ -1,7 +1,9 @@
 name: release-render-pipeline
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - main
 
@@ -142,3 +144,4 @@ jobs:
 
         # Create a pull request from main to the original branch
         gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "Pull request already exists or failed"
+

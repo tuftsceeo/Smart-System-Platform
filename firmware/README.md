@@ -13,9 +13,16 @@ This directory will host the custom firmware.
 The repository has the following directory tree.
 
     .
+    ├── ESP32_GENERIC_C3-20241129-v1.24.1.bin
     ├── README.md
     ├── README.qmd
-    └── README.rmarkdown
+    ├── README.rmarkdown
+    ├── bootloader
+    │   └── bootloader.bin
+    ├── instruction.txt
+    ├── micropython.bin
+    └── partitiontable
+        └── partition-table.bin
 
 A short description of the directories can be found below.
 

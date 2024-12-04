@@ -28,11 +28,15 @@ The repository has the following directory tree.
     ├── archive
     │   ├── 4sophie.py
     │   ├── aioespnow.py
+    │   ├── extended net code.py
     │   ├── hackathon
     │   ├── led.py
     │   ├── long_message_Test.py
     │   ├── main.py
+    │   ├── net code.py
+    │   ├── networking new backup.py
     │   ├── networking2.py
+    │   ├── networking_backup.py
     │   ├── networking_old copy.py
     │   ├── networking_old.py
     │   ├── networkingtest.py
@@ -45,7 +49,9 @@ The repository has the following directory tree.
     │   ├── icons.py
     │   ├── sensors.py
     │   ├── servo.py
-    │   ├── smartmotor.py
+    │   ├── sl1.py
+    │   ├── sm3.py
+    │   ├── smartlight.py
     │   ├── ssd1306.py
     │   └── variableLED.py
     ├── main
@@ -56,7 +62,8 @@ The repository has the following directory tree.
     │   ├── README.md
     │   ├── README.qmd
     │   ├── examples
-    │   └── networking.py
+    │   ├── networking.py
+    │   └── networking_commands.py
     └── release
         ├── README.md
         ├── README.qmd
@@ -70,6 +77,9 @@ The repository has the following directory tree.
         ├── networking.py
         ├── sensors.py
         ├── servo.py
+        ├── sl1.py
+        ├── sm3.py
+        ├── smartlight.py
         ├── smartmotor.py
         ├── ssd1306.py
         └── variableLED.py
