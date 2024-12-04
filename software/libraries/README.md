@@ -21,8 +21,6 @@ The repository has the following directory tree.
     ├── icons.py
     ├── sensors.py
     ├── servo.py
-    ├── sl1.py
-    ├── sm3.py
     ├── smartlight.py
     ├── ssd1306.py
     └── variableLED.py

@@ -28,6 +28,7 @@ The repository has the following directory tree.
     ├── archive
     │   ├── 4sophie.py
     │   ├── aioespnow.py
+    │   ├── am1.py
     │   ├── extended net code.py
     │   ├── hackathon
     │   ├── led.py
@@ -49,15 +50,16 @@ The repository has the following directory tree.
     │   ├── icons.py
     │   ├── sensors.py
     │   ├── servo.py
-    │   ├── sl1.py
-    │   ├── sm3.py
     │   ├── smartlight.py
     │   ├── ssd1306.py
     │   └── variableLED.py
     ├── main
     │   ├── README.md
     │   ├── README.qmd
-    │   └── main.py
+    │   ├── boot.py
+    │   ├── main.py
+    │   ├── sl1.py
+    │   └── sm3.py
     ├── networking
     │   ├── README.md
     │   ├── README.qmd
