@@ -7,7 +7,7 @@ gc.collect()
 
 import network
 
-print("Running pyscript main")
+print("Running boot.py")
 
 #just to be safe
 sta = network.WLAN(network.STA_IF)
@@ -43,7 +43,7 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Vers
     networking.config["version"]
 ))
 
-def idle():
+if configuration == "AM1":
     lastPressed = 0
 
     message="Boop!"
@@ -75,25 +75,3 @@ def deinit():
     networking.cleanup()
     timer.deinit()
     machine.reset()
-
-def run_config_module(module_name):
-    try:
-        with open(module_name + ".py") as f:
-            code = f.read()
-        exec(code)
-    except Exception as e:
-        print(f"Error running {module_name}: {e}")
-
-# cases for different configurations
-if configuration == "AM1":
-    print("idle")
-    idle()
-elif configuration == "SM3":
-    print("sm3")
-    run_config_module("sm3")
-elif configuration == "SL1":
-    print("sl1")
-    run_config_module("sl1")
-else:
-    print("idle")
-    idle()

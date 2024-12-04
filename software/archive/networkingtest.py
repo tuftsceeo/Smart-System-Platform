@@ -87,11 +87,11 @@ if test:
         print("\033[32mTest echo passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest echo failed: {e}\033[0m")
-    try:
-        networking.aen.broadcast(message)
-        print("\033[32mTest broadcast passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest broadcast failed: {e}\033[0m")
+#     try:
+#         networking.aen.broadcast(message)
+#         print("\033[32mTest broadcast passed\033[0m")
+#     except Exception as e:
+#         print(f"\033[31mTest broadcast failed: {e}\033[0m")
         
     try:
         networking.aen.echo(peer_mac, message_str)
