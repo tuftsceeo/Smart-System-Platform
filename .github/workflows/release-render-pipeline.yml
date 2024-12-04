@@ -75,26 +75,26 @@ jobs:
           # Check if the file has been modified (either staged or new file)
           if echo "$all_changed_files" | grep -q "$base_file"; then
             # Use Python to update the version
-            python3 - <<EOF
-import ast
-config_path = 'software/release/config.py'
-with open(config_path, 'r') as f:
-    version = ast.literal_eval(f.read().strip().split('= ', 1)[1])
-
-if '$base_file' in version:
-    version['$base_file'] += 1
-    print(f"Updated $base_file version to {version['$base_file']}")
-else:
-    version['$base_file'] = 1
-    print(f"Added $base_file with version 1")
-
-with open(config_path, 'w') as f:
-    f.write(f"version = {repr(version)}")
-EOF
-  else
-    echo "No change detected for $base_file"
-  fi
-done < file_list.txt
+            python3 - <<'EOF'
+    import ast
+    config_path = 'software/release/config.py'
+    with open(config_path, 'r') as f:
+        version = ast.literal_eval(f.read().strip().split('= ', 1)[1])
+    
+    if '$base_file' in version:
+        version['$base_file'] += 1
+        print(f"Updated $base_file version to {version['$base_file']}")
+    else:
+        version['$base_file'] = 1
+        print(f"Added $base_file with version 1")
+    
+    with open(config_path, 'w') as f:
+        f.write(f"version = {repr(version)}")
+    EOF
+          else
+            echo "No change detected for $base_file"
+          fi
+        done < file_list.txt
 
     # --- Step 3: Render README.qmd to Markdown ---
     - name: Set up R
