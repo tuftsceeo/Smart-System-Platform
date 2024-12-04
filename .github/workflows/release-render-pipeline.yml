@@ -62,50 +62,37 @@ jobs:
       run: |
         # Get the list of changed (staged) files using git diff
         changed_files=$(git diff --name-only)
-
         # Get the list of untracked files (new files that haven't been added yet)
         new_files=$(git ls-files --others --exclude-standard)
-
         # Combine the changed and new files
         all_changed_files=$(echo "$changed_files $new_files" | tr ' ' '\n')
-
-        # Read the current version dictionary from config.py
-        python3 -c "from software.release.config import version; print(version)" > current_version.json
-
         # Process each file in file_list.txt
         while read file; do
           # Extract the base file name from the full path
           base_file=$(basename "$file")
-
           # Check if the file has been modified (either staged or new file)
           if echo "$all_changed_files" | grep -q "$base_file"; then
-            # Check if the file exists in the version dictionary
-            if grep -q "$base_file" current_version.json; then
-              # Get the current version number
-              current_version=$(python3 -c "from software.release.config import version; print(version['$base_file'])")
-              
-              # Increment the version number by 1
-              new_version=$((current_version + 1))
-              python3 -c "from software.release.config import version; version['$base_file'] = $new_version; \
-                          import json; \
-                          with open('software/release/config.py', 'w') as f: json.dump(version, f, indent=4)"
-              
-              # Debugging: Print the file name and updated version
-              echo "Updated $base_file version from $current_version to $new_version"
-            else
-              # Add the file with version 1 if it's not already in the dictionary
-              python3 -c "from software.release.config import version; version['$base_file'] = 1; \
-                          import json; \
-                          with open('software/release/config.py', 'w') as f: json.dump(version, f, indent=4)"
-              
-              # Debugging: Print that the file was added with version 1
-              echo "Added $base_file with version 1"
-            fi
-          else
-            # Debugging: Print that the file has not changed
-            echo "No change detected for $base_file"
-          fi
-        done < file_list.txt
+            # Use Python to update the version
+            python3 - <<EOF
+            import ast
+            config_path = 'software/release/config.py'
+            with open(config_path, 'r') as f:
+                version = ast.literal_eval(f.read().strip().split('= ', 1)[1])
+            
+            if '$base_file' in version:
+                version['$base_file'] += 1
+                print(f"Updated $base_file version to {version['$base_file']}")
+            else:
+                version['$base_file'] = 1
+                print(f"Added $base_file with version 1")
+            
+            with open(config_path, 'w') as f:
+                f.write(f"version = {repr(version)}")
+            EOF
+                  else
+                    echo "No change detected for $base_file"
+                  fi
+                done < file_list.txt
 
     # --- Step 3: Render README.qmd to Markdown ---
     - name: Set up R
