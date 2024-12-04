@@ -6,6 +6,8 @@ software/libraries/files.py
 software/libraries/icons.py
 software/libraries/sensors.py
 software/libraries/servo.py
-software/libraries/smartmotor.py
+software/libraries/smartlight.py
+software/libraries/sl1.py
+software/libraries/sm3.py
 software/libraries/ssd1306.py
 software/libraries/variableLED.py

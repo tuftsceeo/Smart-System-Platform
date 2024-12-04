@@ -27,11 +27,13 @@ The repository has the following directory tree.
     ├── README.qmd
     ├── README.rmarkdown
     ├── examples
+    │   ├── codethatfixesUnknownWifiError.py
     │   ├── default_main.py
     │   ├── example.py
     │   ├── long_message_example.py
     │   └── pyscript_main.py
-    └── networking.py
+    ├── networking.py
+    └── networking_commands.py
 
 A short description of the directories can be found below.
 

@@ -21,7 +21,9 @@ The repository has the following directory tree.
     ├── icons.py
     ├── sensors.py
     ├── servo.py
-    ├── smartmotor.py
+    ├── sl1.py
+    ├── sm3.py
+    ├── smartlight.py
     ├── ssd1306.py
     └── variableLED.py
 
@@ -34,6 +36,8 @@ A short description of the directories can be found below.
 | icons.py | Icon support for the smart motor module | Milan |
 | sensors.py | Sensor support for the smart motor module | Milan |
 | servo.py | Servo support for the smart motor module | Milan |
+| smartlight.py | Support for the smart light module | Milan |
+| smartlightm.py | Smart light main program | Milan |
 | smartmotor.py | Smart motor module main program | Milan |
 | ssd1306.py | Support for the built in OLED screen https://github.com/stlehmann/micropython-ssd1306/blob/master/ssd1306.py | Milan |
 | variableLED.py | Library that powers the variable LED grid | Sophie |

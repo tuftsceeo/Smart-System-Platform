@@ -1,45 +1,89 @@
 from machine import Pin
 import machine
+from config import config
+
 import gc
 gc.collect()
 
-import time
+import network
 
-print("Running pyscript networking tool")
+#just to be safe
+sta = network.WLAN(network.STA_IF)
+ap = network.WLAN(network.AP_IF)
+sta.active(True)
+ap.active(True)
+sta.active(False)
+ap.active(False)
+
+print("Running pyscript main")
 
 from networking import Networking
 
 #Network
-networking = Networking(True, False, True)
+infmsg = False
+dbgmsg = False
+errmsg = False
+configuration = config["configuration"]
+if configuration == "AM1":
+    infmsg = True
+    
+networking = Networking(infmsg, dbgmsg, errmsg)
+
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
-print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Name: {networking.name}, ID: {networking.id}, config: {networking.config}, Sta mac: {networking.sta.mac()}, Ap mac: {networking.ap.mac()}, Version: {networking.version_n}")
+import time
 
-lastPressed = 0
+print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
+    (time.ticks_ms() - networking.inittime) / 1000,
+    networking.config["name"],
+    networking.config["id"],
+    networking.config["configuration"],
+    networking.sta.mac(),
+    networking.ap.mac(),
+    networking.config["version"]
+))
 
-message="Boop!"
+def idle():
+    lastPressed = 0
 
-def boop(pin):
-    global lastPressed
-    if(time.ticks_ms()-lastPressed>1000):
-        lastPressed = time.ticks_ms()
-        networking.aen.ping(peer_mac)
-        networking.aen.echo(peer_mac, message)
-        networking.aen.send(peer_mac, message)
-        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
-        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.aen.rssi()}")
+    message="Boop!"
 
-switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
+    def boop(pin):
+        global lastPressed
+        if(time.ticks_ms()-lastPressed>1000):
+            lastPressed = time.ticks_ms()
+            networking.aen.ping(peer_mac)
+            networking.aen.echo(peer_mac, message)
+            networking.aen.send(peer_mac, message)
+            print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
+            print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.aen.rssi()}")
 
-#Buttons
-switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
-switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
+    switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 
-def heartbeat(timer):
-    print("")
-    print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
-    print("")
-    gc.collect()
+    #Buttons
+    switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
+    switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
-timer = machine.Timer(0)
-timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
+    def heartbeat(timer):
+        print("")
+        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
+        print("")
+        gc.collect()
+
+    timer = machine.Timer(0)
+    timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
+
+def deinit():
+    networking.cleanup()
+    timer.deinit()
+    machine.reset()
+
+#cases for different configurations
+if configuration == "AM1":
+    idle()
+elif configuration == "SM3":
+    import sm3
+elif configuration == "SL1":
+    import sl1
+else:
+    idle()
