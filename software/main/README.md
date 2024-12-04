@@ -16,11 +16,17 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
-    └── main.py
+    ├── boot.py
+    ├── main.py
+    ├── sl1.py
+    └── sm3.py
 
 A short description of the directories can be found below.
 
-| name      | description                     | contribution |
-|-----------|---------------------------------|--------------|
-| config.py | Smart Module Configuration File | Nick         |
-| main.py   | Smart Module Main.py            | Nick         |
+| name | description | contribution |
+|----|----|----|
+| boot.py | Smart Module Net Boot File (needs module specific main files) | Nick |
+| main.py | Smart Module Main.py (manually runs module main files named after module configuration) | Nick |
+| am1.py | Admin Module Main | Nick |
+| sl1.py | Smart Light Main | Nick |
+| sm3.py | Smart Motor Main | Nick |

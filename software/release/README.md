@@ -47,7 +47,7 @@ A short description of the directories can be found below.
 | libraries/sensors.py | Sensor support for the smart motor module | Milan |
 | libraries/servo.py | Servo support for the smart motor module | Milan |
 | libraries/smartlight.py | Smart light support for smart light module | Milan |
-| libraries/sl1.py | Smart light module main program | Milan |
-| libraries/sm3.py | Smart motor module main program | Milan |
+| main/sl1.py | Smart light module main program | Milan |
+| main/sm3.py | Smart motor module main program | Milan |
 | libraries/ssd1306.py | Support for the built in OLED screen https://github.com/stlehmann/micropython-ssd1306/blob/master/ssd1306.py | Milan |
 | libraries/variableLED.py | Library that powers the variable LED grid | Sophie |

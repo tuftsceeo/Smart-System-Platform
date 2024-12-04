@@ -6,8 +6,8 @@ version = {"adxl345": 3, "files": 2, "icons": 2, "motor": 4, "main": 0, "network
     'sm3.py': 1,
     'sl1.py': 1,
     'smartlight.py': 1,
-    'networking.py': 1,
-    'main.py': 1,
+'networking.py': 2,
+'main.py': 2,
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
 msg_codes = {"cmd": 0x01, "inf": 0x02, "ack": 0x03}
 msg_subcodes = {

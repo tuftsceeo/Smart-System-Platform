@@ -7,6 +7,8 @@ gc.collect()
 
 import network
 
+print("Running pyscript main")
+
 #just to be safe
 sta = network.WLAN(network.STA_IF)
 ap = network.WLAN(network.AP_IF)
@@ -15,14 +17,12 @@ ap.active(True)
 sta.active(False)
 ap.active(False)
 
-print("Running pyscript main")
-
 from networking import Networking
 
 #Network
 infmsg = False
 dbgmsg = False
-errmsg = False
+errmsg = True
 configuration = config["configuration"]
 if configuration == "AM1":
     infmsg = True
@@ -57,9 +57,7 @@ def idle():
             networking.aen.send(peer_mac, message)
             print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
             print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.aen.rssi()}")
-
-    switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
-
+            
     #Buttons
     switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
     switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
@@ -78,12 +76,24 @@ def deinit():
     timer.deinit()
     machine.reset()
 
-#cases for different configurations
+def run_config_module(module_name):
+    try:
+        with open(module_name + ".py") as f:
+            code = f.read()
+        exec(code)
+    except Exception as e:
+        print(f"Error running {module_name}: {e}")
+
+# cases for different configurations
 if configuration == "AM1":
+    print("idle")
     idle()
 elif configuration == "SM3":
-    import sm3
+    print("sm3")
+    run_config_module("sm3")
 elif configuration == "SL1":
-    import sl1
+    print("sl1")
+    run_config_module("sl1")
 else:
+    print("idle")
     idle()
