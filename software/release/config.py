@@ -1,5 +1,10 @@
+config = {
+    "name": "Nickname",
+    "configuration": "AM1"
+    }
+version = {"adxl345": 3, "files": 2, "icons": 2, "motor": 4, "main": 0, "networking": 0, "prefs": 2, "sensors": 4, "servo": 2, "ssd1306": 2}  # motor used to be main
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
-msg_codes = {"cmd": 0x01, "inf": 0x01, "ack": 0x01}
+msg_codes = {"cmd": 0x01, "inf": 0x02, "ack": 0x03}
 msg_subcodes = {
     "cmd": {
         "Reboot": 0x00,
@@ -10,6 +15,7 @@ msg_subcodes = {
         "Set-Admin": 0x06,
         "Whitelist-Add": 0x07,
         "Config-Change": 0x08,
+        "Name-Change": 0x09,
         "Ping": 0x10,
         "Pair": 0x11,
         "Set-Pair": 0x12,
@@ -25,7 +31,7 @@ msg_subcodes = {
         "Resume": 0x26,
     },
     "inf": {
-        "RSSI": 0x20,
+        "RSSI/Status/Config-Boop": 0x20,
         "Sensor": 0x21,
         "Message": 0x22,
         "Directory": 0x23,
@@ -47,8 +53,6 @@ networking_keys = {
     "default_ap_key": "password",
     "default_wifi_key": "password"
 }
-configname = "Nickname"
-config = "AdminModuleConfig"
 whitelist = [b'd\xe83\x84\xd8\x18', b'd\xe83\x84\xd8\x19',
              b'd\xe83\x85\xd3\xbc', b'd\xe83\x85\xd3\xbd',
              b'd\xe83\x84\xd8\x18', b'd\xe83\x84\xd8\x19']  #each ESP32 has two MAC addresses
@@ -56,4 +60,4 @@ i2c_dict = {
     "0x3C": ["pca9685", 0, "screen"],
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
-version = {"adxl345": 3, "files": 2, "icons": 2, "motor": 4, "main": 0, "networking": 0, "prefs": 2, "sensors": 4, "servo": 2, "ssd1306": 2}  # motor used to be main
+

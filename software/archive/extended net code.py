@@ -1,37 +1,19 @@
 from machine import Pin
 import machine
-
 import gc
 gc.collect()
 
-import network
-
-sta = network.WLAN(network.STA_IF)
-ap = network.WLAN(network.AP_IF)
-sta.active(True)
-ap.active(True)
-sta.active(False)
-ap.active(False)
+import time
 
 print("Running pyscript networking tool")
 
 from networking import Networking
 
 #Network
-networking = Networking(False, False, True)
+networking = Networking(True, True, True)
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
-import time
-
-print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
-    (time.ticks_ms() - networking.inittime) / 1000,
-    networking.config["name"],
-    networking.config["id"],
-    networking.config["configuration"],
-    networking.sta.mac(),
-    networking.ap.mac(),
-    networking.config["version"]
-))
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Name: {networking.name}, ID: {networking.id}, config: {networking.config}, Sta mac: {networking.sta.mac()}, Ap mac: {networking.ap.mac()}, Version: {networking.version_n}")
 
 lastPressed = 0
 
@@ -55,14 +37,12 @@ switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
 def heartbeat(timer):
     print("")
-    print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
+    print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: {gc.mem_free()} bytes")
     print("")
     gc.collect()
 
 timer = machine.Timer(0)
 timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
 
-def deinit():
-    networking.cleanup()
-    timer.deinit()
-    machine.reset()
+
+

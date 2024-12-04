@@ -1,19 +1,37 @@
 from machine import Pin
 import machine
+
 import gc
 gc.collect()
 
-import time
+import network
+
+sta = network.WLAN(network.STA_IF)
+ap = network.WLAN(network.AP_IF)
+sta.active(True)
+ap.active(True)
+sta.active(False)
+ap.active(False)
 
 print("Running pyscript networking tool")
 
 from networking import Networking
 
 #Network
-networking = Networking(True, False, True)
+networking = Networking(True, False, True, True)
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
-print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Name: {networking.name}, ID: {networking.id}, config: {networking.config}, Sta mac: {networking.sta.mac()}, Ap mac: {networking.ap.mac()}, Version: {networking.version_n}")
+import time
+
+print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
+    (time.ticks_ms() - networking.inittime) / 1000,
+    networking.config["name"],
+    networking.config["id"],
+    networking.config["configuration"],
+    networking.sta.mac(),
+    networking.ap.mac(),
+    networking.config["version"]
+))
 
 lastPressed = 0
 
@@ -43,3 +61,8 @@ def heartbeat(timer):
 
 timer = machine.Timer(0)
 timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
+
+def deinit():
+    networking.cleanup()
+    timer.deinit()
+    machine.reset()
