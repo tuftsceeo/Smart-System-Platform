@@ -2,12 +2,20 @@ config = {
     "name": "Nickname",
     "configuration": "AM1"
     }
-version = {"adxl345": 3, "files": 2, "icons": 2, "motor": 4, "main": 0, "networking": 0, "prefs": 2, "sensors": 4, "servo": 2, "ssd1306": 2}  # motor used to be main
-    'sm3.py': 1,
-    'sl1.py': 1,
-    'smartlight.py': 1,
-'networking.py': 2,
-'main.py': 2,
+version = {'adxl345.py': 3,
+           'files.py': 2,
+           'icons.py': 2,
+           'prefs.py': 2,
+           'sensors.py': 4,
+           'servo.py': 2,
+           'ssd1306.py': 2,
+           'sm3.py': 1,
+           'sl1.py': 1,
+           'smartlight.py': 1,
+           'networking.py': 2,
+           'main.py': 0,
+           'boot.py': 0
+            }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
 msg_codes = {"cmd": 0x01, "inf": 0x02, "ack": 0x03}
 msg_subcodes = {
