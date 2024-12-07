@@ -17,7 +17,7 @@ ap.active(True)
 sta.active(False)
 ap.active(False)
 
-from networking import Networking
+from ssp_networking import SSP_Networking
 
 #Network
 infmsg = False
@@ -27,11 +27,12 @@ configuration = config["configuration"]
 if configuration == "AM1":
     infmsg = True
     
-networking = Networking(infmsg, dbgmsg, errmsg)
+networking = SSP_Networking(infmsg, dbgmsg, errmsg)
 
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
 import time
+global timer
 
 print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
     (time.ticks_ms() - networking.inittime) / 1000,
@@ -42,6 +43,7 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Vers
     networking.ap.mac(),
     networking.config["version"]
 ))
+
 
 def idle():
     lastPressed = 0
@@ -73,7 +75,10 @@ def idle():
 
 def deinit():
     networking.cleanup()
-    timer.deinit()
+    try:
+        timer.deinit()
+    except Exception as e:
+        print(e)
     machine.reset()
 
 def run_config_module(module_name):
