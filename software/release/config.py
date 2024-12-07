@@ -1,6 +1,8 @@
 config = {
     "name": "Nickname",
-    "configuration": "AM1"
+    "configuration": "AM1",
+    "id": None,
+    "version": None
     }
 version = {'adxl345.py': 3,
            'files.py': 2,
@@ -45,7 +47,7 @@ msg_subcodes = {
     },
     "inf": {
         "RSSI/Status/Config-Boop": 0x20,
-        "Sensor": 0x21,
+        "Data": 0x21,
         "Message": 0x22,
         "Directory": 0x23,
     },
