@@ -29,6 +29,7 @@ The repository has the following directory tree.
     │   ├── 4sophie.py
     │   ├── aioespnow.py
     │   ├── am1.py
+    │   ├── default_main.py
     │   ├── extended net code.py
     │   ├── hackathon
     │   ├── led.py
@@ -41,6 +42,7 @@ The repository has the following directory tree.
     │   ├── networking_old copy.py
     │   ├── networking_old.py
     │   ├── networkingtest.py
+    │   ├── pyscript_main.py
     │   └── secrets.py
     ├── libraries
     │   ├── README.md
@@ -65,7 +67,7 @@ The repository has the following directory tree.
     │   ├── README.qmd
     │   ├── examples
     │   ├── networking.py
-    │   └── networking_commands.py
+    │   └── ssp_networking.py
     └── release
         ├── README.md
         ├── README.qmd
@@ -84,6 +86,7 @@ The repository has the following directory tree.
         ├── smartlight.py
         ├── smartmotor.py
         ├── ssd1306.py
+        ├── ssp_networking.py
         └── variableLED.py
 
 A short description of the directories can be found below.

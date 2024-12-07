@@ -28,12 +28,10 @@ The repository has the following directory tree.
     ├── README.rmarkdown
     ├── examples
     │   ├── codethatfixesUnknownWifiError.py
-    │   ├── default_main.py
     │   ├── example.py
-    │   ├── long_message_example.py
-    │   └── pyscript_main.py
+    │   └── long_message_example.py
     ├── networking.py
-    └── networking_commands.py
+    └── ssp_networking.py
 
 A short description of the directories can be found below.
 
@@ -43,4 +41,5 @@ A short description of the directories can be found below.
 | examples | This directory hosts example code | Nick |
 | examples/example.py | This is some basic example code on how to use my networking library | Nick |
 | examples/long_message_example.py | This code showcases the long message capabilities built into my code. By sending multiple messages that are then stitched back together by the recipient the max payload can be increased from 241 bytes to 256 x 238 = 60928 bytes, although in reality the ESP32 boards will start running out of memory with messages above 30 kilobytes. | Nick |
-| networking.py | This is the main networking code that builds on ESP-NOW. There are many prepared functionalities (and some more that I am working on), such as long message support, sending of various variable types (bytes, bytearray, dicts, lists, int, float, char, string), as well as different types of messages such as ping, echo and more. There are also various features in place to make the networking more robust. It needs config.py to function. | Nick |
+| networking.py | This is the main networking code that builds on ESP-NOW. There are many prepared functionalities (and some more that I am working on), such as long message support, sending of various variable types (bytes, bytearray, dicts, lists, int, float, char, string), as well as different types of messages such as ping, echo and more. There are also various features in place to make the networking more robust. | Nick |
+| ssp_networking.py | This is the SSP networking code that builds on the above networking.py. This adds even more functionality on top (many more commands) and customises certain use for the Smart Systems Platform. Needs a config.py to properly work. | Nick |
