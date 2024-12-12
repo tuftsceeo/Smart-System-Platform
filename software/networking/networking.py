@@ -201,10 +201,10 @@ class Networking:
                     if peer_config is not None:
                         self._peers[peer_mac].update(peer_config)
                     if channel is not None:
-                        self._peers[peer_mac]['channel'] = channel
+                        self._peers[peer_mac].update({'channel': channel})
                     if ifidx is not None:
-                        self._peers[peer_mac]['ifidx'] = ifidx
-                    self.master.dprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {self._peers[peer_mac]['name']}")
+                        self._peers[peer_mac].update({'ifidx': ifidx})
+                    self.master.dprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error updating peer {peer_mac}: {e}")
                 return
@@ -214,9 +214,15 @@ class Networking:
             self.master.dprint("aen.add_peer")
             if peer_mac not in self._peers:
                 try:
-                    self._peers[peer_mac] = {'channel': channel, 'ifidx': ifidx}
-                    self._peers[peer_mac].update(peer_config)
-                    self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self._peers[peer_mac]['name']}")
+                    self._peers[peer_mac] = {}
+                    if channel is not None:
+                        self._peers[peer_mac].update({'channel': channel})
+                    if ifidx is not None:
+                        self._peers[peer_mac].update({'ifidx': ifidx})
+                    if peer_config is not None:
+                        self._peers[peer_mac].update(peer_config)
+                    self._peers[peer_mac].update({'RSSI': None, 'timestamp': None})
+                    self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error adding peer {peer_mac}: {e}")
             else:
@@ -234,12 +240,19 @@ class Networking:
 
         def peers(self):
             self.master.dprint("aen.peers")
+            rssi_table = self._aen.peers_table
+            for key in rssi_table:
+                self._peers[key].update({'RSSI': rssi_table[key][0]})
+                self._peers[key].update({'time': rssi_table[key][1]-self.master.inittime})
             return self._peers
 
         def peer_name(self, key):
             self.master.dprint("aen.name")
             if key in self._peers:
-                return self._peers[key]['name']
+                if 'name' in self._peers[key]:
+                    return self._peers[key]['name']
+                else:
+                    return None
             else:
                 return None
 
@@ -271,7 +284,7 @@ class Networking:
                 try:
                     self.master.iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
                 except Exception as e:
-                    self.master.eprint(f"Sending echo to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
+                    self.master.eprint(f"Sending echo to {mac}, but error printing message content: {e}")
             else:
                 self.master.iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
             self.send_command(0x01, 0x15, mac, message, channel, ifidx)
@@ -360,29 +373,24 @@ class Networking:
  
         def _send(self, peers_mac, messages, channel, ifidx):
             self.master.dprint("aen._send")
-
             if isinstance(peers_mac, bytes):
                 peers_mac = [peers_mac]
             for peer_mac in peers_mac:
                 try:
-                    if channel is not None and ifidx is not None:
-                        self._aen.add_peer(peer_mac, channel=channel, ifidx=ifidx)
-                    elif channel is not None:
+                    if channel is None:
                         if peer_mac in self._peers:
-                            self._aen.add_peer(peer_mac, channel=channel, ifidx=self._peers[peer_mac]['ifidx'])
+                            if 'channel' in self._peers[peer_mac]:
+                                channel=self._peers[peer_mac]['channel']
                         else:
-                            self._aen.add_peer(peer_mac, channel=channel, ifidx=self.ifidx)
-                    elif ifidx is not None:
+                            channel = 0
+                    elif ifidx is None:
                         if peer_mac in self._peers:
-                            self._aen.add_peer(peer_mac, channel=self._peers[peer_mac]['channel'], ifidx=ifidx)
+                            if 'ifidx' in self._peers[peer_mac]:
+                                ifidx=self._peers[peer_mac]['ifidx']
                         else:
-                            self._aen.add_peer(peer_mac, channel=0, ifidx=ifidx)
-                    elif peer_mac in self._peers:
-                        self._aen.add_peer(peer_mac, channel=self._peers[peer_mac]['channel'],
-                                           ifidx=self._peers[peer_mac]['ifidx'])
-                    else:
-                        self._aen.add_peer(peer_mac, channel=0, ifidx=self.ifidx)
-                    self.master.dprint(f"Added {peer_mac} to espnow buffer")
+                            ifidx=self.ifidx
+                    self._aen.add_peer(peer_mac, channel=channel, ifidx=ifidx)
+                    self.master.dprint(f"Added {peer_mac} to espnow buffer with channel {channel} and ifidx {ifidx}")
                 except Exception as e:
                     self.master.eprint(f"Error adding {peer_mac} to espnow buffer: {e}")
                     

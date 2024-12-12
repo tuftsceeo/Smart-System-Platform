@@ -15,11 +15,36 @@ class SSP_Networking:
         self.networking = Networking(infmsg, dbgmsg, errmsg, admin, inittime)
         config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
         config["version"] = ''.join(str(value) for value in version.values())
+        config["ap_mac"] = self.networking.ap.mac()
+        config["sta_mac"] = self.networking.sta.mac()
         self.networking.config = config
+        self.config = self.networking.config
         self.version = version
         self.commands = self.Commands(self)
         self.orders = self.Orders(self)
+        self.inittime = self.networking.inittime
+        
+    def rssi(self):
+        return self.networking.aen.rssi()
+    
+    def peers(self):
+        return self.networking.aen.peers()
+    
+    def irq(self, func):
+        self.networking.aen.irq(func)
+    
+    def check_messages(self):
+        return self.networking.aen.check_messages()
 
+    def return_message(self):
+        return self.networking.aen.return_message()
+    
+    def return_messages(self):
+        return self.networking.aen.return_messages()
+    
+    def cleanup(self):
+        self.networking.cleanup()
+    
     class Commands:
         def __init__(self, master):
             self.master = master
@@ -48,7 +73,7 @@ class SSP_Networking:
             self.master.networking.aen.echo(mac, message, channel, ifidx)
 
         def boop(self, mac, channel=None, ifidx=None, sudo=False):
-            self.master.networking.dprint("aen.boop")
+            self.master.networking.dprint("net.cmd.boop")
             self.master.networking.aen.boop(mac, channel, ifidx, sudo)
 
         def send(self, mac, message, channel=None, ifidx=None):

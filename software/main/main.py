@@ -3,13 +3,14 @@ import machine
 from config import config
 
 import gc
+
 gc.collect()
 
 import network
 
-print("Running pyscript main")
+print("Running main.py")
 
-#just to be safe
+# just to be safe
 sta = network.WLAN(network.STA_IF)
 ap = network.WLAN(network.AP_IF)
 sta.active(True)
@@ -19,19 +20,20 @@ ap.active(False)
 
 from ssp_networking import SSP_Networking
 
-#Network
+# Network
 infmsg = False
 dbgmsg = False
 errmsg = True
 configuration = config["configuration"]
 if configuration == "AM1":
     infmsg = True
-    
+
 networking = SSP_Networking(infmsg, dbgmsg, errmsg)
 
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
 import time
+
 global timer
 
 print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
@@ -39,8 +41,8 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Vers
     networking.config["name"],
     networking.config["id"],
     networking.config["configuration"],
-    networking.sta.mac(),
-    networking.ap.mac(),
+    networking.config["ap_mac"],
+    networking.config["sta_mac"],
     networking.config["version"]
 ))
 
@@ -48,19 +50,20 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Vers
 def idle():
     lastPressed = 0
 
-    message="Boop!"
+    message = "Boop!"
 
     def boop(pin):
         global lastPressed
-        if(time.ticks_ms()-lastPressed>1000):
+        if (time.ticks_ms() - lastPressed > 1000):
             lastPressed = time.ticks_ms()
             networking.aen.ping(peer_mac)
             networking.aen.echo(peer_mac, message)
             networking.aen.send(peer_mac, message)
             print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
-            print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.aen.rssi()}")
-            
-    #Buttons
+            print(
+                f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.rssi()}")
+
+    # Buttons
     switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
     switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
@@ -73,6 +76,7 @@ def idle():
     timer = machine.Timer(0)
     timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
 
+
 def deinit():
     networking.cleanup()
     try:
@@ -81,6 +85,7 @@ def deinit():
         print(e)
     machine.reset()
 
+
 def run_config_module(module_name):
     try:
         with open(module_name + ".py") as f:
@@ -88,6 +93,7 @@ def run_config_module(module_name):
         exec(code)
     except Exception as e:
         print(f"Error running {module_name}: {e}")
+
 
 # cases for different configurations
 if configuration == "AM1":
