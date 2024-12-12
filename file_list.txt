@@ -1,6 +1,7 @@
 software/release/config.py
 software/main/main.py
 software/networking/networking.py
+software/networking/ssp_networking.py
 software/libraries/adxl345.py
 software/libraries/files.py
 software/libraries/icons.py

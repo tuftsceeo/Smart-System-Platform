@@ -148,7 +148,15 @@ jobs:
         # Check if the original branch exists
         if git show-ref --verify --quiet "refs/remotes/origin/$original_branch"; then
           # Create a pull request from main to the original branch
-          gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "Pull request already exists or failed"
+          pr_url=$(gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "")
+          
+          # Merge the pull request if created
+          if [[ -n "$pr_url" ]]; then
+            pr_number=$(echo "$pr_url" | grep -oP '\d+$')
+            gh pr merge "$pr_number" --merge --admin || echo "Failed to merge PR $pr_number"
+          else
+            echo "No new pull request was created."
+          fi
         else
           echo "Error: The branch '$original_branch' does not exist remotely."
         fi

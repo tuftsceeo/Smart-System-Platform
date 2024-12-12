@@ -5,6 +5,7 @@ config = {
     "version": None
     }
 version = {'adxl345.py': 3,
+    'ssp_networking.py': 1,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -14,8 +15,8 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-           'networking.py': 2,
-           'main.py': 0,
+'networking.py': 3,
+'main.py': 1,
            'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
