@@ -8,7 +8,7 @@ gc.collect()
 
 import network
 
-print("Running main.py")
+print("Running boot.py")
 
 # just to be safe
 sta = network.WLAN(network.STA_IF)
@@ -21,7 +21,7 @@ ap.active(False)
 from ssp_networking import SSP_Networking
 
 # Network
-infmsg = False
+infmsg = True
 dbgmsg = False
 errmsg = True
 configuration = config["configuration"]
@@ -47,8 +47,10 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Vers
 ))
 
 
+
+lastPressed = 0
+    
 def idle():
-    lastPressed = 0
 
     message = "Boop!"
 
@@ -56,9 +58,9 @@ def idle():
         global lastPressed
         if (time.ticks_ms() - lastPressed > 1000):
             lastPressed = time.ticks_ms()
-            networking.aen.ping(peer_mac)
-            networking.aen.echo(peer_mac, message)
-            networking.aen.send(peer_mac, message)
+            networking.ping(peer_mac)
+            networking.echo(peer_mac, message)
+            networking.send(peer_mac, message)
             print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
             print(
                 f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.rssi()}")
@@ -67,11 +69,13 @@ def idle():
     switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
     switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
+
     def heartbeat(timer):
         print("")
         print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
         print("")
         gc.collect()
+
 
     timer = machine.Timer(0)
     timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
@@ -85,7 +89,6 @@ def deinit():
         print(e)
     machine.reset()
 
-
 def run_config_module(module_name):
     try:
         with open(module_name + ".py") as f:
@@ -94,12 +97,11 @@ def run_config_module(module_name):
     except Exception as e:
         print(f"Error running {module_name}: {e}")
 
-
 # cases for different configurations
 if configuration == "AM1":
     print("idle")
     idle()
-elif configuration == "SM3":
+elif configuration == "S M3":
     print("sm3")
     run_config_module("sm3")
 elif configuration == "SL1":

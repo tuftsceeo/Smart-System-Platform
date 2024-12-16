@@ -55,9 +55,9 @@ if configuration == "AM1":
         global lastPressed
         if (time.ticks_ms() - lastPressed > 1000):
             lastPressed = time.ticks_ms()
-            networking.commands.ping(peer_mac)
-            networking.commands.echo(peer_mac, message)
-            networking.commands.send(peer_mac, message)
+            networking.ping(peer_mac)
+            networking.echo(peer_mac, message)
+            networking.send(peer_mac, message)
             print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
             print(
                 f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.rssi()}")
