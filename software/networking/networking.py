@@ -225,7 +225,7 @@ class Networking:
                         self._peers[peer_mac].update({'ifidx': ifidx})
                     if peer_config is not None:
                         self._peers[peer_mac].update(peer_config)
-                    self._peers[peer_mac].update({'RSSI': None, 'timestamp': None})
+                    self._peers[peer_mac].update({'rssi': None, 'timestamp': None})
                     self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error adding peer {peer_mac}: {e}")
@@ -246,7 +246,7 @@ class Networking:
             self.master.dprint("aen.peers")
             rssi_table = self._aen.peers_table
             for key in self._peers:
-                self._peers[key].update({'RSSI': rssi_table[key][0]})
+                self._peers[key].update({'rssi': rssi_table[key][0]})
                 self._peers[key].update({'time': rssi_table[key][1]-self.master.inittime})
             return self._peers
 
@@ -591,7 +591,7 @@ class Networking:
                 elif payload_type == b'\x05':  # string
                     payload = payload_bytes.decode('utf-8')
                 elif payload_type == b'\x06':  # json dict or list
-                    payload = json.loads(payload_bytes.decode('utf-8'))
+                    payload = json.loads(payload_bytes.decode('utf-8')) #use eval instead? #FIX
                 elif payload_type == b'\x07':  # Long byte array
                     payload = bytes(payload_bytes)
                 else:
@@ -673,7 +673,7 @@ class Networking:
                     self.add_peer(sender_mac, payload[2], payload[0], payload[1])
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp - payload[3]}")
                 elif (msg_subkey := "Echo") and subtype == 0x15:  # Echo
-                    self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}")
+                    self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {payload}")
                 elif (msg_subkey := "Success") and subtype == 0x11:  # Success
                     # payload should return a list with a cmd type and payload
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
@@ -707,4 +707,5 @@ class Networking:
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
 # | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp(ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
+
 

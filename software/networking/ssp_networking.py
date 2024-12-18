@@ -30,6 +30,7 @@ class SSP_Networking:
         return self.networking.aen.peers()
     
     def wpeers(self):
+        self.networking.iprint(f"time.ticks_ms(): {time.ticks_ms()}")
         networking_peer_info = f"networking_peers_info_start{self.networking.aen.peers()}networking_peers_info_end"
         print(networking_peer_info)
     
