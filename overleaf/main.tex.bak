@@ -1,0 +1,164 @@
+\documentclass[12pt, twoside, a4paper]{report}%
+\usepackage[top=72pt,% 72 pt = 1 inch
+			bottom=108pt,% 5/4 inch
+			inner=108pt,% 5/4 inch
+			outer=54pt% 3/4 inch
+]{geometry}% interface to document dimensions
+\usepackage[utf8]{inputenc}% translates various standards into LaTeX
+\usepackage[T1]{fontenc}% font encoding
+\usepackage{titlesec}% alternative section titles
+\usepackage[bitstream-charter]{mathdesign}% font Charter BT
+\usepackage{amsmath}% most of the needed math features
+\usepackage{mathtools}% an addition to amsmath
+\usepackage[english]{babel}% spelling check
+\usepackage{array}% extensive implementation of array and tabular environments
+\usepackage{caption}% customize captions in floating environments like figures, tables
+\usepackage{subcaption}% analogous to the caption package but for subcaptions
+\usepackage{fancyhdr}% extensive control of page headers and footers
+\usepackage{color}% foreground and background color management
+\usepackage{xcolor}% personalize the font colors
+\usepackage{hyperref}% handles cross-referencing commands
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                define the header and footer                  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\fancypagestyle{plain}{% define the chapter first page style %
+	\fancyhf{}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\leftmark%
+		\hspace*{0.75cm}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{0.75cm}%
+		\MakeUppercase{\chaptername\ \thechapter}%
+	}%
+	\renewcommand{\headrulewidth}{0pt}%
+	\renewcommand{\footrulewidth}{0pt}%
+}%
+%
+\fancypagestyle{maincontentstyle}{% define the normal page style %
+	\pagestyle{plain}%
+	\fancyhf{}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\leftmark%
+		\hspace*{0.75cm}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{0.75cm}%
+		\MakeUppercase{\chaptername\ \thechapter}%
+	}%
+}%
+%
+\fancypagestyle{bibstyle}{% define the bibliography style %
+	\fancyhf{}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\leftmark%
+		\hspace*{0.75cm}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		}%
+}%
+%
+\pagestyle{maincontentstyle}%
+\pagestyle{fancy}%
+\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{\quad{#1}}}{}}%
+\renewcommand{\sectionmark}[1]{\markright{\MakeUppercase{\thesection\quad{#1}}}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  redefine the chapter, section, subsection title displaying  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\titleformat{\chapter}{\huge\scshape}{\thechapter}{1em}{}%
+\titleformat{\section}{\LARGE}{\thesection}{1em}{}%
+\titleformat{\subsection}{\Large}{\thesubsection}{1em}{}%
+\titleformat{\subsubsection}{\large}{\thesubsubsection}{1em}{}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%        define zero-indentation in the whole document         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\setlength\parindent{0pt}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%            define the blankpage and blankpagesubs            %%
+%%      (the second one subtracts 1 from the page counter)      %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\blankpage{\clearpage\thispagestyle{empty}\null\clearpage}%
+%
+%% document %%
+\begin{document}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                      define new colors                       %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\definecolor{myblue}{rgb}{0.0000, 0.4470, 0.7410}
+\definecolor{myblue}{RGB}{46, 48, 146}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                         front matter                         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagenumbering{roman}%
+\blankpage%
+\input{./chapters/title_recto.tex}%
+\input{./chapters/title_verso.tex}%
+\input{./chapters/second_title.tex}%
+\blankpage%
+\input{./chapters/disclaimer.tex}%
+\blankpage%
+\addtocounter{page}{-6}% do not count the pages above %
+\input{./chapters/abstract_EN.tex}%
+\input{./chapters/abstrait_FR.tex}%
+\tableofcontents%
+\cleardoublepage%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                         main matter                         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage\pagenumbering{arabic}%
+\input{./chapters/introduction.tex}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                         back matter                         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./chapters/biblio.tex}%
+%
+\end{document}%

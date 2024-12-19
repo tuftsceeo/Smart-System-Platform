@@ -1,0 +1,341 @@
+% Template created by Jakub Tkaczuk at the Department of Cryogenic Engineering of CEA-Grenoble
+% and modified for the Global Health Engineering chair of ETH Zurich
+%
+% Do not use \usepackage{tocloft} for toc editing. It destroys features of listof.
+%
+\ProvidesPackage{StyleAndSettings}%
+%
+%%%%%%%%%%%%%%%%%%%%%%
+%% Generic packages %%
+%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[top=72pt,% 72 pt = 1 inch
+			bottom=108pt,% 5/4 inch
+			inner=72pt,% 108pt,% 5/4 inch
+			outer=54pt% 3/4 inch
+]{geometry}% interface to document dimensions
+\usepackage[utf8]{inputenc}% translates various standards into LaTeX
+\usepackage[T1]{fontenc}% font encoding
+\usepackage[english]{babel}% spelling check
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Packages for text and page settings %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{titlesec}% alternative section titles
+\usepackage{indentfirst}% indenting the first paragraph in section
+\usepackage[toc]{appendix}% appendix editing
+\usepackage{lscape}% landscape page
+\usepackage{pdflscape}% single page orientation change
+\usepackage{setspace}% line spacing
+\usepackage{fancyhdr}% extensive control of page headers and footers
+\usepackage{color}% foreground and background color management
+\usepackage{xcolor}% personalize the font colors
+\usepackage{textcomp}% support for text companion fonts
+\usepackage{listings}% code formatting
+\usepackage{eurosym}% euro symbol
+\usepackage{latexsym}% few additional characters
+\usepackage{fancyvrb}% sophisticated verbatim text
+%
+%%%%%%%%%%%%%%%%%%%
+%% Math packages %%
+%%%%%%%%%%%%%%%%%%%
+\usepackage[bitstream-charter]{mathdesign}% font Charter BT
+\usepackage{amsmath}% most of the needed math features
+\usepackage[makeroom]{cancel}% cancel out symols in math mode
+\usepackage{mathtools}% an addition to amsmath
+\usepackage{gensymb}% degree symbol
+\usepackage{bm}% bold symbols in math
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Figure and Table packages %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx}% figures
+\usepackage{float}% force figure placement
+\usepackage{subcaption}% analogous to the caption package but for subcaptions
+\usepackage{array}% extensive implementation of array and tabular environments
+\usepackage[labelsep=period,%
+            skip=0.1\baselineskip,%
+            ]{caption}% customize captions in floating environments like figures, tables
+\usepackage{longtable}% multipage tables
+\usepackage{multirow}% multirow cells in tables
+\usepackage{makecell}% line braking in table
+\usepackage{tabu, longtable, booktabs}% multipage table editting
+\usepackage{siunitx}% aligning decimal points in table
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bibliography packages %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{csquotes}% advanced facilities for inline and display quotations
+\usepackage[style=apa,%
+            backend=biber,%
+            natbib=true]{biblatex}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Hyperref is the last package %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[pdfauthor={Author},%
+            pdftitle={Title},%
+            pdfsubject={Bachelor Thesis/Semester Project/Master Thesis},%
+            pdfkeywords={keyword1, keyword2, keyword3},%
+            pdfproducer={Overleaf},%
+            pdfcreator={Author},%
+            linktocpage=true,%
+            linkcolor=lightblue,%
+            colorlinks=true,%
+            citecolor=lightblue,%
+            urlcolor=lightblue,%
+            bookmarks=false,%
+            hypertexnames=true,%
+            pdfpagelayout=TwoPageRight%
+            ]{hyperref}% hyperlinks
+%
+%%%%%%%%%%%%%%%%%%%%
+%% Reference file %%
+%%%%%%%%%%%%%%%%%%%%
+%
+\addbibresource{./chapters/references.bib}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Define larger brackets %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\makeatletter%
+\newcommand{\Bigger}{\bBigg@{2}}%
+\newcommand{\vast}{\bBigg@{3.25}}%
+\newcommand{\Vast}{\bBigg@{4.5}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+%% define new colors %%
+%%%%%%%%%%%%%%%%%%%%%%%
+%
+\definecolor{darkblue}{rgb}{0.,0.,0.4}%
+\definecolor{lightblue}{HTML}{2c5499}%
+\definecolor{greenplot}{HTML}{808000}%
+\definecolor{blueplot}{HTML}{0088aa}%
+\definecolor{redplot}{HTML}{ff0000}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% set eqref brackets color to lightblue %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\eqref#1{\textcolor{lightblue}{(\ref{#1})}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% define header and footer %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\pagestyle{fancy}%
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+\renewcommand{\subsectionmark}[1]{}
+
+\fancypagestyle{plain}{%chapter's first page style %
+	\fancyhf{}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\leftmark%
+		\hspace*{0.75cm}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{0.75cm}%
+		\MakeUppercase{\chaptername\ \thechapter}%
+	}%
+	\renewcommand{\headrulewidth}{0pt}%
+	\renewcommand{\footrulewidth}{0pt}%
+}%
+%
+\fancypagestyle{mainmatter}{%
+	\fancyhf{}%
+	\renewcommand{\headrulewidth}{0pt}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\leftmark%
+		\hspace*{0.75cm}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{0.75cm}%
+		\MakeUppercase{\chaptername\ \thechapter}%
+	}%
+}%
+%
+\fancypagestyle{frontmatter}{%
+    \fancyhf{}%
+    \renewcommand{\headrulewidth}{0pt}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		}%
+}%
+%
+\fancypagestyle{backmatter}{%
+	\fancyhf{}%
+	\renewcommand{\headrulewidth}{0pt}%
+	\fancyfootoffset[OR]{1.85cm}%
+	\fancyfoot[OR]{%
+		\leftmark%
+		\hspace*{0.75cm}%
+		\rule[-90pt]{1pt}{100pt}%
+		\hspace*{10pt}%
+		\begin{minipage}[b]{42pt}%
+			\normalsize\textbf{\thepage}%
+		\end{minipage}%
+	}%
+	\fancyfootoffset[EL]{1.85cm}%
+	\fancyfoot[EL]{%
+		\begin{minipage}[b]{42pt}%
+			\raggedleft\normalsize\textbf{\thepage}%
+		\end{minipage}%
+		\hspace*{10pt}%
+		\rule[-90pt]{1pt}{100pt}%
+		}%
+}%
+%
+\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{\quad{#1}}}{}}%
+\renewcommand{\sectionmark}[1]{\markright{\MakeUppercase{\thesection\quad{#1}}}}%
+%
+%%%%%%%%%%%%%%%%%%%%
+%% figure editing %%
+%%%%%%%%%%%%%%%%%%%%
+%
+\renewcommand{\floatpagefraction}{.8}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% redefine chapter, section, subsection title displaying %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\titleformat{\chapter}{\huge\scshape}{\thechapter}{1em}{}%
+\titleformat{\section}{\LARGE}{\thesection}{1em}{}%
+\titleformat{\subsection}{\Large}{\thesubsection}{1em}{}%
+\titleformat{\subsubsection}{\large}{\thesubsubsection}{1em}{}%
+%
+%%%%%%%%%%%%%%%%%%
+%% text editing %%
+%%%%%%%%%%%%%%%%%%
+%
+%\setlength\parindent{0pt}% zero indentation in the whole document
+\onehalfspacing% 1.5 x spacing
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% enumerate and itemize options %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newenvironment{tight_enumerate}{
+\begin{enumerate}
+  \setlength{\itemsep}{0pt}
+  \setlength{\parskip}{0pt}
+}{\end{enumerate}}
+%
+\newenvironment{tight_itemize}{
+\begin{itemize}
+  \setlength{\itemsep}{0pt}
+  \setlength{\parskip}{0pt}
+}{\end{itemize}}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% define blank page and blank page subs %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\def\blankpage{\clearpage\thispagestyle{empty}\null\clearpage}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% edit the toc style and numbering %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{plain}}}%
+% \setcounter{tocdepth}{4}% set toc depth
+% \setcounter{secnumdepth}{4}% set toc numbering depth
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% edit the bibliography spacing %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\let\OLDthebibliography\thebibliography
+\renewcommand\thebibliography[1]{
+  \OLDthebibliography{#1}
+  \setlength{\parskip}{2pt}
+  \setlength{\itemsep}{0pt plus 0.3ex}
+}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% define absolute path to images %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\graphicspath{{./images/}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Declare authoryear as a hyperlink to bibliography entry %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\DeclareFieldFormat{citehyperref}{%
+  \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested link
+  \bibhyperref{#1}}
+%
+\DeclareFieldFormat{textcitehyperref}{%
+  \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
+  \bibhyperref{%
+    #1%
+    \ifbool{cbx:parens}%
+      {\bibcloseparen\global\boolfalse{cbx:parens}}%
+      {}}}%
+%
+\savebibmacro{cite}%
+\savebibmacro{textcite}%
+%
+\renewbibmacro*{cite}{%
+  \printtext[citehyperref]{%
+    \restorebibmacro{cite}%
+    \usebibmacro{cite}}}%
+%
+\renewbibmacro*{textcite}{%
+  \ifboolexpr{%
+    ( not test {\iffieldundef{prenote}} and%
+      test {\ifnumequal{\value{citecount}}{1}} )%
+    or%
+    ( not test {\iffieldundef{postnote}} and%
+      test {\ifnumequal{\value{citecount}}{\value{citetotal}}} )%
+  }%
+    {\DeclareFieldAlias{textcitehyperref}{noformat}}%
+    {}%
+  \printtext[textcitehyperref]{%
+    \restorebibmacro{textcite}%
+    \usebibmacro{textcite}}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Make "et al." italic in bibliography entry %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\DefineBibliographyStrings{english}{%
+  andothers = {\mkbibemph{et\addabbrvspace al\adddot}}%
+}%
+%
