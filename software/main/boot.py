@@ -1,7 +1,7 @@
 from machine import Pin
 import machine
 from config import config
-
+import time
 import gc
 
 gc.collect()
@@ -22,19 +22,16 @@ from ssp_networking import SSP_Networking
 
 # Network
 infmsg = True
-dbgmsg = True
+dbgmsg = False
 errmsg = True
+global timer
+peer_mac = b'\xff\xff\xff\xff\xff\xff'
 configuration = config["configuration"]
+hive = config["hive"]
 if configuration == "AM1":
     infmsg = True
 
 networking = SSP_Networking(infmsg, dbgmsg, errmsg)
-
-peer_mac = b'\xff\xff\xff\xff\xff\xff'
-
-import time
-
-global timer
 
 print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Version: {}".format(
     (time.ticks_ms() - networking.inittime) / 1000,
@@ -46,9 +43,8 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Ap mac: {}, Vers
     networking.config["version"]
 ))
 
-if configuration == "AM1":
+def idle():
     lastPressed = 0
-
     message = "Boop!"
 
     def boop(pin):
@@ -66,23 +62,38 @@ if configuration == "AM1":
     switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
     switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
 
-
     def heartbeat(timer):
         print("")
         print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
         print("")
         gc.collect()
 
-
     timer = machine.Timer(0)
     timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
 
-
-def deinit():
-    networking.cleanup()
+def run_config_module(module_name):
     try:
-        timer.deinit()
+        with open(module_name + ".py") as f:
+            code = f.read()
+        exec(code)
     except Exception as e:
-        print(e)
-    machine.reset()
+        print(f"Error running {module_name}: {e}")
+
+# cases for different configurations
+if not hive:
+    if configuration == "AM1":
+        print("am1")
+        idle()
+    elif configuration == "SM3":
+        print("sm3")
+        run_config_module("sm3")
+    elif configuration == "SL1":
+        print("sl1")
+        run_config_module("sl1")
+    else:
+        print("idle")
+        idle()
+else:
+    run_config_module("hm1")
+    # insert code here to run in case of hive motor!
 
