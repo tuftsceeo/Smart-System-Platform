@@ -1,11 +1,12 @@
 config = {
     "name": "Nickname",
     "configuration": "AM1",
+    "hive": False,
     "id": None,
     "version": None
     }
 version = {'adxl345.py': 3,
-    'ssp_networking.py': 1,
+           'ssp_networking.py': 1,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -15,8 +16,8 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-'networking.py': 3,
-'main.py': 1,
+           'networking.py': 3,
+           'main.py': 1,
            'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
@@ -39,6 +40,8 @@ msg_subcodes = {
         "Directory-Get": 0x14,
         "Echo": 0x15,
         "Resend": 0x16,
+        "Send-Configure": 0x17,
+        "Receive-Configure": 0x18,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
         "AP-Enable": 0x23,
