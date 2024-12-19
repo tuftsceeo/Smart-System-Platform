@@ -31,7 +31,9 @@ The repository has the following directory tree.
     │   ├── example.py
     │   └── long_message_example.py
     ├── networking.py
-    └── ssp_networking.py
+    ├── networking_test.py
+    ├── ssp_networking.py
+    └── ssp_networking_test.py
 
 A short description of the directories can be found below.
 

@@ -196,15 +196,17 @@ class Networking:
 
         def update_peer(self, peer_mac, peer_config=None, channel=None, ifidx=None):
             self.master.dprint("aen.update_peer")
+            if peer_mac == b'\xff\xff\xff\xff\xff\xff':
+                return
             if peer_mac in self._peers:
                 try:
                     if peer_config is not None:
                         self._peers[peer_mac].update(peer_config)
                     if channel is not None:
-                        self._peers[peer_mac]['channel'] = channel
+                        self._peers[peer_mac].update({'channel': channel})
                     if ifidx is not None:
-                        self._peers[peer_mac]['ifidx'] = ifidx
-                    self.master.dprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {self._peers[peer_mac]['name']}")
+                        self._peers[peer_mac].update({'ifidx': ifidx})
+                    self.master.dprint(f"Peer {peer_mac} updated to channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error updating peer {peer_mac}: {e}")
                 return
@@ -212,11 +214,19 @@ class Networking:
 
         def add_peer(self, peer_mac, peer_config=None, channel=None, ifidx=None):
             self.master.dprint("aen.add_peer")
+            if peer_mac == b'\xff\xff\xff\xff\xff\xff':
+                return
             if peer_mac not in self._peers:
                 try:
-                    self._peers[peer_mac] = {'channel': channel, 'ifidx': ifidx}
-                    self._peers[peer_mac].update(peer_config)
-                    self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self._peers[peer_mac]['name']}")
+                    self._peers[peer_mac] = {}
+                    if channel is not None:
+                        self._peers[peer_mac].update({'channel': channel})
+                    if ifidx is not None:
+                        self._peers[peer_mac].update({'ifidx': ifidx})
+                    if peer_config is not None:
+                        self._peers[peer_mac].update(peer_config)
+                    self._peers[peer_mac].update({'rssi': None, 'time': None, 'last_ping': 0})
+                    self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error adding peer {peer_mac}: {e}")
             else:
@@ -234,12 +244,19 @@ class Networking:
 
         def peers(self):
             self.master.dprint("aen.peers")
+            rssi_table = self._aen.peers_table
+            for key in self._peers:
+                self._peers[key].update({'rssi': rssi_table[key][0]})
+                self._peers[key].update({'time': rssi_table[key][1]-self.master.inittime})
             return self._peers
 
         def peer_name(self, key):
             self.master.dprint("aen.name")
             if key in self._peers:
-                return self._peers[key]['name']
+                if 'name' in self._peers[key]:
+                    return self._peers[key]['name']
+                else:
+                    return None
             else:
                 return None
 
@@ -260,6 +277,14 @@ class Networking:
             else:
                 send_channel = self.master.sta.channel()
             self.send_command(0x01, 0x10, mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
+            if isinstance(mac, list):
+                for key in mac:
+                    self._peers[key].update({'last_ping': time.ticks_ms()})
+            elif mac == b'\xff\xff\xff\xff\xff\xff':
+                for key in self._peers:
+                    self._peers[key].update({'last_ping': time.ticks_ms()})
+            else:
+                self._peers[mac].update({'last_ping': time.ticks_ms()})
 
         def boop(self, mac, channel=None, ifidx=None): #"RSSI/Status/Config-Boop"
             self.master.dprint("aen.boop")
@@ -271,7 +296,7 @@ class Networking:
                 try:
                     self.master.iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
                 except Exception as e:
-                    self.master.eprint(f"Sending echo to {mac} ({self.peer_name(mac)}), but error printing message content: {e}")
+                    self.master.eprint(f"Sending echo to {mac}, but error printing message content: {e}")
             else:
                 self.master.iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
             self.send_command(0x01, 0x15, mac, message, channel, ifidx)
@@ -279,6 +304,7 @@ class Networking:
 
         def send_message(self, mac, message, channel=None, ifidx=None):
             self.send(mac, message, channel, ifidx)
+            
         def send(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.send_message")
             if len(str(message)) > 241:
@@ -321,8 +347,8 @@ class Networking:
                 gc.collect()
                 return messages
             return [(None, None, None)]
-
-        def _irq(self):
+        
+        def _irq(self, espnow):
             self.master.dprint("aen._irq")
             if self.master.admin:
                 try:
@@ -360,29 +386,24 @@ class Networking:
  
         def _send(self, peers_mac, messages, channel, ifidx):
             self.master.dprint("aen._send")
-
             if isinstance(peers_mac, bytes):
                 peers_mac = [peers_mac]
             for peer_mac in peers_mac:
                 try:
-                    if channel is not None and ifidx is not None:
-                        self._aen.add_peer(peer_mac, channel=channel, ifidx=ifidx)
-                    elif channel is not None:
+                    if channel is None:
                         if peer_mac in self._peers:
-                            self._aen.add_peer(peer_mac, channel=channel, ifidx=self._peers[peer_mac]['ifidx'])
+                            if 'channel' in self._peers[peer_mac]:
+                                channel=self._peers[peer_mac]['channel']
                         else:
-                            self._aen.add_peer(peer_mac, channel=channel, ifidx=self.ifidx)
-                    elif ifidx is not None:
+                            channel = 0
+                    elif ifidx is None:
                         if peer_mac in self._peers:
-                            self._aen.add_peer(peer_mac, channel=self._peers[peer_mac]['channel'], ifidx=ifidx)
+                            if 'ifidx' in self._peers[peer_mac]:
+                                ifidx=self._peers[peer_mac]['ifidx']
                         else:
-                            self._aen.add_peer(peer_mac, channel=0, ifidx=ifidx)
-                    elif peer_mac in self._peers:
-                        self._aen.add_peer(peer_mac, channel=self._peers[peer_mac]['channel'],
-                                           ifidx=self._peers[peer_mac]['ifidx'])
-                    else:
-                        self._aen.add_peer(peer_mac, channel=0, ifidx=self.ifidx)
-                    self.master.dprint(f"Added {peer_mac} to espnow buffer")
+                            ifidx=self.ifidx
+                    self._aen.add_peer(peer_mac, channel=channel, ifidx=ifidx)
+                    self.master.dprint(f"Added {peer_mac} to espnow buffer with channel {channel} and ifidx {ifidx}")
                 except Exception as e:
                     self.master.eprint(f"Error adding {peer_mac} to espnow buffer: {e}")
                     
@@ -412,30 +433,29 @@ class Networking:
                         self.add_peer(peer_macs, None, channel, ifidx)
             elif peer_mac not in self._peers:
                 self.add_peer(peer_mac, None, channel, ifidx)
-
-            def __encode_payload():
-                self.master.dprint("aen.__encode_payload")
-                if payload is None:  # No payload type
-                    return b'\x00', b''
-                elif isinstance(payload, bytearray):  # bytearray
-                    return b'\x01', bytes(payload)
-                elif isinstance(payload, bytes):  # bytes
-                    return b'\x01', payload
-                elif isinstance(payload, bool):  # bool
-                    return b'\x02', (b'\x01' if payload else b'\x00')
-                elif isinstance(payload, int):  # int
-                    return b'\x03', struct.pack('>i', payload)
-                elif isinstance(payload, float):  # float
-                    return b'\x04', struct.pack('>f', payload)
-                elif isinstance(payload, str):  # string
-                    return b'\x05', payload.encode('utf-8')
-                elif isinstance(payload, dict) or isinstance(payload, list):  # json dict or list
-                    json_payload = json.dumps(payload)
-                    return b'\x06', json_payload.encode('utf-8')
-                else:
-                    raise ValueError("Unsupported payload type")
-
-            payload_type, payload_bytes = __encode_payload()
+                
+            payload_type, payload_bytes = None, None
+            self.master.dprint("aen.__encode_payload")
+            if payload is None:  # No payload type
+                payload_type, payload_bytes = b'\x00', b''
+            elif isinstance(payload, bytearray):  # bytearray
+                payload_type, payload_bytes = b'\x01', bytes(payload)
+            elif isinstance(payload, bytes):  # bytes
+                payload_type, payload_bytes = b'\x01', payload
+            elif isinstance(payload, bool):  # bool
+                payload_type, payload_bytes = b'\x02', (b'\x01' if payload else b'\x00')
+            elif isinstance(payload, int):  # int
+                payload_type, payload_bytes = b'\x03', struct.pack('>i', payload)
+            elif isinstance(payload, float):  # float
+                payload_type, payload_bytes = b'\x04', struct.pack('>f', payload)
+            elif isinstance(payload, str):  # string
+                payload_type, payload_bytes = b'\x05', payload.encode('utf-8')
+            elif isinstance(payload, dict) or isinstance(payload, list):  # json dict or list
+                json_payload = json.dumps(payload)
+                payload_type, payload_bytes = b'\x06', json_payload.encode('utf-8')
+            else:
+                raise ValueError("Unsupported payload type")
+            
             messages = []
             identifier = 0x2a
             timestamp = time.ticks_ms()
@@ -476,31 +496,10 @@ class Networking:
             gc.collect()
             self._send(peer_mac, messages, channel, ifidx)
  
-        def _receive(self):  # Processes all the messages in the buffer
+        def _receive(self):
             self.master.dprint("aen._receive")
 
-            def __decode_payload(payload_type, payload_bytes):
-                self.master.dprint("aen.__decode_payload")
-                if payload_type == b'\x00':  # None
-                    return None
-                elif payload_type == b'\x01':  # bytearray or bytes
-                    return bytes(payload_bytes)
-                elif payload_type == b'\x02':  # bool
-                    return payload_bytes[0:1] == b'\x01'
-                elif payload_type == b'\x03':  # int
-                    return struct.unpack('>i', payload_bytes)[0]
-                elif payload_type == b'\x04':  # float
-                    return struct.unpack('>f', payload_bytes)[0]
-                elif payload_type == b'\x05':  # string
-                    return payload_bytes.decode('utf-8')
-                elif payload_type == b'\x06':  # json dict or list
-                    return json.loads(payload_bytes.decode('utf-8'))
-                elif payload_type == b'\x07':  # Long byte array
-                    return bytes(payload_bytes)
-                else:
-                    raise ValueError(f"Unsupported payload type: {payload_type} Message: {payload_bytes}")
-
-            def __process_message(sender_mac, message, receive_timestamp):
+            def __process_message(self, sender_mac, message, receive_timestamp):
                 self.master.dprint("aen.__process_message")
                 if message[0] != 0x2a:  # Unique Message Identifier Check
                     self.master.dprint("Invalid message: Message ID Fail")
@@ -509,13 +508,13 @@ class Networking:
                     self.master.dprint("Invalid message: too short")
                     return None
 
-                msg_type = bytes(message[1:2])
-                subtype = bytes(message[2:3])
+                msg_type = int.from_bytes(message[1:2], 'big')
+                subtype = subtype = int.from_bytes(message[2:3], 'big')
                 send_timestamp = int.from_bytes(message[3:7], 'big')
                 payload_type = bytes(message[7:8])
-                payload = message[8:-1]
+                payload_bytes = message[8:-1]
                 checksum = message[-1]
-                self.master.dprint(f"{type(msg_type)}: {msg_type}, {type(subtype)}: {subtype}, {type(send_timestamp)}: {send_timestamp}, {type(payload_type)}: {payload_type},  {type(payload)}: {payload},  {type(checksum)}: {checksum}")
+                self.master.dprint(f"{type(msg_type)}: {msg_type}, {type(subtype)}: {subtype}, {type(send_timestamp)}: {send_timestamp}, {type(payload_type)}: {payload_type},  {type(payload_bytes)}: {payload_bytes},  {type(checksum)}: {checksum}")
 
                 # Checksum
                 if checksum != sum(message[:-1]) % 256:
@@ -524,6 +523,8 @@ class Networking:
 
                 if sender_mac not in self._peers:
                     self.add_peer(sender_mac)
+                    
+                payload = None
 
                 if payload_type == b'\x07':
                     self.master.dprint("Long message received, processing...")
@@ -546,8 +547,8 @@ class Networking:
                     if key in self._long_buffer:
                         # If the part is None, add the payload
                         if self._long_buffer[key][part_n] is None:
-                            self._long_buffer[key][part_n] = payload
-                            self._long_buffer_size[key] = self._long_buffer_size[key] + len(payload)
+                            self._long_buffer[key][part_n] = payload_bytes
+                            self._long_buffer_size[key] = self._long_buffer_size[key] + len(payload_bytes)
                             self.master.dprint(
                                 f"Long message: Key found, message added to entry in long_message_buffer, {sum(1 for item in self._long_buffer[key] if item is not None)} out of {total_n} packages received")
                             # If there are still missing parts, return
@@ -557,9 +558,9 @@ class Networking:
                     else:
                         # Initialize the long message buffer for this key
                         payloads = [None] * total_n
-                        payloads[part_n] = payload
+                        payloads[part_n] = payload_bytes
                         self._long_buffer[key] = payloads
-                        self._long_buffer_size[key] = len(payload)
+                        self._long_buffer_size[key] = len(payload_bytes)
                         self.master.dprint(
                             f"Long message: Key not found and new entry created in long_message_buffer, {sum(1 for item in self._long_buffer[key] if item is not None)} out of {total_n} packages received")
 
@@ -575,7 +576,7 @@ class Networking:
                     if not any(value is None for value in self._long_buffer[key]):
                         payload = bytearray()
                         for i in range(0, total_n):
-                            payload.extend(self._long_buffer[key][i])
+                            payload_bytes.extend(self._long_buffer[key][i])
                         del self._long_buffer[key]
                         del self._long_buffer_size[key]
                         self.master.dprint("Long message: All packages received!")
@@ -583,21 +584,38 @@ class Networking:
                         self.master.dprint("Long Message: Safeguard triggered, code should not have gotten here")
                         gc.collect()
                         return
+                    
+                self.master.dprint("aen.__decode_payload")
+                if payload_type == b'\x00':  # None
+                    payload = None
+                elif payload_type == b'\x01':  # bytearray or bytes
+                    payload = bytes(payload_bytes)
+                elif payload_type == b'\x02':  # bool
+                    payload = payload_bytes[0:1] == b'\x01'
+                elif payload_type == b'\x03':  # int
+                    payload = struct.unpack('>i', payload_bytes)[0]
+                elif payload_type == b'\x04':  # float
+                    payload = struct.unpack('>f', payload_bytes)[0]
+                elif payload_type == b'\x05':  # string
+                    payload = payload_bytes.decode('utf-8')
+                elif payload_type == b'\x06':  # json dict or list
+                    payload = json.loads(payload_bytes.decode('utf-8')) #use eval instead? #FIX
+                elif payload_type == b'\x07':  # Long byte array
+                    payload = bytes(payload_bytes)
+                else:
+                    raise ValueError(f"Unsupported payload type: {payload_type} Message: {payload_bytes}")
 
                 # Handle the message based on type
                 if msg_type == (msg_key := 0x01):  # Command Message
-                    __handle_cmd(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type,
-                                 payload if payload else None, msg_key)
+                    __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
                 elif msg_type == (msg_key := 0x02):  # Informational Message
-                    __handle_inf(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type,
-                                 payload if payload else None, msg_key)
+                    __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
                 elif msg_type == (msg_key := 0x03):  # Acknowledgement Message
-                    __handle_ack(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type,
-                                 payload if payload else None, msg_key)
+                    __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
                 else:
                     self.master.iprint(f"Unknown message type from {sender_mac} ({self.peer_name(sender_mac)}): {message}")
 
-            def __send_confirmation(msg_type, recipient_mac, msg_subkey_type, payload=None, error=None):
+            def __send_confirmation(self, msg_type, recipient_mac, msg_subkey_type, payload=None, error=None):
                 if msg_type == "Success":
                     self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x11)
                 elif msg_type == "Fail":
@@ -605,9 +623,8 @@ class Networking:
                 else:
                     self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x13)
 
-            def __handle_cmd(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload, msg_key):
+            def __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint(f"aen.__handle_cmd")
-                payload = __decode_payload(payload_type, payload)
                 if (msg_subkey := "Ping") and subtype == 0x01 or subtype == 0x10:  # Ping
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
                     self.add_peer(sender_mac, payload[2], payload[0], payload[1])
@@ -623,28 +640,27 @@ class Networking:
                     try:
                         self._compose(sender_mac, [self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
                     except Exception as e:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                        __send_confirmation(self, "Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Echo") and subtype == subtype == 0x02 or subtype == 0x15:  # Echo
-                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}): {__decode_payload(payload_type, payload)}")  # Check i or d
+                    self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")  # Check i or d
                     self._compose(sender_mac, payload, 0x03, 0x15)
                 else:
                     self.master.iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_cmd:
-                        self.custom_cmd(sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
+                        self.custom_cmd([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
 
-            def __handle_inf(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload, msg_key):
+            def __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint("aen.__handle_inf")
-                payload = __decode_payload(payload_type, payload)
                 if (msg_subkey := "RSSI/Status/Config-Boop") and subtype == 0x00 or subtype == 0x20:  # RSSI/Status/Config-Boop
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
-                    # __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                 elif (msg_subkey := "Data") and subtype == 0x01 or subtype == 0x21:  # Sensor Data
                     payload["time_sent"] = send_timestamp
                     payload["time_recv"] = receive_timestamp
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_sensor_data[sender_mac] = payload
-                    # __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                 elif (msg_subkey := "Message") and subtype == 0x02 or subtype == 0x22:  # Message / Other
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, receive_timestamp))
@@ -653,20 +669,19 @@ class Networking:
                         self.master.dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
-                    # __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                 else:
                     self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_inf:
-                        self.custom_inf(sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
+                        self.custom_inf([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
 
-            def __handle_ack(sender_mac, subtype, send_timestamp, receive_timestamp, payload_type, payload, msg_key):
+            def __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint("aen.__handle_ack")
-                payload = __decode_payload(payload_type, payload)
                 if (msg_subkey := "Pong") and subtype == 0x10:  # Pong
                     self.add_peer(sender_mac, payload[2], payload[0], payload[1])
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp - payload[3]}")
                 elif (msg_subkey := "Echo") and subtype == 0x15:  # Echo
-                    self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {__decode_payload(payload_type, payload)}")
+                    self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {payload}")
                 elif (msg_subkey := "Success") and subtype == 0x11:  # Success
                     # payload should return a list with a cmd type and payload
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
@@ -682,10 +697,11 @@ class Networking:
                 else:
                     self.master.iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
                     if self.custom_ack:
-                        self.custom_ack(sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
+                        self.custom_ack([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
                         # Insert more acknowledgement logic here and/or add message to acknowledgement buffer
 
             if self._aen.any():
+                timestamp = time.ticks_ms()
                 for mac, data in self._aen:
                     self.master.dprint(f"Received {mac, data}")
                     if mac is None:  # mac, msg will equal (None, None) on timeout
@@ -693,9 +709,11 @@ class Networking:
                     if data:
                         if mac and data is not None:
                             # self._received_messages.append((sender_mac, data, receive_timestamp))#Messages will be saved here, this is only for debugging purposes
-                            __process_message(mac, data, time.ticks_ms())
+                            __process_message(self, mac, data, timestamp)
                     if not self._aen.any():  # this is necessary as the for loop gets stuck and does not exit properly.
                         break
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
 # | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp(ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
+
+

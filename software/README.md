@@ -59,6 +59,7 @@ The repository has the following directory tree.
     │   ├── README.md
     │   ├── README.qmd
     │   ├── boot.py
+    │   ├── hm1.py
     │   ├── main.py
     │   ├── sl1.py
     │   └── sm3.py
@@ -67,15 +68,19 @@ The repository has the following directory tree.
     │   ├── README.qmd
     │   ├── examples
     │   ├── networking.py
-    │   └── ssp_networking.py
+    │   ├── networking_test.py
+    │   ├── ssp_networking.py
+    │   └── ssp_networking_test.py
     └── release
         ├── README.md
         ├── README.qmd
         ├── __pycache__
         ├── adxl345.py
+        ├── boot.py
         ├── config.py
         ├── file_list.py
         ├── files.py
+        ├── hm1.py
         ├── icons.py
         ├── main.py
         ├── networking.py
