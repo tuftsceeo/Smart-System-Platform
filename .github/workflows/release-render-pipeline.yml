@@ -26,24 +26,25 @@ jobs:
         eval "$(ssh-agent -s)"
         ssh-add ~/.ssh/id_rsa
 
-    # --- Step 1: Parse and Copy Files to Release Folder ---
     - name: Parse File List from release/README.qmd
       id: parse
       run: |
         # Extract the table section and parse the file paths
         raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' software/release/README.qmd | tr -d ' ')
-
-        # Add the software/ prefix to each file path
-        echo "$raw_file_list" | sed 's/^/software\//' > file_list.txt
-
-        # Debugging output
+    
+        file_list=$(echo "$raw_file_list" | sed 's/^/software\//')
+    
         echo "Files to monitor:"
-        cat file_list.txt
+        echo "$file_list"
+    
+        echo "file_list<<EOF" >> $GITHUB_OUTPUT
+        echo "$file_list" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Copy Files to Release Folder
       run: |
         mkdir -p software/release  # Ensure the release folder exists
-        while read file; do
+        echo "${{ steps.parse.outputs.file_list }}" | while read file; do
           # Skip the config.py file
           if [[ "$(basename $file)" == "config.py" ]]; then
             echo "Skipping config.py"
@@ -52,59 +53,44 @@ jobs:
           
           # Copy the file, overwriting if it already exists
           cp "$file" software/release/  # Overwrite files directly to the root of the release folder
-        done < file_list.txt
+        done
 
     - name: List Files in Release Folder
       run: |
         echo "Files copied to the release folder:"
         find software/release -type f
 
-    # --- Step 2: Update Version in Config.py ---
     - name: Update Version in Config.py
       run: |
         # Get the list of changed (staged) files using git diff
         changed_files=$(git diff --name-only)
     
-        # Get the list of untracked files (new files that haven't been added yet)
         new_files=$(git ls-files --others --exclude-standard)
     
-        # Combine the changed and new files
         all_changed_files=$(echo "$changed_files $new_files" | tr ' ' '\n')
     
-        # Process each file in file_list.txt
-        while read file; do
-          # Extract the base file name from the full path
+        echo "${{ steps.parse.outputs.file_list }}" | while read file; do
           base_file=$(basename "$file")
     
-          # Check if the file has been modified (either staged or new file)
           if echo "$all_changed_files" | grep -q "$base_file"; then
-            # Check if the file exists in the config.py
             if grep -q "$base_file" software/release/config.py; then
-              # Get the current version number using sed
               current_version=$(sed -n "s/^.*'$base_file': \([0-9]*\),.*$/\1/p" software/release/config.py)
     
-              # Increment the version number by 1
               new_version=$((current_version + 1))
     
-              # Update the version using sed
               sed -i "s/^.*'$base_file': $current_version,.*$/'$base_file': $new_version,/g" software/release/config.py
     
-              # Debugging: Print the file name and updated version
               echo "Updated $base_file version from $current_version to $new_version"
             else
-              # Add the file with version 1 if it's not already in the dictionary
               sed -i "/^version = {/a \ \ \ \ '$base_file': 1," software/release/config.py
     
-              # Debugging: Print that the file was added with version 1
               echo "Added $base_file with version 1"
             fi
           else
-            # Debugging: Print that the file has not changed
             echo "No change detected for $base_file"
           fi
-        done < file_list.txt
-        
-    # --- Step 3: Render README.qmd to Markdown ---
+        done
+
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
