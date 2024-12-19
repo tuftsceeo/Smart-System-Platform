@@ -39,6 +39,8 @@ msg_subcodes = {
         "Directory-Get": 0x14,
         "Echo": 0x15,
         "Resend": 0x16,
+        "Send-Configure": 0x17,
+        "Receive-Configure": 0x18,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
         "AP-Enable": 0x23,

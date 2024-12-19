@@ -225,7 +225,7 @@ class Networking:
                         self._peers[peer_mac].update({'ifidx': ifidx})
                     if peer_config is not None:
                         self._peers[peer_mac].update(peer_config)
-                    self._peers[peer_mac].update({'rssi': None, 'timestamp': None})
+                    self._peers[peer_mac].update({'rssi': None, 'time': None, 'last_ping': 0})
                     self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error adding peer {peer_mac}: {e}")
@@ -277,6 +277,14 @@ class Networking:
             else:
                 send_channel = self.master.sta.channel()
             self.send_command(0x01, 0x10, mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
+            if isinstance(mac, list):
+                for key in mac:
+                    self._peers[key].update({'last_ping': time.ticks_ms()})
+            elif mac == b'\xff\xff\xff\xff\xff\xff':
+                for key in self._peers:
+                    self._peers[key].update({'last_ping': time.ticks_ms()})
+            else:
+                self._peers[mac].update({'last_ping': time.ticks_ms()})
 
         def boop(self, mac, channel=None, ifidx=None): #"RSSI/Status/Config-Boop"
             self.master.dprint("aen.boop")

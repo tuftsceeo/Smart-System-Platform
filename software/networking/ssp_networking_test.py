@@ -25,8 +25,6 @@ infmsg = True
 dbgmsg = False
 errmsg = True
 configuration = config["configuration"]
-if configuration == "AM1":
-    infmsg = True
     
 #Network
 networking = SSP_Networking(infmsg, dbgmsg, errmsg)
@@ -105,14 +103,14 @@ if test:
         print(f"\033[31mTest rssifailed: {e}\033[0m")
         
     try:
-        networking.commands.ping(peer_mac)
+        networking.ping(peer_mac)
         print("\033[34mWaiting for pong\033[0m")
         time.sleep(0.02)
         print("\033[32mTest ping passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest ping failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message)
+        networking.echo(peer_mac, message)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(0.02)
         print("\033[32mTest echo passed\033[0m")
@@ -125,50 +123,49 @@ if test:
 #         print(f"\033[31mTest broadcast failed: {e}\033[0m")
         
     try:
-        networking.commands.echo(peer_mac, message_str)
+        networking.echo(peer_mac, message_str)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(2)
-        
         print("\033[32mTest long string passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest long string failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message_int)
+        networking.echo(peer_mac, message_int)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(2)
         print("\033[32mTest long int passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest long int failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message_float)
+        networking.echo(peer_mac, message_float)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(2)
         print("\033[32mTest long float passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest long float failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message_dict)
+        networking.echo(peer_mac, message_dict)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(2)
         print("\033[32mTest long dict passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest long dict failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message_list)
+        networking.echo(peer_mac, message_list)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(2)
         print("\033[32mTest long list passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest long list failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message_bytes)
+        networking.echo(peer_mac, message_bytes)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(3)
         print("\033[32mTest long bytes passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest long bytes failed: {e}\033[0m")
     try:
-        networking.commands.echo(peer_mac, message_bytearray)
+        networking.echo(peer_mac, message_bytearray)
         print("\033[34mWaiting for echo\033[0m")
         time.sleep(3)
         print("\033[32mTest long bytearray passed\033[0m")
@@ -198,7 +195,7 @@ def boop(pin):
     global lastPressed
     if(time.ticks_ms()-lastPressed>1000):
         lastPressed = time.ticks_ms()
-        networking.commands.send(peer_mac, message)
+        networking.send(peer_mac, message)
 #         print(f"Sent {random_bytes} to {peer_mac}")
 
 switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
@@ -211,7 +208,7 @@ print(networking.rssi())
 
 while True:
     print(f"{int(time.ticks_ms()-start_time)/1000}: {gc.mem_free()}")
-    #networking.commands.ping(peer_mac)
+    #networking.ping(peer_mac)
     #print(f"Sent ping to {peer_mac}")
     time.sleep(0.1)
     if networking.check_messages():
