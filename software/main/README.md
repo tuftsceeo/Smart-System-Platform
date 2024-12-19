@@ -17,6 +17,7 @@ The repository has the following directory tree.
     ├── README.qmd
     ├── README.rmarkdown
     ├── boot.py
+    ├── hm1.py
     ├── main.py
     ├── sl1.py
     └── sm3.py

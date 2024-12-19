@@ -19,9 +19,11 @@ The repository has the following directory tree.
     ├── __pycache__
     │   └── config.cpython-310.pyc
     ├── adxl345.py
+    ├── boot.py
     ├── config.py
     ├── file_list.py
     ├── files.py
+    ├── hm1.py
     ├── icons.py
     ├── main.py
     ├── networking.py
@@ -40,7 +42,11 @@ A short description of the directories can be found below.
 | name | description | contribution |
 |----|----|----|
 | release/config.py | Smart Module Configuration File | Nick |
-| main/main.py | Smart Module Main.py | Nick |
+| main/boot.py | Smart Module boot.py | Nick |
+| main/main.py | Smart Module main.py | Nick |
+| main/hm1.py | Smart hive program | Nick |
+| main/sl1.py | Smart light module main program | Milan |
+| main/sm3.py | Smart motor module main program | Milan |
 | networking/networking.py | This is the main networking code that builds on ESP-NOW. There are many prepared functionalities (and some more that I am working on), such as long message support, sending of various variable types (bytes, bytearray, dicts, lists, int, float, char, string), as well as different types of messages such as ping, echo and more. There are also various features in place to make the networking more robust. | Nick |
 | networking/ssp_networking.py | This is the ssp networking module. It needs config.py to function. | Nick |
 | libraries/adxl345.py | Support for the built in accelerometer https://github.com/DFRobot/micropython-dflib/blob/master/ADXL345/user_lib/ADXL345.py | Milan |
@@ -49,7 +55,5 @@ A short description of the directories can be found below.
 | libraries/sensors.py | Sensor support for the smart motor module | Milan |
 | libraries/servo.py | Servo support for the smart motor module | Milan |
 | libraries/smartlight.py | Smart light support for smart light module | Milan |
-| main/sl1.py | Smart light module main program | Milan |
-| main/sm3.py | Smart motor module main program | Milan |
 | libraries/ssd1306.py | Support for the built in OLED screen https://github.com/stlehmann/micropython-ssd1306/blob/master/ssd1306.py | Milan |
 | libraries/variableLED.py | Library that powers the variable LED grid | Sophie |
