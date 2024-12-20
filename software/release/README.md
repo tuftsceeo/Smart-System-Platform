@@ -16,12 +16,9 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
-    ├── __pycache__
-    │   └── config.cpython-310.pyc
     ├── adxl345.py
     ├── boot.py
     ├── config.py
-    ├── file_list.py
     ├── files.py
     ├── hm1.py
     ├── icons.py

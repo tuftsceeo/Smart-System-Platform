@@ -18,11 +18,9 @@ The repository has the following directory tree.
     ├── README.qmd
     ├── README.rmarkdown
     ├── docs
-    ├── file_list.txt
     ├── firmware
     ├── hardware
     ├── overleaf
-    ├── project.Rproj
     ├── rstudio
     └── software
 
