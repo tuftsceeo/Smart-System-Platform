@@ -38,6 +38,7 @@ The repository has the following directory tree.
     │   ├── net code.py
     │   ├── networking new backup.py
     │   ├── networking2.py
+    │   ├── networking_backup copy.py
     │   ├── networking_backup.py
     │   ├── networking_old copy.py
     │   ├── networking_old.py
@@ -74,11 +75,9 @@ The repository has the following directory tree.
     └── release
         ├── README.md
         ├── README.qmd
-        ├── __pycache__
         ├── adxl345.py
         ├── boot.py
         ├── config.py
-        ├── file_list.py
         ├── files.py
         ├── hm1.py
         ├── icons.py
