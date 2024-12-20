@@ -1,6 +1,14 @@
 .Rproj.user
+project.Rproj
 .Rhistory
 .RData
 .Ruserdata
 keys/ACTIONS_RENDER
 keys/ACTIONS_RENDER.pub
+docs/.idea
+software/main/.idea
+software/networking/.idea
+software/networking/.venv
+software/release/.idea
+software/release/__pycache__
+
