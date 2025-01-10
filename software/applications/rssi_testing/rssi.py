@@ -23,7 +23,8 @@ def irq_receive(aen):
         numb = int.from_bytes(msg, 'big')
         dur = time.ticks_ms()-numb
         tim = f"{(time.ticks_ms() - start) / 1000:.3f}"
-        print(f"At {tim} from: {mac}: {dur}") #prints the time from since the message was originally sent until the echo has been received back
+        
+        print(f"At {(tim)} from: {mac}: {aen.peers_table[mac]}") #prints the time from since the message was originally sent until the echo has been received back
         durations[tim] = dur
     except Exception as e:
         print(f"Error: {e}")
