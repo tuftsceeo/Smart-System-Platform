@@ -40,8 +40,8 @@ msg_subcodes = {
         "Directory-Get": 0x14,
         "Echo": 0x15,
         "Resend": 0x16,
-        "Send-Configure": 0x17,
-        "Receive-Configure": 0x18,
+        "Hive-Set": 0x17,
+        "Hive-Configure": 0x18,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
         "AP-Enable": 0x23,
@@ -82,10 +82,6 @@ i2c_dict = {
 hive_config = {
     "hive": False,
     "recipients": [],
-    "controller": {
-        "kp": None,
-        "ki": None,
-        "kd": None
-    },
+    "controller": {"kp": None, "ki": None, "kd": None},
     "formula": lambda data: data["some_mac"]["accelerometer"] + data["some_mac"]["sensor"]
 }

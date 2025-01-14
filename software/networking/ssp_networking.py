@@ -220,16 +220,60 @@ class SSP_Networking:
                         machine.reset()
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Send-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Send-Configure
+                elif (msg_subkey := "Hive-Set") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Hive-Set
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
-                        send_configuration = payload[0]
-                        #setup the function to send the sensor data to the specified mac(s)
-                elif (msg_subkey := "Receive-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Receive-Configure
+                        try:
+                            hive = payload[0]
+                            file_path = "config.py"
+                            with open(file_path, "r") as f:
+                                lines = f.readlines()
+                            with open(file_path, "w") as f:
+                                for line in lines:
+                                    if line.strip().startswith('"hive":') or line.strip().startswith("'hive':"):
+                                        f.write(f'    "hive": {hive},\n')
+                                    else:
+                                        f.write(line)
+                            __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload)
+                            machine.reset()
+                        except Exception as e:
+                            self.master.eprint(f"Error: {e} with payload: {payload}")
+                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                    else:
+                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+                elif (msg_subkey := "Hive-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Hive-Configure
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
-                        receive_configuration = payload[0]
-                        # setup the function to calculate output based on the received sensor data (and own sensor data?)
+                        try:
+                            hive_configuration = payload[0]
+                            file_path = "config.py"
+                            with open(file_path, "r") as f:
+                                lines = f.readlines()
+                            with open(file_path, "w") as f:
+                                in_hive_config = False
+                                for line in lines:
+                                    if line.strip().startswith("hive_config = {"):
+                                        in_hive_config = True
+                                        f.write(line)
+                                    elif in_hive_config:
+                                        key_found = False
+                                        for key in hive_configuration:
+                                            if line.strip().startswith(f'"{key}":'):
+                                                f.write(f'    "{key}": {repr(hive_configuration[key])},\n')
+                                                key_found = True
+                                                break
+                                        if not key_found:
+                                            if line.strip() == "}":
+                                                in_hive_config = False
+                                            f.write(line)
+                                    else:
+                                        f.write(line)
+                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+                        except Exception as e:
+                            self.master.eprint(f"Error: {e} with payload: {payload}")
+                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                    else:
+                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "Firmware-Update") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Firmware-Update
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
@@ -293,8 +337,13 @@ class SSP_Networking:
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            self.master.iprint("Execute logic not implemented")
-                            # insert run logic here
+                            file_name = payload[0]
+                            if not file_name.endswith(".py"):
+                                file_name += ".py"
+                            with open(file_name) as f:
+                                code = f.read()
+                            __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload)
+                            exec(code)
                         except Exception as e:
                             self.master.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
