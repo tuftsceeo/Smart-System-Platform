@@ -47,6 +47,9 @@ class SSP_Networking:
     
     def return_messages(self):
         return self.networking.aen.return_messages()
+
+    def return_data(self):
+        return self.networking.aen.return_data()
     
     def cleanup(self):
         self.networking.cleanup()

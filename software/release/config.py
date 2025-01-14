@@ -1,7 +1,6 @@
 config = {
     "name": "Nickname",
     "configuration": "AM1",
-    "hive": False,
     "id": None,
     "version": None
     }
@@ -80,4 +79,13 @@ i2c_dict = {
     "0x3C": ["pca9685", 0, "screen"],
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
-
+hive_config = {
+    "hive": False,
+    "recipients": [],
+    "controller": {
+        "kp": None,
+        "ki": None,
+        "kd": None
+    },
+    "formula": lambda data: data["some_mac"]["accelerometer"] + data["some_mac"]["sensor"]
+}
