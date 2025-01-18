@@ -1,13 +1,12 @@
 config = {
     "name": "Nickname",
     "configuration": "AM1",
-    "hive": False,
     "id": None,
     "version": None
     }
 version = {'adxl345.py': 3,
-    'hm1.py': 1,
-'ssp_networking.py': 2,
+           'hm1.py': 1,
+           'ssp_networking.py': 2,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -17,8 +16,8 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-'networking.py': 4,
-'main.py': 2,
+           'networking.py': 4,
+           'main.py': 2,
            'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
@@ -41,8 +40,8 @@ msg_subcodes = {
         "Directory-Get": 0x14,
         "Echo": 0x15,
         "Resend": 0x16,
-        "Send-Configure": 0x17,
-        "Receive-Configure": 0x18,
+        "Hive-Set": 0x17,
+        "Hive-Configure": 0x18,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
         "AP-Enable": 0x23,
@@ -80,4 +79,9 @@ i2c_dict = {
     "0x3C": ["pca9685", 0, "screen"],
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
-
+hive_config = {
+    "hive": False,
+    "recipients": [],
+    "controller": {"kp": None, "ki": None, "kd": None},
+    "formula": lambda data: data["some_mac"]["accelerometer"] + data["some_mac"]["sensor"]
+}

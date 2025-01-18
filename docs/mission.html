@@ -13,7 +13,7 @@
     <title>Smart System Education Platform</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
@@ -186,15 +186,122 @@
         </div>
         <div class="menu-items" id="menuItems">
             <a href="index.html">Home</a>
-            <a href="mission.html" class="active">Mission</a>
-            <a href="technology.html">Platform</a>
-            <a href="start.html">Get Started</a>
+            <a href="mission.html" class="active">Idea</a>
+            <a href="start.html">Resources</a>
             <a href="tools.html">Toolbox</a>
-            <a href="community.html">Community</a>
+            <!--            <a href="technology.html">Platform</a>-->
+            <a href="community.html">Social</a>
         </div>
         <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
     </div>
 </header>
+
+<style>
+    /* Swiss Design-inspired styling */
+    main {
+        /*max-width: 1200px;*/
+        margin: 0;  /* Remove auto margin for left alignment */
+        padding: 20px;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        background-color: white;
+    }
+
+    h1 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        margin-top: 0px;
+        color: #000;
+        letter-spacing: -0.5px;
+        text-align: left;
+    }
+
+    h2 {
+        font-size: 32px;
+        font-weight: 500;
+        margin: 32px 0 0px;
+        color: #000;
+        letter-spacing: -0.3px;
+    }
+
+    .resources-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Force three columns */
+        gap: 40px;
+        margin-top: 32px;
+    }
+
+    .additional-resources-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two columns for additional resources */
+        gap: 40px;
+        margin-top: 32px;
+    }
+
+    .resource-card {
+        padding: 32px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.2s ease;
+    }
+
+    .resource-card:hover {
+        background-color: #f8f8f8;
+    }
+
+    .resource-card a {
+        font-size: 24px;
+        font-weight: 500;
+        color: #000;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .resource-card p {
+        font-size: 16px;
+        margin: 0;
+        color: #666;
+    }
+    .resources-grid, .additional-resources-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        margin-top: 32px;
+    }
+
+    .additional-resources-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 1000px) {
+        .resources-grid, .additional-resources-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .resource-card {
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin: 24px 0 0px;
+        }
+
+        .resource-card a {
+            font-size: 20px;
+        }
+
+        main {
+            padding: 16px;
+        }
+    }
+</style>
 
 <main>
     <h1>Mission</h1>
@@ -206,7 +313,7 @@
         <img src="images/SOE_CEEO_horiz_white.svg" width="274" height="63" alt="Tufts University; Center for Engineering Education and Outreach Logo" class="footer-logo-left">
         <div class="footer-text">
             <p><span>© 2024 Smart System Education Platform.</span> All rights reserved.</p>
-            <p><a href="contact.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+            <p><a href="community.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
         </div>
         <img src="images/eth_logo_kurz_neg.svg" width="206" height="75" alt="Swiss Federal Institute of Technology Zurich (ETH Zürich) Logo" class="footer-logo-right">
     </div>
