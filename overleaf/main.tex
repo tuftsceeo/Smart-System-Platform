@@ -25,26 +25,25 @@
 %
 \clearpage%
 \pagestyle{empty}%
+%\blankpage%
+\includepdf{./chapters/title.pdf}
 \input{./chapters/title.tex}%
-\blankpage%
+%\blankpage%
+\pagestyle{frontmatter}%
 \input{./chapters/acknowledgements.tex}%
-\blankpage%
+%\blankpage%
 %
-\clearpage%
+%\clearpage%
+\pagestyle{frontmatter}%
+\input{./chapters/00_abstract.tex}%
+%
+%\clearpage%
 \pagestyle{frontmatter}%
 \tableofcontents%
 %
-\listoftables%
-\addcontentsline{toc}{chapter}{List of Tables}%
-\phantomsection%
-%
-\listoffigures%
-\addcontentsline{toc}{chapter}{List of Figures}%
-\phantomsection%
-%
-\clearpage%
+%\clearpage%
 \pagestyle{backmatter}%
-\input{./chapters/00_abstract.tex}%
+\input{./chapters/00_glossary.tex}%
 %
 %%%%%%%%%%%%%%%%%
 %% main matter %%
@@ -58,7 +57,6 @@
 \input{./chapters/02_methods.tex}%
 \input{./chapters/03_results.tex}%
 \input{./chapters/04_conclusions.tex}%
-\input{./chapters/05_biblio_descr.tex}%
 %
 %%%%%%%%%%%%%%%%%
 %% back matter %%
@@ -66,6 +64,14 @@
 %
 \backmatter%
 \pagestyle{backmatter}%
+%
+\listoftables%
+\addcontentsline{toc}{chapter}{List of Tables}%
+\phantomsection%
+%
+\listoffigures%
+\addcontentsline{toc}{chapter}{List of Figures}%
+\phantomsection%
 %
 \begin{singlespace}%
 \cleardoublepage%
@@ -75,7 +81,7 @@
 \end{singlespace}%
 %
 \appendix%
-\input{./chapters/07_appendix_A.tex}%
+\input{./chapters/05_appendices.tex}%
 %
 \end{document}%
 %
