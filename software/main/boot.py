@@ -84,15 +84,14 @@ if not hive:
     if configuration == "AM1":
         print("am1")
         idle()
-    elif configuration == "SM3":
-        print("sm3")
-        run_config_module("sm3")
-    elif configuration == "SL1":
-        print("sl1")
-        run_config_module("sl1")
     else:
-        print("idle")
-        idle()
+        try:
+            print(configuration.lower())
+            run_config_module(configuration.lower())
+        except Exception as e:
+            print(f"Error running {configuration.lower()}: {e}")
+            print("idle")
+            idle()
 else:
     #run_config_module("hm1")
     # insert code here to run in case of hive motor!

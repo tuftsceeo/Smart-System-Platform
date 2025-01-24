@@ -8,11 +8,11 @@ import json
 
 
 class Networking:
-    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.ticks_ms()):
+    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.time_ns()):
         gc.collect()
         self.inittime = inittime
         if infmsg:
-            print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Initialising Networking")
+            print(f"{(time.time_ns() - self.inittime) / 1000000000:.3f} Initialising Networking")
         self.master = self
         self.infmsg = infmsg
         self.dbgmsg = dbgmsg
@@ -32,7 +32,7 @@ class Networking:
         self.aen = self.Aen(self)
 
         if infmsg:
-            print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking initialised and ready")
+            print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking initialised and ready")
 
     def cleanup(self):
         self.dprint(".cleanup")
@@ -43,7 +43,7 @@ class Networking:
     def iprint(self, message):
         if self.infmsg:
             try:
-                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Info: {message}")
+                print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking Info: {message}")
             except Exception as e:
                 print(f"Error printing Networking Info: {e}")
         return
@@ -51,7 +51,7 @@ class Networking:
     def dprint(self, message):
         if self.dbgmsg:
             try:
-                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Debug: {message}")
+                print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking Debug: {message}")
             except Exception as e:
                 print(f"Error printing Networking Debug: {e}")
         return
@@ -59,7 +59,7 @@ class Networking:
     def eprint(self, message):
         if self.errmsg:
             try:
-                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Error: {message}")
+                print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking Error: {message}")
             except Exception as e:
                 print(f"Error printing Networking Error: {e}")
         return

@@ -9,9 +9,9 @@ import webrepl
 
 
 class SSP_Networking:
-    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.ticks_ms()):
+    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.time_ns()):
         if infmsg:
-            print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Smart System Education Platform Networking")
+            print(f"{(time.time_ns() - inittime) / 1000000000:.3f} Initialising Smart System Education Platform Networking")
         self.networking = Networking(infmsg, dbgmsg, errmsg, admin, inittime)
         config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
         config["version"] = ''.join(str(value) for value in version.values())
@@ -101,13 +101,13 @@ class SSP_Networking:
         self.networking.dprint("net.cmd.reboot")
         self.send_command("Reboot", mac, None, channel, ifidx, sudo)
 
-    def send_configure(self, mac, configuration, channel=None, ifidx=None, sudo=False):
-        self.networking.dprint("net.cmd.send_configure")
-        self.send_command("Send-Configure", mac, configuration, channel, ifidx, sudo)
+    def hive_set(self, mac, hive_bool, channel=None, ifidx=None, sudo=False):
+        self.networking.dprint("net.cmd.hive_set")
+        self.send_command("Hive-Set", mac, hive_bool, channel, ifidx, sudo)
 
-    def receive_configure(self, mac, configuration, channel=None, ifidx=None, sudo=False):
-        self.networking.dprint("net.cmd.send_configure")
-        self.send_command("Receive-Configure", mac, configuration, channel, ifidx, sudo)
+    def hive_configure(self, mac, configuration, channel=None, ifidx=None, sudo=False):
+        self.networking.dprint("net.cmd.hive_configure")
+        self.send_command("Hive-Configure", mac, configuration, channel, ifidx, sudo)
 
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
