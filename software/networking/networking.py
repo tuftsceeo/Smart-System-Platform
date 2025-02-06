@@ -8,11 +8,11 @@ import json
 
 
 class Networking:
-    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.time_ns()):
+    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=0):
         gc.collect()
         self.inittime = inittime
         if infmsg:
-            print(f"{(time.time_ns() - self.inittime) / 1000000000:.3f} Initialising Networking")
+            print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Initialising Networking")
         self.master = self
         self.infmsg = infmsg
         self.dbgmsg = dbgmsg
@@ -32,7 +32,7 @@ class Networking:
         self.aen = self.Aen(self)
 
         if infmsg:
-            print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking initialised and ready")
+            print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking initialised and ready")
 
     def cleanup(self):
         self.dprint(".cleanup")
@@ -43,7 +43,7 @@ class Networking:
     def iprint(self, message):
         if self.infmsg:
             try:
-                print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking Info: {message}")
+                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Info: {message}")
             except Exception as e:
                 print(f"Error printing Networking Info: {e}")
         return
@@ -51,7 +51,7 @@ class Networking:
     def dprint(self, message):
         if self.dbgmsg:
             try:
-                print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking Debug: {message}")
+                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Debug: {message}")
             except Exception as e:
                 print(f"Error printing Networking Debug: {e}")
         return
@@ -59,7 +59,7 @@ class Networking:
     def eprint(self, message):
         if self.errmsg:
             try:
-                print(f"{(time.time_ns() - self.inittime) / 1000:.3f} Networking Error: {message}")
+                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Error: {message}")
             except Exception as e:
                 print(f"Error printing Networking Error: {e}")
         return
@@ -177,6 +177,10 @@ class Networking:
             self.received_sensor_data = {}
             self.received_rssi_data = {}
             self._irq_function = None
+            self.boop_irq = None
+            self.data_irq = None
+            self.msg_irq = None
+            self.ack_irq = None
             self.custom_cmd = None
             self.custom_inf = None
             self.custom_ack = None
@@ -265,8 +269,8 @@ class Networking:
             return self._aen.peers_table
 
         # Send cmds
-        def send_command(self, msg_code, msg_subcode, mac, payload=None, channel=None, ifidx=None):
-            self.master.dprint("aen.send_command")
+        def send_custom(self, msg_code, msg_subcode, mac, payload=None, channel=None, ifidx=None):
+            self.master.dprint("aen.send_custom")
             self._compose(mac, payload, msg_code, msg_subcode, channel, ifidx)
             gc.collect()
 
@@ -276,7 +280,7 @@ class Networking:
                 send_channel = self.master.ap.channel()
             else:
                 send_channel = self.master.sta.channel()
-            self.send_command(0x01, 0x10, mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
+            self.send_custom(0x01, 0x10, mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
             if isinstance(mac, list):
                 for key in mac:
                     self._peers[key].update({'last_ping': time.ticks_ms()})
@@ -288,7 +292,7 @@ class Networking:
 
         def boop(self, mac, channel=None, ifidx=None): #"RSSI/Status/Config-Boop"
             self.master.dprint("aen.boop")
-            self.send_command(0x01, 0x15, mac, None, channel, ifidx)
+            self.send_custom(0x01, 0x15, mac, None, channel, ifidx)
 
         def echo(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.echo")
@@ -299,7 +303,7 @@ class Networking:
                     self.master.eprint(f"Sending echo to {mac}, but error printing message content: {e}")
             else:
                 self.master.iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
-            self.send_command(0x01, 0x15, mac, message, channel, ifidx)
+            self.send_custom(0x01, 0x15, mac, message, channel, ifidx)
             gc.collect()
 
         def send_message(self, mac, message, channel=None, ifidx=None):
@@ -659,6 +663,8 @@ class Networking:
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
                     # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    if self.boop_irq:
+                        self.boop_irq()
                 elif (msg_subkey := "Data") and subtype == 0x01 or subtype == 0x21:  # Sensor Data
                     payload["time_sent"] = send_timestamp
                     payload["time_recv"] = receive_timestamp
@@ -667,6 +673,8 @@ class Networking:
                         self.received_sensor_data[b'prev_' + sender_mac] = self.received_sensor_data[sender_mac]
                     self.received_sensor_data[sender_mac] = payload
                     # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    if self.data_irq:
+                        self.data_irq()
                 elif (msg_subkey := "Message") and subtype == 0x02 or subtype == 0x22:  # Message / Other
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, receive_timestamp))
@@ -676,6 +684,8 @@ class Networking:
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
                     # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    if self.msg_irq:
+                        self.msg_irq()
                 else:
                     self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_inf:
@@ -705,6 +715,8 @@ class Networking:
                     if self.custom_ack:
                         self.custom_ack([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
                         # Insert more acknowledgement logic here and/or add message to acknowledgement buffer
+                if self.ack_irq:
+                    self.ack_irq()
 
             if self._aen.any():
                 timestamp = time.ticks_ms()
@@ -720,6 +732,6 @@ class Networking:
                         break
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
-# | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp(ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
+# | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp (ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
 
 

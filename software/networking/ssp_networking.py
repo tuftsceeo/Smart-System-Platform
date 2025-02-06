@@ -9,9 +9,9 @@ import webrepl
 
 
 class SSP_Networking:
-    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.time_ns()):
+    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=0):
         if infmsg:
-            print(f"{(time.time_ns() - inittime) / 1000000000:.3f} Initialising Smart System Education Platform Networking")
+            print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Smart System Education Platform Networking")
         self.networking = Networking(infmsg, dbgmsg, errmsg, admin, inittime)
         config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
         config["version"] = ''.join(str(value) for value in version.values())
@@ -22,7 +22,10 @@ class SSP_Networking:
         self.version = version
         self.orders = self.Orders(self)
         self.inittime = self.networking.inittime
-        
+
+    def cleanup(self):
+        self.networking.cleanup()
+
     def rssi(self):
         return self.networking.aen.rssi()
     
@@ -51,11 +54,8 @@ class SSP_Networking:
     def return_data(self):
         return self.networking.aen.return_data()
     
-    def cleanup(self):
-        self.networking.cleanup()
-    
-    def send_command(self, msg_subkey, mac, payload=None, channel=None, ifidx=None, sudo=False):
-        self.networking.dprint("aen.send_command")
+    def send_custom(self, msg_subkey, mac, payload=None, channel=None, ifidx=None, sudo=False):
+        self.networking.dprint("aen.send_custom")
         if sudo and isinstance(payload, list):
             payload.append("sudo")
         elif sudo and payload is None:
@@ -67,7 +67,7 @@ class SSP_Networking:
                 self.networking.iprint(f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac}")
             else:
                 self.networking.iprint(f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac} ({self.networking.aen.peer_name(mac)})")
-            self.networking.aen.send_command(msg_codes[msg_key], msg_subcodes[msg_key][msg_subkey], mac, payload, channel, ifidx)
+            self.networking.aen.send_custom(msg_codes[msg_key], msg_subcodes[msg_key][msg_subkey], mac, payload, channel, ifidx)
         else:
             self.networking.iprint(f"Command {msg_subkey} not found")
         gc.collect()
@@ -99,93 +99,93 @@ class SSP_Networking:
 
     def reboot(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.reboot")
-        self.send_command("Reboot", mac, None, channel, ifidx, sudo)
+        self.send_custom("Reboot", mac, None, channel, ifidx, sudo)
 
     def hive_set(self, mac, hive_bool, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.hive_set")
-        self.send_command("Hive-Set", mac, hive_bool, channel, ifidx, sudo)
+        self.send_custom("Hive-Set", mac, hive_bool, channel, ifidx, sudo)
 
     def hive_configure(self, mac, configuration, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.hive_configure")
-        self.send_command("Hive-Configure", mac, configuration, channel, ifidx, sudo)
+        self.send_custom("Hive-Configure", mac, configuration, channel, ifidx, sudo)
 
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
-        self.send_command("Firmware-Update", mac, None, channel, ifidx, sudo)
+        self.send_custom("Firmware-Update", mac, None, channel, ifidx, sudo)
 
     def file_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.file_update")
-        self.send_command("File-Update", mac, None, channel, ifidx, sudo)
+        self.send_custom("File-Update", mac, None, channel, ifidx, sudo)
 
     def file_download(self, mac, link, file_list=None, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.file_download")
-        self.send_command("File-Download", mac, [link, file_list], channel, ifidx, sudo)
+        self.send_custom("File-Download", mac, [link, file_list], channel, ifidx, sudo)
 
     def web_repl(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.web_repl")
         self.networking.ap.set_ap(ap_name := self.networking.config["name"], password := networking_keys["default_ap_key"])
-        self.send_command("Web-Repl", mac, [ap_name, password], channel, ifidx, sudo)
+        self.send_custom("Web-Repl", mac, [ap_name, password], channel, ifidx, sudo)
         # await success message and if success False disable AP or try again
 
     def file_run(self, mac, filename, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.file_run")
-        self.send_command("File-Run", mac, filename, channel, ifidx, sudo)
+        self.send_custom("File-Run", mac, filename, channel, ifidx, sudo)
 
     def admin_set(self, mac, new_bool, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.admin_set")
-        self.send_command("Admin-Set", mac, new_bool, channel, ifidx, sudo)
+        self.send_custom("Admin-Set", mac, new_bool, channel, ifidx, sudo)
 
     def whitelist_add(self, mac, mac_list=None, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.whitelist_add")
         if mac_list is not None:
             mac_list = [self.networking.sta.mac_decoded, self.networking.ap.mac_decoded]
-        self.send_command("Whitelist-Add", mac, mac_list, channel, ifidx, sudo)
+        self.send_custom("Whitelist-Add", mac, mac_list, channel, ifidx, sudo)
 
     def config_change(self, mac, new_config, hardcode=False, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.config_change")
-        self.send_command("Config-Change", mac, [new_config, hardcode], channel, ifidx, sudo)
+        self.send_custom("Config-Change", mac, [new_config, hardcode], channel, ifidx, sudo)
 
     def name_change(self, mac, new_name, hardcode=False, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.name_change")
-        self.send_command("Name-Change", mac, [new_name, hardcode], channel, ifidx, sudo)
+        self.send_custom("Name-Change", mac, [new_name, hardcode], channel, ifidx, sudo)
 
     def pair(self, mac, key=networking_keys["handshake_key1"], channel=None, ifidx=None):
         self.networking.dprint("net.cmd.pair")
-        self.send_command("Pair", mac, key, channel, ifidx)
+        self.send_custom("Pair", mac, key, channel, ifidx)
 
     def pair_enable(self, mac, pair_bool, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.pair")
-        self.send_command("Set-Pair", mac, pair_bool, channel, ifidx, sudo)
+        self.send_custom("Set-Pair", mac, pair_bool, channel, ifidx, sudo)
 
     def directory_get(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.directory_get")
-        self.send_command("Directory-Get", mac, None, channel, ifidx, sudo)
+        self.send_custom("Directory-Get", mac, None, channel, ifidx, sudo)
 
     # resend cmd
 
     def wifi_connect(self, mac, name, password, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.wifi_connect")
-        self.send_command("Wifi-Connect", mac, [name, password], channel, ifidx, sudo)
+        self.send_custom("Wifi-Connect", mac, [name, password], channel, ifidx, sudo)
 
     def wifi_disconnect(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.wifi_disconnect")
-        self.send_command("Wifi-Disconnect", mac, None, channel, ifidx, sudo)
+        self.send_custom("Wifi-Disconnect", mac, None, channel, ifidx, sudo)
 
     def ap_enable(self, mac, name, password, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.ap_enable")
-        self.send_command("AP-Enable", mac, [name, password], channel, ifidx, sudo)
+        self.send_custom("AP-Enable", mac, [name, password], channel, ifidx, sudo)
 
     def ap_disable(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.ap_disable")
-        self.send_command("AP-Disable", mac, None, channel, ifidx, sudo)
+        self.send_custom("AP-Disable", mac, None, channel, ifidx, sudo)
 
     def pause(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.pause")
-        self.send_command("Pause", mac, None, channel, ifidx, sudo)
+        self.send_custom("Pause", mac, None, channel, ifidx, sudo)
 
     def resume(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.resume")
-        self.send_command("Resume", mac, None, channel, ifidx, sudo)
+        self.send_custom("Resume", mac, None, channel, ifidx, sudo)
 
 
     class Orders:
@@ -428,7 +428,7 @@ class SSP_Networking:
                     else:
                         channel = self.master.sta.channel()
                     response = [channel, self.master.networking.aen.ifidx, self.master.config, send_timestamp]
-                    self.master.networking.aen.send_command(0x03, 0x10, sender_mac, response)
+                    self.master.networking.aen.send_custom(0x03, 0x10, sender_mac, response)
                 #                 elif (msg_subkey := "Pair") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Pair #add something that checks that the messages are from the same mac # BREAKS NETWORK
                 #                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
                 #                     if self._pairing_enabled and networking_keys["handshake_key_1"] == payload:
@@ -473,7 +473,7 @@ class SSP_Networking:
                     self.master.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)}), Received total of {self.boops} boops!")
                     try:
-                        self.master.networking.aen.send_command(0x02, 0x20, sender_mac,[self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.master.networking.aen.rssi()])  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
+                        self.master.networking.aen.send_custom(0x02, 0x20, sender_mac,[self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.master.networking.aen.rssi()])  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
                     except Exception as e:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Directory-Get") and subtype == msg_subcodes[msg_key][
@@ -498,13 +498,13 @@ class SSP_Networking:
 
                         start_path = '.'
                         all_files = ___list_all_files(start_path)
-                        self.master.networking.aen.send_command(0x02, 0x20, sender_mac, all_files)
+                        self.master.networking.aen.send_custom(0x02, 0x20, sender_mac, all_files)
                     except Exception as e:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Echo") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Echo
                     self.master.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)}): {payload}")  # Check i or d
-                    self.master.networking.aen.send_command(0x03, 0x15, sender_mac, payload)
+                    self.master.networking.aen.send_custom(0x03, 0x15, sender_mac, payload)
                 elif (msg_subkey := "Resend") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Resend lost long messages
                     self.master.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")

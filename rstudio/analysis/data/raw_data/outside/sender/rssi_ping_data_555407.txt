@@ -1,0 +1,3 @@
+Packet Loss: 34 %
+RSSI: {'mean': -73.52, 'max': -66, 'min': -86, 'std_dev': 3.27, 'median': -73.0}
+Ping: {'mean': 26.29, 'max': 141, 'min': 10, 'std_dev': 18.17, 'median': 20.0}
