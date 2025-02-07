@@ -20,6 +20,7 @@ The repository has the following directory tree.
     ├── images
     ├── index.html
     ├── mission.html
+    ├── privacy.html
     ├── start.html
     ├── technology.html
     └── tools.html

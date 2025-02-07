@@ -8,7 +8,7 @@ import json
 
 
 class Networking:
-    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=time.ticks_ms()):
+    def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=0):
         gc.collect()
         self.inittime = inittime
         if infmsg:
@@ -177,6 +177,10 @@ class Networking:
             self.received_sensor_data = {}
             self.received_rssi_data = {}
             self._irq_function = None
+            self.boop_irq = None
+            self.data_irq = None
+            self.msg_irq = None
+            self.ack_irq = None
             self.custom_cmd = None
             self.custom_inf = None
             self.custom_ack = None
@@ -252,6 +256,8 @@ class Networking:
 
         def peer_name(self, key):
             self.master.dprint("aen.name")
+            if isinstance(key, list):
+                return "..."
             if key in self._peers:
                 if 'name' in self._peers[key]:
                     return self._peers[key]['name']
@@ -265,8 +271,8 @@ class Networking:
             return self._aen.peers_table
 
         # Send cmds
-        def send_command(self, msg_code, msg_subcode, mac, payload=None, channel=None, ifidx=None):
-            self.master.dprint("aen.send_command")
+        def send_custom(self, msg_code, msg_subcode, mac, payload=None, channel=None, ifidx=None):
+            self.master.dprint("aen.send_custom")
             self._compose(mac, payload, msg_code, msg_subcode, channel, ifidx)
             gc.collect()
 
@@ -276,7 +282,7 @@ class Networking:
                 send_channel = self.master.ap.channel()
             else:
                 send_channel = self.master.sta.channel()
-            self.send_command(0x01, 0x10, mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
+            self.send_custom(0x01, 0x10, mac, [send_channel, self.ifidx, self.master.config], channel, ifidx)  # sends channel, ifidx and name
             if isinstance(mac, list):
                 for key in mac:
                     self._peers[key].update({'last_ping': time.ticks_ms()})
@@ -288,7 +294,7 @@ class Networking:
 
         def boop(self, mac, channel=None, ifidx=None): #"RSSI/Status/Config-Boop"
             self.master.dprint("aen.boop")
-            self.send_command(0x01, 0x15, mac, None, channel, ifidx)
+            self.send_custom(0x01, 0x15, mac, None, channel, ifidx)
 
         def echo(self, mac, message, channel=None, ifidx=None):
             self.master.dprint("aen.echo")
@@ -299,7 +305,7 @@ class Networking:
                     self.master.eprint(f"Sending echo to {mac}, but error printing message content: {e}")
             else:
                 self.master.iprint(f"Sending echo ({message}) to {mac} ({self.peer_name(mac)})")
-            self.send_command(0x01, 0x15, mac, message, channel, ifidx)
+            self.send_custom(0x01, 0x15, mac, message, channel, ifidx)
             gc.collect()
 
         def send_message(self, mac, message, channel=None, ifidx=None):
@@ -347,6 +353,10 @@ class Networking:
                 gc.collect()
                 return messages
             return [(None, None, None)]
+
+        def return_data(self):
+            self.master.dprint("aen.return_data")
+            return self.received_sensor_data
         
         def _irq(self, espnow):
             self.master.dprint("aen._irq")
@@ -423,6 +433,14 @@ class Networking:
                     self.master.dprint(f"Removed {peer_mac} from espnow buffer")
                 except Exception as e:
                     self.master.eprint(f"Error removing {peer_mac} from espnow buffer: {e}")
+
+        def __send_confirmation(self, msg_type, recipient_mac, msg_subkey_type, payload=None, error=None):
+            if msg_type == "Success":
+                self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x11)
+            elif msg_type == "Fail":
+                self._compose(recipient_mac, [msg_subkey_type, error, payload], 0x03, 0x12)
+            else:
+                self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x13)
 
         def _compose(self, peer_mac, payload=None, msg_type=0x02, subtype=0x22, channel=None, ifidx=None):
             self.master.dprint("aen._compose")
@@ -606,22 +624,17 @@ class Networking:
                     raise ValueError(f"Unsupported payload type: {payload_type} Message: {payload_bytes}")
 
                 # Handle the message based on type
-                if msg_type == (msg_key := 0x01):  # Command Message
+                if msg_type == 0x01:  # Command Message
+                    msg_key = "cmd"
                     __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
-                elif msg_type == (msg_key := 0x02):  # Informational Message
+                elif msg_type == 0x02:  # Informational Message
+                    msg_key = "inf"
                     __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
-                elif msg_type == (msg_key := 0x03):  # Acknowledgement Message
+                elif msg_type == 0x03:  # Acknowledgement Message
+                    msg_key = "ack"
                     __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
                 else:
                     self.master.iprint(f"Unknown message type from {sender_mac} ({self.peer_name(sender_mac)}): {message}")
-
-            def __send_confirmation(self, msg_type, recipient_mac, msg_subkey_type, payload=None, error=None):
-                if msg_type == "Success":
-                    self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x11)
-                elif msg_type == "Fail":
-                    self._compose(recipient_mac, [msg_subkey_type, error, payload], 0x03, 0x12)
-                else:
-                    self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x13)
 
             def __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint(f"aen.__handle_cmd")
@@ -640,27 +653,34 @@ class Networking:
                     try:
                         self._compose(sender_mac, [self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
                     except Exception as e:
-                        __send_confirmation(self, "Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                        self.master.aen.__send_confirmation(self, "Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Echo") and subtype == subtype == 0x02 or subtype == 0x15:  # Echo
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")  # Check i or d
                     self._compose(sender_mac, payload, 0x03, 0x15)
                 else:
-                    self.master.iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_cmd:
+                        self.master.iprint(f"Checking custom cmd handler library")
                         self.custom_cmd([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
+                    self.master.iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint("aen.__handle_inf")
                 if (msg_subkey := "RSSI/Status/Config-Boop") and subtype == 0x00 or subtype == 0x20:  # RSSI/Status/Config-Boop
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
-                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # self.master.aen.__send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    if self.boop_irq:
+                        self.boop_irq()
                 elif (msg_subkey := "Data") and subtype == 0x01 or subtype == 0x21:  # Sensor Data
                     payload["time_sent"] = send_timestamp
                     payload["time_recv"] = receive_timestamp
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
+                    if sender_mac in self.received_sensor_data:
+                        self.received_sensor_data[b'prev_' + sender_mac] = self.received_sensor_data[sender_mac]
                     self.received_sensor_data[sender_mac] = payload
-                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # self.master.aen.__send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    if self.data_irq:
+                        self.data_irq()
                 elif (msg_subkey := "Message") and subtype == 0x02 or subtype == 0x22:  # Message / Other
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, receive_timestamp))
@@ -669,11 +689,14 @@ class Networking:
                         self.master.dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
-                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # self.master.aen.__send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    if self.msg_irq:
+                        self.msg_irq()
                 else:
-                    self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_inf:
+                        self.master.iprint(f"Checking custom inf handler library")
                         self.custom_inf([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
+                    self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint("aen.__handle_ack")
@@ -695,10 +718,13 @@ class Networking:
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
                     # add to ack buffer
                 else:
-                    self.master.iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
                     if self.custom_ack:
+                        self.master.iprint(f"Checking custom ack handler library")
                         self.custom_ack([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
+                        self.master.iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
                         # Insert more acknowledgement logic here and/or add message to acknowledgement buffer
+                if self.ack_irq:
+                    self.ack_irq()
 
             if self._aen.any():
                 timestamp = time.ticks_ms()
@@ -714,6 +740,6 @@ class Networking:
                         break
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
-# | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp(ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
+# | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp (ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
 
 

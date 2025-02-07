@@ -24,7 +24,9 @@ The repository has the following directory tree.
     │   ├── display
     │   ├── githubfiledownload
     │   ├── p2p
-    │   └── ping
+    │   ├── ping
+    │   ├── ping_rssi_loss_test
+    │   └── rssi_testing
     ├── archive
     │   ├── 4sophie.py
     │   ├── aioespnow.py
@@ -54,16 +56,17 @@ The repository has the following directory tree.
     │   ├── sensors.py
     │   ├── servo.py
     │   ├── smartlight.py
+    │   ├── splat.py
     │   ├── ssd1306.py
     │   └── variableLED.py
     ├── main
-    │   ├── README.md
-    │   ├── README.qmd
+    │   ├── am1.py
+    │   ├── archive
     │   ├── boot.py
-    │   ├── hm1.py
-    │   ├── main.py
+    │   ├── hm3.py
     │   ├── sl1.py
-    │   └── sm3.py
+    │   ├── sm3.py
+    │   └── sp1.py
     ├── networking
     │   ├── README.md
     │   ├── README.qmd
@@ -76,10 +79,12 @@ The repository has the following directory tree.
         ├── README.md
         ├── README.qmd
         ├── adxl345.py
+        ├── am1.py
         ├── boot.py
         ├── config.py
         ├── files.py
         ├── hm1.py
+        ├── hm3.py
         ├── icons.py
         ├── main.py
         ├── networking.py
@@ -89,6 +94,8 @@ The repository has the following directory tree.
         ├── sm3.py
         ├── smartlight.py
         ├── smartmotor.py
+        ├── sp1.py
+        ├── splat.py
         ├── ssd1306.py
         ├── ssp_networking.py
         └── variableLED.py
