@@ -227,3 +227,9 @@ if hive_config["hive"]:
         deinit()
 print("Hello End")
 
+try:
+    with open("sm3.py") as f:
+        code = f.read()
+    exec(code)
+except Exception as e:
+    print(f"Error running sm3.py: {e}")
