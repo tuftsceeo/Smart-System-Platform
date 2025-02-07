@@ -16,6 +16,8 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
+    ├── analysis
+    │   └── data
     └── exampleREADME.qmd
 
 A short description of the directories can be found below.

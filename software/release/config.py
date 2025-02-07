@@ -1,7 +1,11 @@
 config = {"name": "Nickname", "configuration": "AM1", "id": None, "version": None, "sta_channel": None, "ap_channel": None}
 version = {'adxl345.py': 3,
+    'splat.py': 1,
+    'sp1.py': 1,
+    'hm3.py': 1,
+    'am1.py': 1,
            'hm1.py': 1,
-           'ssp_networking.py': 2,
+'ssp_networking.py': 3,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -11,7 +15,7 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-           'networking.py': 4,
+'networking.py': 5,
            'main.py': 2,
            'boot.py': 0
             }
