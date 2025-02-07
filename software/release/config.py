@@ -1,9 +1,4 @@
-config = {
-    "name": "Nickname",
-    "configuration": "AM1",
-    "id": None,
-    "version": None
-    }
+config = {"name": "Nickname", "configuration": "AM1", "id": None, "version": None, "sta_channel": None, "ap_channel": None}
 version = {'adxl345.py': 3,
            'hm1.py': 1,
            'ssp_networking.py': 2,
@@ -42,6 +37,7 @@ msg_subcodes = {
         "Resend": 0x16,
         "Hive-Set": 0x17,
         "Hive-Configure": 0x18,
+        "Web-Repl": 0x20,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
         "AP-Enable": 0x23,
@@ -79,9 +75,7 @@ i2c_dict = {
     "0x3C": ["pca9685", 0, "screen"],
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
-hive_config = {
-    "hive": False,
-    "recipients": [],
-    "controller": {"kp": None, "ki": None, "kd": None},
-    "formula": lambda data: data["some_mac"]["accelerometer"] + data["some_mac"]["sensor"]
-}
+sensor_dict = {"sensor": [0,4095], "potentiometer": [0,180], "select": [0,1], "up": [0,1], "down": [0,1], "button": [0,1], "sw1": [0,1],  "sw2": [0,1],  "sw3": [0,1],  "sw4": [0,1]}
+hive_config = {"hive": True, "refreshrate": 0, "recipients": [], "sender_sensor_list": [], "mode": None, "controller": {"kp": None, "ki": None, "kd": None}, "formula": "Hello"}
+
+

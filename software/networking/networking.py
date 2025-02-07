@@ -256,6 +256,8 @@ class Networking:
 
         def peer_name(self, key):
             self.master.dprint("aen.name")
+            if isinstance(key, list):
+                return "..."
             if key in self._peers:
                 if 'name' in self._peers[key]:
                     return self._peers[key]['name']
@@ -431,6 +433,14 @@ class Networking:
                     self.master.dprint(f"Removed {peer_mac} from espnow buffer")
                 except Exception as e:
                     self.master.eprint(f"Error removing {peer_mac} from espnow buffer: {e}")
+
+        def __send_confirmation(self, msg_type, recipient_mac, msg_subkey_type, payload=None, error=None):
+            if msg_type == "Success":
+                self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x11)
+            elif msg_type == "Fail":
+                self._compose(recipient_mac, [msg_subkey_type, error, payload], 0x03, 0x12)
+            else:
+                self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x13)
 
         def _compose(self, peer_mac, payload=None, msg_type=0x02, subtype=0x22, channel=None, ifidx=None):
             self.master.dprint("aen._compose")
@@ -614,22 +624,17 @@ class Networking:
                     raise ValueError(f"Unsupported payload type: {payload_type} Message: {payload_bytes}")
 
                 # Handle the message based on type
-                if msg_type == (msg_key := 0x01):  # Command Message
+                if msg_type == 0x01:  # Command Message
+                    msg_key = "cmd"
                     __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
-                elif msg_type == (msg_key := 0x02):  # Informational Message
+                elif msg_type == 0x02:  # Informational Message
+                    msg_key = "inf"
                     __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
-                elif msg_type == (msg_key := 0x03):  # Acknowledgement Message
+                elif msg_type == 0x03:  # Acknowledgement Message
+                    msg_key = "ack"
                     __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
                 else:
                     self.master.iprint(f"Unknown message type from {sender_mac} ({self.peer_name(sender_mac)}): {message}")
-
-            def __send_confirmation(self, msg_type, recipient_mac, msg_subkey_type, payload=None, error=None):
-                if msg_type == "Success":
-                    self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x11)
-                elif msg_type == "Fail":
-                    self._compose(recipient_mac, [msg_subkey_type, error, payload], 0x03, 0x12)
-                else:
-                    self._compose(recipient_mac, [msg_subkey_type, payload], 0x03, 0x13)
 
             def __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint(f"aen.__handle_cmd")
@@ -648,21 +653,22 @@ class Networking:
                     try:
                         self._compose(sender_mac, [self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
                     except Exception as e:
-                        __send_confirmation(self, "Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                        self.master.aen.__send_confirmation(self, "Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Echo") and subtype == subtype == 0x02 or subtype == 0x15:  # Echo
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")  # Check i or d
                     self._compose(sender_mac, payload, 0x03, 0x15)
                 else:
-                    self.master.iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_cmd:
+                        self.master.iprint(f"Checking custom cmd handler library")
                         self.custom_cmd([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
+                    self.master.iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint("aen.__handle_inf")
                 if (msg_subkey := "RSSI/Status/Config-Boop") and subtype == 0x00 or subtype == 0x20:  # RSSI/Status/Config-Boop
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self.received_rssi_data[sender_mac] = payload
-                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # self.master.aen.__send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                     if self.boop_irq:
                         self.boop_irq()
                 elif (msg_subkey := "Data") and subtype == 0x01 or subtype == 0x21:  # Sensor Data
@@ -672,7 +678,7 @@ class Networking:
                     if sender_mac in self.received_sensor_data:
                         self.received_sensor_data[b'prev_' + sender_mac] = self.received_sensor_data[sender_mac]
                     self.received_sensor_data[sender_mac] = payload
-                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # self.master.aen.__send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                     if self.data_irq:
                         self.data_irq()
                 elif (msg_subkey := "Message") and subtype == 0x02 or subtype == 0x22:  # Message / Other
@@ -683,13 +689,14 @@ class Networking:
                         self.master.dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
                         self._received_messages_size.pop(0)
-                    # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
+                    # self.master.aen.__send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                     if self.msg_irq:
                         self.msg_irq()
                 else:
-                    self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
                     if self.custom_inf:
+                        self.master.iprint(f"Checking custom inf handler library")
                         self.custom_inf([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
+                    self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
             def __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
                 self.master.dprint("aen.__handle_ack")
@@ -711,9 +718,10 @@ class Networking:
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
                     # add to ack buffer
                 else:
-                    self.master.iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
                     if self.custom_ack:
+                        self.master.iprint(f"Checking custom ack handler library")
                         self.custom_ack([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
+                        self.master.iprint(f"Unknown ack subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}, Payload: {payload}")
                         # Insert more acknowledgement logic here and/or add message to acknowledgement buffer
                 if self.ack_irq:
                     self.ack_irq()
