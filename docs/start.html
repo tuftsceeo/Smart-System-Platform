@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart System Platform" />
     <link rel="manifest" href="images/site.webmanifest" />
 
-    <title>Smart System Education Platform</title>
+    <title>Smart System Platform</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -138,11 +138,28 @@
             color: #333;
         }
         
+        table {
+            border-collapse: separate; 
+            border-spacing: 15px;
+            width: 100%;
+        }
+        th {
+            text-align: left;
+        }
+        table td ul {
+            padding: 0;
+            margin: 0; 
+        }
+        table td li {
+            margin-bottom: 0.2em; 
+        }
+        
         .resources-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 40px;
             margin-top: 32px;
+            margin-bottom: 30px;
         }
         .additional-resources-grid {
             display: grid;
@@ -371,35 +388,32 @@
 </header>
 
 <main>
-    <h1>Start</h1>
-    <p>Guide on how to get started with the Smart System Education Platform. Example projects, related materials, and more. This guide provides resources and instructions to help you begin your journey with this innovative educational tool.</p>
+    <h1>Guide and Resources</h1>
+    
+    <p>This guide provides a starting point for using the Smart System Platform. Get an idea about the platform and its functionality, how to get started with the management and development tools and find information on related projects, supporting materials, and resources linked below. </p>
 
+    <hr>
     <section class="orientation">
         <h2>Orientation</h2>
-        <p>An overview of the resources in this guide to help you quickly get acquainted with the platform.</p>
-        <p>Here are some quick links to some of the resources.</p>
+        <p>Getting started can be overwhelming, so here is a quick overview of the topics we go into below. We suggest you start with the Concept & Platform Overview chapter to get an idea about the Smart System Platform, its architecture, purpose and functionalities, before getting started, aided by the Getting started with the Smart System Platform chapter. </p>
         <ul class="swiss-list">
             <li><a href="#concept-platform">Concept & Platform Overview</a></li>
-            <li><a href="#getting-started-with-tools">Getting Started with Tools</a>
-                <ul>
-                    <li><a href="#network-management">Configuring Smart Modules Using the Network Management UI</a></li>
-                    <li><a href="#custom-ide">Developing Smart System Platform Projects with the Custom Web IDE</a></li>
-                    <li><a href="#module-management">Managing Smart Modules with the Module Management Portal</a></li>
-                </ul>
-            </li>
+            <li><a href="#getting-started-with-tools">Getting Started with the Smart System Platform</a>
             <li><a href="#ideas-projects">Ideas and Related Projects</a></li>
             <li><a href="#procurement">Procurement & Sourcing</a></li>
             <li><a href="#additional-resources">Additional Resources</a></li>
         </ul>
     </section>
 
+    <hr>
     <section class="concept-platform" id="concept-platform">
         <h2>Concept &amp; Platform Overview</h2>
-        <p>The Smart System Education Platform (SSP) is a networking-enabled engineering education platform based on Smart Motors, designed to foster hands-on learning, learning through play, and collaborative learning. It aims to provide accessible and inclusive technology for all, addressing challenges like cost and usability often associated with educational robotics, as highlighted in research by Dahal (2024) and others. Inspired by Constructionism by Papert & Harel (1991) and Constructivism by Von Glasersfeld (1982).</p>
-        <p>The SSP is more than just hardware; it's a complete ecosystem designed to support educators in creating innovative learning experiences. It encompasses hardware modules (like the Smart Motor) with all the possible Grove sensors, networking capabilities, development tools, and comprehensive documentation. The platform is an MVP (Minimum Viable Product) that demonstrates the Smart Motors capabilities and how they can be leveraged into a broader educational robotics system.</p>
+        <p>The Smart System Platform (SSP) is a networking-enabled engineering education platform based on Smart Motors, designed to foster hands-on learning, learning through play, and collaborative learning. It aims to provide accessible and inclusive technology for all, addressing challenges like cost and usability often associated with educational robotics, as highlighted in research by Dahal (2024) and others. Inspired by Constructionism by Papert & Harel (1991) and Constructivism by Von Glasersfeld (1982).</p>
+        <p>The SSP is more than just hardware; it's an ecosystem designed to support educators in creating innovative learning experiences. It encompasses hardware modules (like the Smart Motor) with all the possible Grove sensors, networking capabilities, development tools, and comprehensive documentation. The platform is an MVP (Minimum Viable Product) that demonstrates the Smart Motors and other Smart Module capabilities and how they can be leveraged into a broader educational robotics system.</p>
         <p><strong>Platform Overview:</strong> A brief tour of the main features and functionalities, including the website, PyScript IDE, and networking capabilities.</p>
     </section>
 
+    <hr>
     <section class="tools" id="getting-started-with-tools">
         <h2>Getting Started with the Smart System Platform</h2>
         <p>An overview of the various software tools available to support your development and management of the Smart System Platform.</p>
@@ -407,6 +421,8 @@
         <div class="tool-item" id="network-management">
             <h3><a href="https://nickart.pyscriptapps.com/floral-firefly/latest/">Configuring Smart Modules Using the Network Management UI</a></h3>
             <p>The Network Management and Module Configuration Tool allows you to configure and manage your modules, including configuring them for custom interconnected operations.</p>
+            <p>&nbsp;</p>
+            <p><strong>Page Overview:</strong></p>
             <img src="images/nmmct.png" alt="Network Management Screenshot" width="500">
             <p><strong>Step 1: Load Page and Connect</strong></p>
             <p>In a first step, load the Network Management and Module Configuration Tool page in the Chrome browser, and connect your Admin Module to your device via USB-C cable.</p>
@@ -423,7 +439,89 @@
             <p> Use the available commands to configure and manage your network of modules in real-time. An easy way to try this without any danger of breaking something is to change the name of a selected module.</p>
             <p>&nbsp;</p>
             <p><strong>Step 5: Module Configuration</strong></p>
-            <p>The main use of the page is to configure your modules for wireless interaction. You can do so by clicking the configure Set Hive Config button and setting your configuration accordingly. Select the module you would like to configure by clicking its checkbox, and then press the Set Hive Config button. A pop-up window will appear, asking for the mac addresses of modules the module should send its data to. Enter a list of mac addresses here, including the square brackets [], or otherwise for none, leave the field empty. A further pop-up will appear, asking for the mac and respective sensor which the device should expect data from and use for its own output calculation. The format to enter this is as follows: [[mac1, "sensor"], [mac2, "button"]. A table with the modules and their possible inputs and their outputs is listed below. When using multiple data providers, the device will use an average of the normalized data it has received. A further pop-up appears asking for the refresh rate, 100 ms is a good value for this. The subsequent pop-up window asks for the mode, here either logic or continuous can be entered, logic meaning the device will use True/False (rounding discrete values to either 0 or 1), while continuous will calculate a discrete value to be mapped to the output. THe next pop-up will ask for sudo authentication, to bypass this enter True. In the REPL a log message sending the message should appear, and if received and successful, a success message should be received from the configured module. If the message was received but the configuration change failed, a fail message will be returned. If no message is returned, this is an indicator that the recipient has not received the message.</p>
+            <p>The main use of the page is to configure your modules for wireless interaction. You can do so by clicking the configure Set Hive Config button and setting your configuration accordingly. Select the module you would like to configure by clicking its checkbox, and then press the Set Hive Config button. A pop-up window will appear, asking for the mac addresses of modules the module should send its data to. Enter a list of mac addresses here, including the square brackets [], or otherwise for none, leave the field empty. A further pop-up will appear, asking for the mac and respective sensor which the device should expect data from and use for its own output calculation. The format to enter this is as follows: [[mac1, "sensor"], [mac2, "button"]. A table with the modules and their possible inputs and their outputs is listed below. When using multiple data providers, the device will use an average of the normalized data it has received. A further pop-up appears asking for the refresh rate, 100 ms is a good value for this. The subsequent pop-up window asks for the mode, here either logic or continuous can be entered, logic meaning the device will use True/False (rounding discrete values to either 0 or 1), while continuous will calculate a discrete value to be mapped to the output. The next pop-up will ask for sudo authentication, to bypass this enter True. In the REPL a log message sending the message should appear, and if received and successful, a success message should be received from the configured module. If the message was received but the configuration change failed, a fail message will be returned. If no message is returned, this is an indicator that the recipient has not received the message.</p>
+            <p>&nbsp;</p>
+            <table>
+                <thead>
+                <tr>
+                    <th>Module Name</th>
+                    <th>Input(s)</th>
+                    <th>Output(s)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Admin Module</td>
+                    <td>
+                        <ul>
+                            <li>Accelerometer or connected Grove Sensor: "sensor" (0 to 4095)</li>
+                            <li>Potentiometer: "potentiometer" (0-180)</li>
+                            <li>Buttons: "select", "up", "down" (True, False)</li>
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>OLED Screen (True/False)</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Smart Motor v3</td>
+                    <td>
+                        <ul>
+                            <li>Accelerometer or connected Grove Sensor: "sensor" (0 to 4095)</li>
+                            <li>Potentiometer: "potentiometer" (0-180)</li>
+                            <li>Buttons: "select", "up", "down" (True, False)</li>
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>Servo Motor (0-180)</li>
+                            <li>OLED Screen (True/False)</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Smart Splat</td>
+                    <td>
+                        <ul>
+                            <li>Buttons: "sw1", "sw2", "sw3", "sw4" (True, False)</li>
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>Colour LED (1-8)</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Smart Light</td>
+                    <td>
+                        <ul>
+                            <li> *No inputs* </li>
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            <li> *No outputs* </li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Smart Button</td>
+                    <td>
+                        <ul>
+                            <li> *No inputs* </li>
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            <li> *No outputs* </li>
+                        </ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
             <p>&nbsp;</p>
             <p><strong>Step 6: AI Module Configuration Assistant</strong></p>
             <p>In an effort to the aid with the calculation of the required configuration values for the modules, an AI chatbot has been primed to take in a description of intended network configuration, to which it will return the required command values for the various modules. The primed LLM is linked below.</p>
@@ -435,7 +533,7 @@
                     <a href="https://nickart.pyscriptapps.com/floral-firefly/latest/">To the Network Management Tool</a>
                 </div>
                 <div class="resource-card">
-                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the AI Module Configuration Assistant</a>
+                    <a href="https://chatgpt.com/g/g-67a6969a805881918fdbb360e9a78c12-smart-system-platform-ai-module-config-assistant">To the AI Module Configuration Assistant</a>
                 </div>
                 <div class="resource-card">
                     <a href="https://nickart.pyscriptapps.com/floral-firefly/v6/">To the Advanced Network Management Tool</a>
@@ -446,8 +544,9 @@
         <div class="tool-item" id="custom-ide">
             <h3><a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">Developing Networked Smart System Platform Projects with the Custom Web IDE</a></h3>
             <p>A custom IDE has been developed using PyScript. This IDE allows you to write and execute Python code directly in your web browser, without the need for software installation. It supports multiple development tabs, making it easier to manage complex projects with multiple networked devices.</p>
+            <p>&nbsp;</p>
+            <p><strong>Page Overview:</strong></p>
             <img src="images/ide.png" alt="Custom IDE Screenshot" width="500">
-            <p>The Network Management and Module Configuration Tool allows you to configure and manage your modules, including configuring them for custom interconnected operations.</p>
             <p><strong>Step 1: Load Page and Connect</strong></p>
             <p>In a first step, load the Custom Web IDE page in the Chrome browser, click the add REPL button, and connect a Module to your device via USB-C cable.</p>
             <p><strong>Troubleshooting:</strong> If no IDE field appears on the webpage, wait for 10 seconds and then try clicking the add REPL button again.</p>
@@ -468,7 +567,7 @@
                     <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the Custom Web IDE</a>
                 </div>
                 <div class="resource-card">
-                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the AI Coding Assistant</a>
+                    <a href="https://chatgpt.com/g/g-67a77e3b1f588191bfdf22051df0340b-smart-system-platform-ai-coding-assistant">To the AI Coding Assistant</a>
                 </div>
             </div>
         </div>
@@ -485,6 +584,7 @@
         </div>
     </section>
 
+    <hr>
     <section class="ideas-projects" id="ideas-projects">
         <h2>Ideas and Related Projects</h2>
         <p>Showcase ideas for projects and showcase existing project, using the system.</p>
@@ -504,6 +604,7 @@
         </div>
     </section>
 
+    <hr>
     <section class="procurement" id="procurement">
         <h2>Procurement &amp; Sourcing</h2>
         <p>Information and resources related to procuring necessary equipment and sourcing materials for educational projects.</p>
@@ -523,6 +624,7 @@
         </div>
     </section>
 
+    <hr>
     <section id="additional-resources">
         <h2>Useful Resources</h2>
         <div class="resources-grid">
@@ -540,7 +642,7 @@
             </div>
             <div class="resource-card">
                 <a href="https://github.com/tuftsceeo/SmartMotors">Smart Motor GitHub</a>
-                <p>The GitHub page hosting files fo the Smart Motors project</p>
+                <p>Link to the Smart Motors GitHub</p>
             </div>
             <div class="resource-card">
                 <a href="https://github.com/tuftsceeo/Smart-System-Platform">Smart System Platform GitHub</a>
@@ -558,7 +660,7 @@
     <div class="footer-content">
         <img src="images/SOE_CEEO_horiz_white.svg" width="274" height="63" alt="Tufts University; Center for Engineering Education and Outreach Logo" class="footer-logo-left">
         <div class="footer-text">
-            <p><span>© 2024 Smart System Education Platform.</span> All rights reserved.</p>
+            <p><span>© 2024 Smart System Platform.</span> All rights reserved.</p>
             <p><a href="community.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
         </div>
         <img src="images/eth_logo_kurz_neg.svg" width="206" height="75" alt="Swiss Federal Institute of Technology Zurich (ETH Zürich) Logo" class="footer-logo-right">
