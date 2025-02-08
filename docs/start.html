@@ -67,10 +67,163 @@
             justify-content: flex-end;
             flex-grow: 1;
         }
+        
         main {
             flex-grow: 1;
-            padding: 20px;
         }
+        main {
+            /*max-width: 1200px;*/
+            margin: 0;  /* Remove auto margin for left alignment */
+            padding: 20px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: white;
+        }
+        h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            margin-top: 0px;
+            color: #000;
+            letter-spacing: -0.5px;
+            text-align: left;
+        }
+        h2 {
+            font-size: 32px;
+            font-weight: 500;
+            margin: 32px 0 0px;
+            color: #000;
+            letter-spacing: -0.3px;
+        }
+        .swiss-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .swiss-list li {
+            margin-bottom: 0.5em;
+        }
+        .swiss-list a {
+            display: block;
+            padding: 0.5em 0;
+            text-decoration: none;
+            color: #333;
+            border-left: 4px solid #eee;
+            padding-left: 1em;
+            transition: border-color 0.3s ease;
+            font-size: 0.9em;
+        }
+        .swiss-list a:hover {
+            border-color: #FF9900;
+            background-color: #f9f9f9;
+        }
+        .swiss-list ul {
+            list-style: none;
+            padding-left: 1em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        .swiss-list ul li {
+            margin-bottom: 0.25em;
+        }
+        .swiss-list ul a {
+            border-left: none;
+            padding-left: 0;
+            font-size: 0.85em;
+            color: #777;
+        }
+        .swiss-list ul a:hover {
+            border-color: #FF9900;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 32px;
+        }
+        .additional-resources-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 32px;
+        }
+
+        .tool-link-container {
+            display: flex;
+        }
+        .link-card {
+            margin-bottom: 20px;
+            padding: 10px 32px 32px;
+            border: 1px solid #e0e0e0;
+        }
+        .link-card:hover {
+            background-color: #f8f8f8;
+        }
+        .link-card a {
+            font-size: 18px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .resource-card {
+            padding: 32px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .tool-item {
+            margin-bottom: 20px;
+            padding: 10px 32px 32px;
+            border: 1px solid #e0e0e0;
+        }
+        .resource-card:hover {
+            background-color: #f8f8f8;
+        }
+        .resource-card a {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .resource-card u a {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+        }
+        .tool-item a {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .resource-card p {
+            font-size: 16px;
+            margin: 0;
+            color: #666;
+        }
+        .tool-item p {
+            font-size: 16px;
+            margin: 0;
+            color: #000;
+        }
+        .tool-item img {
+            min-width: 750px;
+            max-width: 1000px;
+            width: 100%; /* ensure the image scales down responsively */
+            height: auto;
+            margin-bottom: 10px;
+        } 
+
         footer {
             background-color: #333;
             color: white;
@@ -149,7 +302,28 @@
             .menu.show {
                 display: flex;
             }
-
+            
+            .resources-grid, .additional-resources-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .resource-card, .tool-item {
+                padding: 24px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            h2 {
+                font-size: 24px;
+                margin: 24px 0 0px;
+            }
+            .resource-card, .tool-item a {
+                font-size: 20px;
+            }
+            main {
+                padding: 16px;
+            }
+            
             .footer-content {
                 flex-direction: column;
             }
@@ -196,116 +370,188 @@
     </div>
 </header>
 
-<style>
-    /* Swiss Design-inspired styling */
-    main {
-        /*max-width: 1200px;*/
-        margin: 0;  /* Remove auto margin for left alignment */
-        padding: 20px;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        line-height: 1.6;
-        background-color: white;
-    }
-
-    h1 {
-        font-size: 42px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        margin-top: 0px;
-        color: #000;
-        letter-spacing: -0.5px;
-        text-align: left;
-    }
-
-    h2 {
-        font-size: 32px;
-        font-weight: 500;
-        margin: 32px 0 0px;
-        color: #000;
-        letter-spacing: -0.3px;
-    }
-
-    .resources-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Force three columns */
-        gap: 40px;
-        margin-top: 32px;
-    }
-
-    .additional-resources-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); /* Two columns for additional resources */
-        gap: 40px;
-        margin-top: 32px;
-    }
-
-    .resource-card {
-        padding: 32px;
-        border: 1px solid #e0e0e0;
-        transition: all 0.2s ease;
-    }
-
-    .resource-card:hover {
-        background-color: #f8f8f8;
-    }
-
-    .resource-card a {
-        font-size: 24px;
-        font-weight: 500;
-        color: #000;
-        text-decoration: none;
-        display: block;
-        margin-bottom: 16px;
-    }
-
-    .resource-card p {
-        font-size: 16px;
-        margin: 0;
-        color: #666;
-    }
-    .resources-grid, .additional-resources-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 40px;
-        margin-top: 32px;
-    }
-
-    .additional-resources-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    @media (max-width: 1000px) {
-        .resources-grid, .additional-resources-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .resource-card {
-            padding: 24px;
-        }
-
-        h1 {
-            font-size: 32px;
-        }
-
-        h2 {
-            font-size: 24px;
-            margin: 24px 0 0px;
-        }
-
-        .resource-card a {
-            font-size: 20px;
-        }
-
-        main {
-            padding: 16px;
-        }
-    }
-</style>
-
 <main>
     <h1>Start</h1>
-    <p>Guide on how to get started. Procurement, Sourcing, SYI, Example Lesson Plans, etc. </p>
+    <p>Guide on how to get started with the Smart System Education Platform. Example projects, related materials, and more. This guide provides resources and instructions to help you begin your journey with this innovative educational tool.</p>
+
+    <section class="orientation">
+        <h2>Orientation</h2>
+        <p>An overview of the resources in this guide to help you quickly get acquainted with the platform.</p>
+        <p>Here are some quick links to some of the resources.</p>
+        <ul class="swiss-list">
+            <li><a href="#concept-platform">Concept & Platform Overview</a></li>
+            <li><a href="#getting-started-with-tools">Getting Started with Tools</a>
+                <ul>
+                    <li><a href="#network-management">Configuring Smart Modules Using the Network Management UI</a></li>
+                    <li><a href="#custom-ide">Developing Smart System Platform Projects with the Custom Web IDE</a></li>
+                    <li><a href="#module-management">Managing Smart Modules with the Module Management Portal</a></li>
+                </ul>
+            </li>
+            <li><a href="#ideas-projects">Ideas and Related Projects</a></li>
+            <li><a href="#procurement">Procurement & Sourcing</a></li>
+            <li><a href="#additional-resources">Additional Resources</a></li>
+        </ul>
+    </section>
+
+    <section class="concept-platform" id="concept-platform">
+        <h2>Concept &amp; Platform Overview</h2>
+        <p>The Smart System Education Platform (SSP) is a networking-enabled engineering education platform based on Smart Motors, designed to foster hands-on learning, learning through play, and collaborative learning. It aims to provide accessible and inclusive technology for all, addressing challenges like cost and usability often associated with educational robotics, as highlighted in research by Dahal (2024) and others. Inspired by Constructionism by Papert & Harel (1991) and Constructivism by Von Glasersfeld (1982).</p>
+        <p>The SSP is more than just hardware; it's a complete ecosystem designed to support educators in creating innovative learning experiences. It encompasses hardware modules (like the Smart Motor) with all the possible Grove sensors, networking capabilities, development tools, and comprehensive documentation. The platform is an MVP (Minimum Viable Product) that demonstrates the Smart Motors capabilities and how they can be leveraged into a broader educational robotics system.</p>
+        <p><strong>Platform Overview:</strong> A brief tour of the main features and functionalities, including the website, PyScript IDE, and networking capabilities.</p>
+    </section>
+
+    <section class="tools" id="getting-started-with-tools">
+        <h2>Getting Started with the Smart System Platform</h2>
+        <p>An overview of the various software tools available to support your development and management of the Smart System Platform.</p>
+
+        <div class="tool-item" id="network-management">
+            <h3><a href="https://nickart.pyscriptapps.com/floral-firefly/latest/">Configuring Smart Modules Using the Network Management UI</a></h3>
+            <p>The Network Management and Module Configuration Tool allows you to configure and manage your modules, including configuring them for custom interconnected operations.</p>
+            <img src="images/nmmct.png" alt="Network Management Screenshot" width="500">
+            <p><strong>Step 1: Load Page and Connect</strong></p>
+            <p>In a first step, load the Network Management and Module Configuration Tool page in the Chrome browser, and connect your Admin Module to your device via USB-C cable.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 2: Connect Admin Module to Page</strong></p>
+            <p>Connect to the Admin Module using the connect button in the REPL Area. Once successfully connected, the greyed out command buttons become active, and the REPL area will display the chip name. The main code of the Admin Module should automatically start, which will be indicated by a regularly occuring heart-beat message.</p>
+            <p><strong>Troubleshooting:</strong> If the command buttons remain greyed out, simply disconnect and reconnect to the device using the disconnect and connect buttons. If the REPL area only displays a blinking block instead of >>>, unplug your Admin Module, replug and try again. If the issue persists, reset your Admin Module using the reset button on the ESP32 SoC-based MBC.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 3: Ping and Refresh Module List</strong></p>
+            <p>Per default,the module list is set to refresh automatically. However, no devices will show up unless the Admin Module has received communications from the device. To find all active modules in your vicinity, you can send out a ping command, to which all active modules will automatically respond with their respective information. The module list will then be updated accordingly.</p>
+            <p><strong>Troubleshooting:</strong> Ensure that your Modules are all turned off and running their default code. If a device is not found, turn it off and on again.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 4: Usage</strong></p>
+            <p> Use the available commands to configure and manage your network of modules in real-time. An easy way to try this without any danger of breaking something is to change the name of a selected module.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 5: Module Configuration</strong></p>
+            <p>The main use of the page is to configure your modules for wireless interaction. You can do so by clicking the configure Set Hive Config button and setting your configuration accordingly. Select the module you would like to configure by clicking its checkbox, and then press the Set Hive Config button. A pop-up window will appear, asking for the mac addresses of modules the module should send its data to. Enter a list of mac addresses here, including the square brackets [], or otherwise for none, leave the field empty. A further pop-up will appear, asking for the mac and respective sensor which the device should expect data from and use for its own output calculation. The format to enter this is as follows: [[mac1, "sensor"], [mac2, "button"]. A table with the modules and their possible inputs and their outputs is listed below. When using multiple data providers, the device will use an average of the normalized data it has received. A further pop-up appears asking for the refresh rate, 100 ms is a good value for this. The subsequent pop-up window asks for the mode, here either logic or continuous can be entered, logic meaning the device will use True/False (rounding discrete values to either 0 or 1), while continuous will calculate a discrete value to be mapped to the output. THe next pop-up will ask for sudo authentication, to bypass this enter True. In the REPL a log message sending the message should appear, and if received and successful, a success message should be received from the configured module. If the message was received but the configuration change failed, a fail message will be returned. If no message is returned, this is an indicator that the recipient has not received the message.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 6: AI Module Configuration Assistant</strong></p>
+            <p>In an effort to the aid with the calculation of the required configuration values for the modules, an AI chatbot has been primed to take in a description of intended network configuration, to which it will return the required command values for the various modules. The primed LLM is linked below.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 7: Advanced Management</strong></p>
+            <p>In the basic version of the tool, only a limited amount of commands has been made available as an introduction, though an experimental version with the full suite of networking commands is linked below.</p>
+            <div class="additional-resources-grid">
+                <div class="resource-card">
+                    <a href="https://nickart.pyscriptapps.com/floral-firefly/latest/">To the Network Management Tool</a>
+                </div>
+                <div class="resource-card">
+                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the AI Module Configuration Assistant</a>
+                </div>
+                <div class="resource-card">
+                    <a href="https://nickart.pyscriptapps.com/floral-firefly/v6/">To the Advanced Network Management Tool</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="tool-item" id="custom-ide">
+            <h3><a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">Developing Networked Smart System Platform Projects with the Custom Web IDE</a></h3>
+            <p>A custom IDE has been developed using PyScript. This IDE allows you to write and execute Python code directly in your web browser, without the need for software installation. It supports multiple development tabs, making it easier to manage complex projects with multiple networked devices.</p>
+            <img src="images/ide.png" alt="Custom IDE Screenshot" width="500">
+            <p>The Network Management and Module Configuration Tool allows you to configure and manage your modules, including configuring them for custom interconnected operations.</p>
+            <p><strong>Step 1: Load Page and Connect</strong></p>
+            <p>In a first step, load the Custom Web IDE page in the Chrome browser, click the add REPL button, and connect a Module to your device via USB-C cable.</p>
+            <p><strong>Troubleshooting:</strong> If no IDE field appears on the webpage, wait for 10 seconds and then try clicking the add REPL button again.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 2: Connect Module to Page</strong></p>
+            <p>Connect to the Module using the connect button in the REPL Area. Once successfully connected, the greyed out command buttons become active, and the REPL area will display the chip name or the running code, if the do not interrupt checkbox was checked.</p>
+            <p><strong>Troubleshooting:</strong> If the command buttons remain greyed out, simply disconnect and reconnect to the device using the disconnect and connect buttons. If the REPL area only displays a blinking block instead of >>>, unplug your Module, replug and try again. If the issue persists, reset your Module using the reset button on the ESP32 SoC-based MBC.</p>
+            <p>&nbsp;</p>
+            <p><strong>Step 3: Develop!</strong></p>
+            <p>Happy coding!</p>
+            <p><strong>Troubleshooting:</strong> File uploading for larger files is prone to break. Furthermore, viewing and uploading files while the module is executing code will likely break the module and page. Reloading of the webpage becomes necessary should this occur. </p>
+            <p>&nbsp;</p>
+            <p><strong>Step 4: AI Code Assistant</strong></p>
+            <p>In an effort to the aid with the developmant and coding using the SSP-specific networking and other libraries, an AI chatbot has been primed on code documentation, which should be able to provide you with basic code blocks and functionalities to aid in your development efforts. The primed LLM is linked below.</p>
+            <p>&nbsp;</p>
+            <div class="additional-resources-grid">
+                <div class="resource-card">
+                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the Custom Web IDE</a>
+                </div>
+                <div class="resource-card">
+                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the AI Coding Assistant</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="tool-item" id="module-management">
+            <h3><a>Managing Smart Modules with the Module Management Portal</a></h3>
+            <img src="images/module-management.png" alt="Module Management Screenshot" width="300">
+            <p>The Module Management Portal allows you to easily update the software on your modules. It checks the <code>config.py</code> file for versions numbers against the latest <code>config.py</code> file on the release branch of the GitHub. If a discrepancy exists the respective files are downloaded directly onto the device from GitHub, updating the software on the device to its newest version, based on its specific configuration.</p>
+            <div class="additional-resources-grid">
+                <div class="resource-card">
+                    <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A">To the Module Management UI</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ideas-projects" id="ideas-projects">
+        <h2>Ideas and Related Projects</h2>
+        <p>Showcase ideas for projects and showcase existing project, using the system.</p>
+        <div class="resources-grid">
+            <div class="resource-card" id="projects 1">
+                <a href="#">STEM Project Ideas</a>
+                <p>Showcase ideas on science, technology, engineering, and mathematics.</p>
+            </div>
+            <div class="resource-card" id="projects 2">
+                <a href="#">Arts &amp; Creativity Projects</a>
+                <p>Showcase project that integrates arts and creativity into the curriculum.</p>
+            </div>
+            <div class="resource-card" id="projects 3">
+                <a href="#">Example Playground project</a>
+                <p>Showcase a example implementation on the smart system platform.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="procurement" id="procurement">
+        <h2>Procurement &amp; Sourcing</h2>
+        <p>Information and resources related to procuring necessary equipment and sourcing materials for educational projects.</p>
+        <div class="resources-grid">
+            <div class="resource-card">
+                <a href="#">Equipment Guide</a>
+                <p>A comprehensive guide on selecting the right equipment for your projects.</p>
+            </div>
+            <div class="resource-card">
+                <a href="#">Material Sourcing</a>
+                <p>Tips and resources for sourcing high-quality and cost-effective materials.</p>
+            </div>
+            <div class="resource-card">
+                <a href="#">Vendor Directory</a>
+                <p>A curated list of trusted vendors and suppliers for educational resources.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="additional-resources">
+        <h2>Useful Resources</h2>
+        <div class="resources-grid">
+            <div class="resource-card">
+                <a href="https://smartmotors.notion.site/Smart-Motors-8d8f49ff9f6243ddbf0847b2806df6ba">Smart Motors</a>
+                <p>The original Smart Motors notion page. Provides documentation, guides, and resources to help you understand and utilize the original Smart Motors, which forms the basis for the Smart System Platform.</p>
+            </div>
+            <div class="resource-card">
+                <a href="https://micropython.org/webrepl/">MicroPython WebREPL</a>
+                <p>Provides a MicroPython interactive interpreter directly in your web browser, allowing wireless access to a webREPL-enabled device on your local network.</p>
+            </div>
+            <div class="resource-card">
+                <a href="https://thonny.org/">Thonny</a>
+                <p>A beginner-friendly Python IDE that provides a user-friendly interface and debugging tools, which is fully compatible with the ESP32-SoC-based hardware and MicroPython code of the Smart Modules.</p>
+            </div>
+            <div class="resource-card">
+                <a href="https://github.com/tuftsceeo/SmartMotors">Smart Motor GitHub</a>
+                <p>The GitHub page hosting files fo the Smart Motors project</p>
+            </div>
+            <div class="resource-card">
+                <a href="https://github.com/tuftsceeo/Smart-System-Platform">Smart System Platform GitHub</a>
+                <p>Link to the Smart System Platform GitHub</p>
+            </div>
+            <div class="resource-card">
+                <a href="https://github.com/shanki01/Playground-Code">Smart Playground GitHub</a>
+                <p>Link to the Smart Playground GitHub</p>
+            </div>
+        </div>
+    </section>
 </main>
 
 <footer>
