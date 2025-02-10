@@ -22,6 +22,25 @@ class SSP_Networking:
         self.version = version
         self.orders = self.Orders(self)
         self.inittime = self.networking.inittime
+        try:
+            if self.config["ap_channel"] is not None:
+                self.networking.ap.set_channel(self.config["ap_channel"])
+            if self.config["sta_channel"] is not None:
+                self.networking.sta.set_channel(self.config["sta_channel"])
+        except Exception as e:
+            self.networking.eprint(f"Error: {e}")
+        try:
+            file_path = "config.py"
+            with open(file_path, "r") as f:
+                lines = f.readlines()
+            with open(file_path, "w") as f:
+                for line in lines:
+                    if line.startswith(f'config = '):
+                        f.write(f'config = {self.config}\n')
+                    else:
+                        f.write(line)
+        except Exception as e:
+            self.networking.eprint(f"Error: {e}")
 
     def cleanup(self):
         self.networking.cleanup()
