@@ -9,9 +9,9 @@ import urandom
 import os
 
 #Network
-networking = Networking(True, True, True)
+networking = Networking(True, False, True)
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
-
+message_str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 message_str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 print(f"String: {message_str}")
 message_int = int(''.join(str(urandom.getrandbits(4)) for _ in range(300)))
@@ -33,16 +33,37 @@ start_time = time.ticks_ms()
 message = "Boop!"
 
 
-test = False
+test = True
 waiting = False
 
 if test:
     
     def receive():
         global waiting
+        messages = networking.return_messages()
         for mac, message, rtime in messages:
             print(f"\033[34mMessage received: {mac, message, rtime}\033[0m")
         waiting = False
+        
+    def check_echo(value):
+        print(value)
+        print(networking.aen.last_echo)
+        if value == networking.aen.last_echo:
+            return True
+        return False
+    
+    def check(msg, checktype):
+        try:
+            networking.aen.echo(peer_mac, msg)
+            print("\033[34mWaiting for echo\033[0m")
+            time.sleep(1)
+            if check_echo(msg):
+                print(f"\033[32mTest {checktype} passed\033[0m")
+            else:    
+                print(f"\033[31mTest {checktype} failed: mismatch\033[0m")
+        except Exception as e:
+            print(f"\033[31mTest {checktype} failed: {e}\033[0m")
+        
         
     networking.aen.irq(receive)
     
@@ -76,73 +97,29 @@ if test:
     try:
         networking.aen.ping(peer_mac)
         print("\033[34mWaiting for pong\033[0m")
-        time.sleep(0.02)
+        time.sleep(0.5)
         print("\033[32mTest ping passed\033[0m")
     except Exception as e:
         print(f"\033[31mTest ping failed: {e}\033[0m")
     try:
         networking.aen.echo(peer_mac, message)
         print("\033[34mWaiting for echo\033[0m")
-        time.sleep(0.02)
-        print("\033[32mTest echo passed\033[0m")
+        time.sleep(0.5)
+        if check_echo(message):
+            print("\033[32mTest echo passed\033[0m")
+        else:    
+            print(f"\033[31mTest echo failed: mismatch\033[0m")
     except Exception as e:
         print(f"\033[31mTest echo failed: {e}\033[0m")
-#     try:
-#         networking.aen.broadcast(message)
-#         print("\033[32mTest broadcast passed\033[0m")
-#     except Exception as e:
-#         print(f"\033[31mTest broadcast failed: {e}\033[0m")
         
-    try:
-        networking.aen.echo(peer_mac, message_str)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(2)
-        print("\033[32mTest long string passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long string failed: {e}\033[0m")
-    try:
-        networking.aen.echo(peer_mac, message_int)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(2)
-        print("\033[32mTest long int passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long int failed: {e}\033[0m")
-    try:
-        networking.aen.echo(peer_mac, message_float)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(2)
-        print("\033[32mTest long float passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long float failed: {e}\033[0m")
-    try:
-        networking.aen.echo(peer_mac, message_dict)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(2)
-        print("\033[32mTest long dict passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long dict failed: {e}\033[0m")
-    try:
-        networking.aen.echo(peer_mac, message_list)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(2)
-        print("\033[32mTest long list passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long list failed: {e}\033[0m")
-    try:
-        networking.aen.echo(peer_mac, message_bytes)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(3)
-        print("\033[32mTest long bytes passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long bytes failed: {e}\033[0m")
-    try:
-        networking.aen.echo(peer_mac, message_bytearray)
-        print("\033[34mWaiting for echo\033[0m")
-        time.sleep(3)
-        print("\033[32mTest long bytearray passed\033[0m")
-    except Exception as e:
-        print(f"\033[31mTest long bytearray failed: {e}\033[0m")
-    
+    check(message_str,"str")
+    check(message_int,"int")
+    check(message_float,"float")
+    check(message_dict,"dict")
+    check(message_list,"list")
+    check(message_bytes,"bytes")
+    check(message_bytearray,"bytearray")
+        
     try:
         print(networking.aen.check_messages())
         print("\033[32mTest check_messages passed\033[0m")

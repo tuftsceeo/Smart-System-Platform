@@ -9,7 +9,7 @@ gc.collect()
 
 import network
 
-print("Running boot.py")
+print("Running sp1.py")
 
 # just to be safe
 sta = network.WLAN(network.STA_IF)
@@ -150,18 +150,37 @@ if hive_config["hive"]:
             recv_sensor_data = networking.return_data()
             # print(f"Received sensor data: {recv_sensor_data}")
             # do some logic here! servo, screen, lights etc.
-            try:
-                receive_list = hive_config["sender_sensor_list"]
-                output = 0
-                for entry in receive_list:
-                    output += recv_sensor_data[entry[0]][entry[1]] / (
-                                sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
-                output = output / len(receive_list)
-                output = int(output * 7 + 1)
-                # print(f"Value: {output}")
-                s.set_color(output)
-            except Exception as e:
-                print(e)
+            if hive_config["mode"] == "logic":
+                try:
+                    receive_list = hive_config["sender_sensor_list"]
+                    output = 0
+                    for entry in receive_list:
+                        output += recv_sensor_data[entry[0]][entry[1]] / (
+                                    sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
+                    output = output / len(receive_list)
+                    output = bool(int(output))
+                    print(output)
+                    # print(f"Value: {output}")
+                    if output:
+                        s.set_color(1)
+                        s.play_sound()
+                    else:
+                        s.clear_strip()
+                except Exception as e:
+                    print(e)
+            elif hive_config["mode"] == "continuous":
+                try:
+                    receive_list = hive_config["sender_sensor_list"]
+                    output = 0
+                    for entry in receive_list:
+                        output += recv_sensor_data[entry[0]][entry[1]] / (
+                                    sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
+                    output = output / len(receive_list)
+                    output = int(output * 7 + 1)
+                    # print(f"Value: {output}")
+                    s.set_color(output)
+                except Exception as e:
+                    print(e)
 
 
         s.sw1.irq(trigger=Pin.IRQ_RISING, handler=send_button_data)
@@ -169,15 +188,17 @@ if hive_config["hive"]:
         s.sw3.irq(trigger=Pin.IRQ_RISING, handler=send_button_data)
         s.sw4.irq(trigger=Pin.IRQ_RISING, handler=send_button_data)
 
-        if hive_config["refreshrate"] > 0:
-            timer = machine.Timer(0)
-            timer.init(period=hive_config["refreshrate"], mode=machine.Timer.PERIODIC, callback=get_sensor_data)
+        #if hive_config["refreshrate"] > 0:
+        #    timer = machine.Timer(0)
+        #    timer.init(period=hive_config["refreshrate"], mode=machine.Timer.PERIODIC, callback=get_sensor_data)
 
-        while True:
-            time.sleep(1)
+        while hive_config["hive"]:
+            get_sensor_data(None)
+            time.sleep(hive_config["refreshrate"])
 
     except KeyboardInterrupt:
-        timer.deinit()
+        #timer.deinit()
         deinit()
 print("Hello End")
+
 

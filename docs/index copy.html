@@ -68,10 +68,180 @@
             justify-content: flex-end;
             flex-grow: 1;
         }
+
         main {
             flex-grow: 1;
-            padding: 20px;
         }
+        main {
+            /*max-width: 1200px;*/
+            margin: 0;  /* Remove auto margin for left alignment */
+            padding: 20px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: white;
+        }
+        h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            margin-top: 0px;
+            color: #000;
+            letter-spacing: -0.5px;
+            text-align: left;
+        }
+        h2 {
+            font-size: 32px;
+            font-weight: 500;
+            margin: 32px 0 0px;
+            color: #000;
+            letter-spacing: -0.3px;
+        }
+        .swiss-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .swiss-list li {
+            margin-bottom: 0.5em;
+        }
+        .swiss-list a {
+            display: block;
+            padding: 0.5em 0;
+            text-decoration: none;
+            color: #333;
+            border-left: 4px solid #eee;
+            padding-left: 1em;
+            transition: border-color 0.3s ease;
+            font-size: 0.9em;
+        }
+        .swiss-list a:hover {
+            border-color: #FF9900;
+            background-color: #f9f9f9;
+        }
+        .swiss-list ul {
+            list-style: none;
+            padding-left: 1em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        .swiss-list ul li {
+            margin-bottom: 0.25em;
+        }
+        .swiss-list ul a {
+            border-left: none;
+            padding-left: 0;
+            font-size: 0.85em;
+            color: #777;
+        }
+        .swiss-list ul a:hover {
+            border-color: #FF9900;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 15px;
+            width: 100%;
+        }
+        th {
+            text-align: left;
+        }
+        table td ul {
+            padding: 0;
+            margin: 0;
+        }
+        table td li {
+            margin-bottom: 0.2em;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 32px;
+            margin-bottom: 30px;
+        }
+        .additional-resources-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 32px;
+        }
+
+        .tool-link-container {
+            display: flex;
+        }
+        .link-card {
+            margin-bottom: 20px;
+            padding: 10px 32px 32px;
+            border: 1px solid #e0e0e0;
+        }
+        .link-card:hover {
+            background-color: #f8f8f8;
+        }
+        .link-card a {
+            font-size: 18px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .resource-card {
+            padding: 32px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .tool-item {
+            margin-bottom: 20px;
+            padding: 10px 32px 32px;
+            border: 1px solid #e0e0e0;
+        }
+        .resource-card:hover {
+            background-color: #f8f8f8;
+        }
+        .resource-card a {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .resource-card u a {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+        }
+        .tool-item a {
+            font-size: 24px;
+            font-weight: 500;
+            color: #000;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .resource-card p {
+            font-size: 16px;
+            margin: 0;
+            color: #666;
+        }
+        .tool-item p {
+            font-size: 16px;
+            margin: 0;
+            color: #000;
+        }
+        .tool-item img {
+            min-width: 750px;
+            max-width: 1000px;
+            width: 100%; /* ensure the image scales down responsively */
+            height: auto;
+            margin-bottom: 10px;
+        }
+
         footer {
             background-color: #333;
             color: white;
@@ -138,15 +308,40 @@
             }
             .menu-items a {
                 padding: 10px 20px;
-                width: 100%; /* Full width for links */
+                width: 100%;
             }
             .hamburger {
-                display: block; /* Show hamburger button */
+                display: block;
                 background: none;
                 border: none;
                 font-size: 24px;
                 color: white;
             }
+            .menu.show {
+                display: flex;
+            }
+
+            .resources-grid, .additional-resources-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .resource-card, .tool-item {
+                padding: 24px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            h2 {
+                font-size: 24px;
+                margin: 24px 0 0px;
+            }
+            .resource-card, .tool-item a {
+                font-size: 20px;
+            }
+            main {
+                padding: 16px;
+            }
+
             .footer-content {
                 flex-direction: column;
             }
@@ -193,151 +388,42 @@
     </div>
 </header>
 
-<style>
-    /* Swiss Design-inspired styling */
-    main {
-        /*max-width: 1200px;*/
-        margin: 0;  /* Remove auto margin for left alignment */
-        padding: 20px;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        line-height: 1.6;
-        background-color: white;
-    }
-
-    h1 {
-        font-size: 42px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        margin-top: 0px;
-        color: #000;
-        letter-spacing: -0.5px;
-        text-align: left;
-    }
-
-    h2 {
-        font-size: 32px;
-        font-weight: 500;
-        margin: 32px 0 0px;
-        color: #000;
-        letter-spacing: -0.3px;
-    }
-
-    .resources-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 40px;
-        margin-top: 32px;
-        margin-bottom: 30px;
-    }
-
-    .additional-resources-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 40px;
-        margin-top: 32px;
-    }
-
-    .resource-card {
-        padding: 32px;
-        border: 1px solid #e0e0e0;
-        transition: all 0.2s ease;
-    }
-
-    .resource-card:hover {
-        background-color: #f8f8f8;
-    }
-
-    .resource-card a {
-        font-size: 24px;
-        font-weight: 500;
-        color: #000;
-        text-decoration: none;
-        display: block;
-        margin-bottom: 16px;
-    }
-
-    .resource-card p {
-        font-size: 16px;
-        margin: 0;
-        color: #666;
-    }
-    .resources-grid, .additional-resources-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 40px;
-        margin-top: 32px;
-    }
-
-    .additional-resources-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    @media (max-width: 1000px) {
-        .resources-grid, .additional-resources-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .resource-card {
-            padding: 24px;
-        }
-
-        h1 {
-            font-size: 32px;
-        }
-
-        h2 {
-            font-size: 24px;
-            margin: 24px 0 0px;
-        }
-
-        .resource-card a {
-            font-size: 20px;
-        }
-
-        main {
-            padding: 16px;
-        }
-    }
-</style>
-
 <main>
-    <h1>Welcome</h1>
-    <p>Some short introduction</p>
+    <h1>Page Title</h1>
+    <p>Some short introduction text</p>
 
     <hr>
-    <section>
-        <h2>Quick Links</h2>
-        <div class="resources-grid">
-            <div class="resource-card">
-                <a href="start.html">Getting Started</a>
-                <p>Get an idea about the platform and its functionality, how to get started with the management and development tools and find information on related projects, supporting materials and additional resources.</p>
-            </div>
-            <div class="resource-card">
-                <a href="tools.html">Toolbox</a>
-                <p>Explore the suite of tools and resources designed to streamline your use and management of Smart Modules, as well as enable the development of custom projects using the Smart System Platform.</p>
-            </div>
-            <div class="resource-card">
-                <a href="mission.html">Concept, Platform and Technology</a>
-                <p>Learn more about the systems and architecture of the Smart System Platform, the motivation behind its design the technology used, both in terms of hardware and software, the networking approach, and more.</p>
+    <section class="tools" id="getting-started-with-tools">
+        <h2>Section 1 Title</h2>
+        <p>Section text</p>
+        <div class="tool-item" id="custom-ide">
+            <h3><a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">Subsection 1.1 Title</a></h3>
+            <p>Subsection 1.1 description text</p>
+            <div class="additional-resources-grid">
+                <div class="resource-card">
+                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">Link to relevant Resource</a>
+                </div>
+                <div class="resource-card">
+                    <a href="https://chatgpt.com/g/g-67a77e3b1f588191bfdf22051df0340b-smart-system-platform-ai-coding-assistant">Link to relevant Resource</a>
+                </div>
             </div>
         </div>
     </section>
 
     <hr>
     <section>
-        <h2>Showcases</h2>
+        <h2>Section 2 Title</h2>
         <div class="resources-grid">
             <div class="resource-card">
-                <a href="https://smartmotors.notion.site/Smart-Motors-8d8f49ff9f6243ddbf0847b2806df6ba">Smart Motors</a>
+                <a href="https://smartmotors.notion.site/Smart-Motors-8d8f49ff9f6243ddbf0847b2806df6ba">Title 2.1</a>
                 <p>Description</p>
             </div>
             <div class="resource-card">
-                <a>Smart Playground Project</a>
+                <a>Title 2.2</a>
                 <p>Description</p>
             </div>
             <div class="resource-card">
-                <a>Something else</a>
+                <a>Title 2.3</a>
                 <p>Description</p>
             </div>
         </div>

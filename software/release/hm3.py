@@ -210,22 +210,24 @@ if hive_config["hive"]:
         switch_select.irq(trigger=Pin.IRQ_FALLING, handler=send_button_data)
         switch_up.irq(trigger=Pin.IRQ_FALLING, handler=send_button_data)
 
-        if hive_config["refreshrate"] > 0:
-            timer = machine.Timer(0)
-            timer.init(period=hive_config["refreshrate"], mode=machine.Timer.PERIODIC, callback=get_sensor_data)
+        #if hive_config["refreshrate"] > 0:
+        #    timer = machine.Timer(0)
+        #    timer.init(period=hive_config["refreshrate"], mode=machine.Timer.PERIODIC, callback=get_sensor_data)
 
         oled.fill(0)
         oled.show()
         oled.text("hive mode", 0, 28, 1)
         oled.show()
 
-        while True:
-            time.sleep(1)
+        while hive_config["hive"]:
+            get_sensor_data(None)
+            time.sleep(hive_config["refreshrate"])
 
     except KeyboardInterrupt:
-        timer.deinit()
+        #timer.deinit()
         deinit()
 print("Hello End")
+
 
 try:
     with open("sm3.py") as f:
