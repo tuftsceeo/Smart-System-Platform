@@ -1,6 +1,4 @@
 import time
-
-
 # Network
 from ssp_networking import SSP_Networking
 
@@ -65,27 +63,47 @@ def receive():
 networking.irq(receive)  # interrupt handler
 
 
-#Send trigger
-#You could set up a function that sends a message to all and is called when the select button on the dahal board is pressed
-from machine import Pin
-import machine
+#Add-Ons
+from machine import Pin, SoftI2C
+#Screen
+import ssd1306
 
+i2c = SoftI2C(scl=Pin(7), sda=Pin(6))
+oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+oled.fill(0) #set blank screen
+oled.show() #write to screen
+oled.text("example.py", 0, 28, 1) #set text
+oled.show() #write to screen
+
+#set up sensors
+import sensors
+sens = sensors.SENSORS()
+point = sens.readpoint()
+sensor_data = {}
+sensor_data["sensor"] = point[0]
+sensor_data["potentiometer"] = point[1]
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Sensor data: {sensor_data}}")
+
+#set up servo
+import servo
+s = servo.Servo(Pin(2))
+angle = 180 #0 to 180
+s.write_angle(angle)
+
+#buttons
+from machine import Pin
+switch_down = Pin(8, Pin.IN)
+switch_select = Pin(9, Pin.IN)
+switch_up = Pin(10, Pin.IN)
+
+#You could set up a function that sends a message to all and is called when the select button on the dahal board is pressed
 lastPressed = 0
 
 def boop(pin):
     global lastPressed
     if (time.ticks_ms() - lastPressed > 1000): #prevents button to be called multiple times within 1 second
         lastPressed = time.ticks_ms()
-        networking.send(peer_mac, "Hewwo!")
+        networking.send(recipient_mac, "Hewwo!")
         print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Sent {message} to {peer_mac}")
 
-switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
 switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
-
-
-#print something on the screen
-
-#set up servo
-
-#set up sensor
-
