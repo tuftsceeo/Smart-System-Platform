@@ -11,7 +11,7 @@ import webrepl
 class SSP_Networking:
     def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=0):
         if infmsg:
-            print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Smart System Education Platform Networking")
+            print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Smart System Platform Networking")
         self.networking = Networking(infmsg, dbgmsg, errmsg, admin, inittime)
         config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
         config["version"] = ''.join(str(value) for value in version.values())

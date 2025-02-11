@@ -4,7 +4,7 @@ version = {'adxl345.py': 3,
             'sp1.py': 2,
             'hm3.py': 2,
             'am1.py': 1,
-            'ssp_networking.py': 4,
+'ssp_networking.py': 5,
             'files.py': 2,
             'icons.py': 2,
             'prefs.py': 2,
@@ -14,7 +14,7 @@ version = {'adxl345.py': 3,
             'sm3.py': 1,
             'sl1.py': 1,
             'smartlight.py': 1,
-            'networking.py': 6,
+'networking.py': 7,
             'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
