@@ -78,6 +78,6 @@ i2c_dict = {
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
 sensor_dict = {"sensor": [0,4095], "potentiometer": [0,180], "select": [0,1], "up": [0,1], "down": [0,1], "button": [0,1], "sw1": [0,1],  "sw2": [0,1],  "sw3": [0,1],  "sw4": [0,1]}
-hive_config = {"hive": True, "refreshrate": 0, "recipients": [], "sender_sensor_list": [], "mode": None, "controller": {"kp": None, "ki": None, "kd": None}, "formula": "Hello"}
+hive_config = {"hive": True, "refreshrate": 0, "recipients": [], "sender_sensor_list": [], "mode": None}
 
 
