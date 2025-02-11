@@ -116,7 +116,7 @@ class Networking:
             if number > 14 or number < 0:
                 number = 0
             self._sta.config(channel=number)
-            self.master.dprint(f"STA channel set to {number}")
+            self.master.iprint(f"STA channel set to {number}")
 
     class Ap:
         def __init__(self, master, _apif):

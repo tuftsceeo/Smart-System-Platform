@@ -70,6 +70,7 @@ The repository has the following directory tree.
     ├── networking
     │   ├── README.md
     │   ├── README.qmd
+    │   ├── example.py
     │   ├── examples
     │   ├── networking.py
     │   ├── networking_test.py
