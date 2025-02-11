@@ -1,10 +1,10 @@
-config = {"name": "Nickname", "configuration": "AM1", "id": None, "version": None, "sta_channel": None, "ap_channel": None}
+config = {"name": "Nickname", "configuration": None, "id": None, "version": None, "sta_channel": None, "ap_channel": None}
 version = {'adxl345.py': 3,
             'splat.py': 1,
-'sp1.py': 2,
-'hm3.py': 2,
+            'sp1.py': 2,
+            'hm3.py': 2,
             'am1.py': 1,
-'ssp_networking.py': 4,
+            'ssp_networking.py': 4,
             'files.py': 2,
             'icons.py': 2,
             'prefs.py': 2,
@@ -14,7 +14,7 @@ version = {'adxl345.py': 3,
             'sm3.py': 1,
             'sl1.py': 1,
             'smartlight.py': 1,
-'networking.py': 6,
+            'networking.py': 6,
             'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
@@ -78,6 +78,6 @@ i2c_dict = {
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
 sensor_dict = {"sensor": [0,4095], "potentiometer": [0,180], "select": [0,1], "up": [0,1], "down": [0,1], "button": [0,1], "sw1": [0,1],  "sw2": [0,1],  "sw3": [0,1],  "sw4": [0,1]}
-hive_config = {"hive": True, "refreshrate": 0, "recipients": [], "sender_sensor_list": [], "mode": None}
+hive_config = {"hive": False, "refreshrate": 0, "recipients": [], "sender_sensor_list": [], "mode": None}
 
 

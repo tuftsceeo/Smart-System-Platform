@@ -138,12 +138,23 @@
             color: #333;
         }
         
+        th, td {
+            border: 1px solid black; /* Borders around individual cells */
+            padding: 8px; /* Add some padding for better readability */
+            text-align: left; /* Align text to the left */
+        }
+        th {
+            background-color: #f2f2f2; /* Optional: Add a light gray background for headers */
+        }
+        
         table {
-            border-collapse: separate; 
+            border: 1px solid black;
+            border-collapse: collapse; /* collapse */
             border-spacing: 15px;
             width: 100%;
         }
         th {
+            border: 1px solid black;
             text-align: left;
         }
         table td ul {
@@ -151,7 +162,8 @@
             margin: 0; 
         }
         table td li {
-            margin-bottom: 0.2em; 
+            margin-bottom: 0.2em;
+            margin-left: 1em;
         }
         
         .resources-grid {
@@ -239,7 +251,15 @@
             width: 100%; /* ensure the image scales down responsively */
             height: auto;
             margin-bottom: 10px;
-        } 
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
 
         footer {
             background-color: #333;
@@ -491,6 +511,7 @@
                     <td>
                         <ul>
                             <li>Colour LED (1-8)</li>
+                            <li>Sound (True/False)</li>
                         </ul>
                     </td>
                 </tr>
@@ -498,12 +519,15 @@
                     <td>Smart Light</td>
                     <td>
                         <ul>
-                            <li> *No inputs* </li>
+                            <li>Accelerometer or connected Grove Sensor: "sensor" (0 to 4095)</li>
+                            <li>Potentiometer: "potentiometer" (0-180)</li>
+                            <li>Buttons: "select", "up", "down" (True, False)</li>
                         </ul>
                     </td>
                     <td>
                         <ul>
-                            <li> *No outputs* </li>
+                            <li>LED Ring (colour & brightness)</li>
+                            <li>OLED Screen (True/False)</li>
                         </ul>
                     </td>
                 </tr>
@@ -511,12 +535,14 @@
                     <td>Smart Button</td>
                     <td>
                         <ul>
-                            <li> *No inputs* </li>
+                            <li>Button: "?" (True, False)</li>
                         </ul>
                     </td>
                     <td>
                         <ul>
-                            <li> *No outputs* </li>
+                            <li> LED (1-8) </li>
+                            <li> Sound (True/False) </li>
+                            
                         </ul>
                     </td>
                 </tr>
@@ -556,7 +582,120 @@
             <p><strong>Troubleshooting:</strong> If the command buttons remain greyed out, simply disconnect and reconnect to the device using the disconnect and connect buttons. If the REPL area only displays a blinking block instead of >>>, unplug your Module, replug and try again. If the issue persists, reset your Module using the reset button on the ESP32 SoC-based MBC.</p>
             <p>&nbsp;</p>
             <p><strong>Step 3: Develop!</strong></p>
-            <p>Happy coding!</p>
+            <p>Happy coding! Don't forget to comment out or remove the boot.py when testing your code. For your convenience and ease of use of the Networking Library, there is a, which reinitialises the Networking library, which then allows you to use all the networking commands included in the IDE. It is further possible to load the example.py file in the code stage area, by clicking the load example.py button. The example.py can also be found below, and offers code examples to get you started with the Networking Library:</p>
+            <div id="codeBlock">
+            <pre><code>
+import time
+# Network
+from ssp_networking import SSP_Networking
+
+# Initialise
+infmsg = True
+dbgmsg = False
+errmsg = True
+networking = SSP_Networking(infmsg, dbgmsg, errmsg)
+
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Running example.py")
+print()
+
+
+###Example code###
+
+recipient_mac = b'\xff\xff\xff\xff\xff\xff'  # This mac sends to all
+message = b'Boop'
+
+# Print device networking configuration
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Config: {networking.config}")
+print()
+
+
+#Command Types:
+# Ping, calculates the time until you receive a response from the peer and adds their infor to the networking address book
+networking.ping(recipient_mac)
+print()
+
+# Echo, sends a message that will be repeated back by the recipient
+networking.echo(recipient_mac, message)
+print()
+
+# There are a bunch of more command types, the complete list can be found in the config.py or ssp_networking.py
+
+
+#Message Type
+# Message, sends the specified message to the recipient, supported formats are bytearrays, bytes, int, float, string, bool, list and dict, if above 241 bytes, it will send in multiple packages: max 60928 bytes
+networking.send(recipient_mac, message)
+print()
+
+# Check if there are any messages in the message buffer, returns True or False
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: {networking.check_messages()}")
+print()
+
+# Get Last Received Message
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: {networking.return_message()}")  # Returns none, none, none if there are no messages
+print()
+
+
+#Other
+# Get the RSSI table
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: {networking.rssi()}")
+print()
+
+
+#IRQ
+# Set up an interrupt which runs a function as soon as possible after receiving a new message
+def receive():
+    for mac, message, rtime in networking.return_messages():  # You can directly iterate over the function
+        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Received {message} from {peer_mac} at {rtime}")
+
+networking.irq(receive)  # interrupt handler
+
+
+#Add-Ons
+from machine import Pin, SoftI2C
+#Screen
+import ssd1306
+
+i2c = SoftI2C(scl=Pin(7), sda=Pin(6))
+oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+oled.fill(0) #set blank screen
+oled.show() #write to screen
+oled.text("example.py", 0, 28, 1) #set text
+oled.show() #write to screen
+
+#set up sensors
+import sensors
+sens = sensors.SENSORS()
+point = sens.readpoint()
+sensor_data = {}
+sensor_data["sensor"] = point[0]
+sensor_data["potentiometer"] = point[1]
+print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Sensor data: {sensor_data}}")
+
+#set up servo
+import servo
+s = servo.Servo(Pin(2))
+angle = 180 #0 to 180
+s.write_angle(angle)
+
+#buttons
+from machine import Pin
+switch_down = Pin(8, Pin.IN)
+switch_select = Pin(9, Pin.IN)
+switch_up = Pin(10, Pin.IN)
+
+#You could set up a function that sends a message to all and is called when the select button on the dahal board is pressed
+lastPressed = 0
+
+def boop(pin):
+    global lastPressed
+    if (time.ticks_ms() - lastPressed > 1000): #prevents button to be called multiple times within 1 second
+        lastPressed = time.ticks_ms()
+        networking.send(recipient_mac, "Hewwo!")
+        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Example: Sent {message} to {peer_mac}")
+
+switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
+            </code></pre>
+            </div>
             <p><strong>Troubleshooting:</strong> File uploading for larger files is prone to break. Furthermore, viewing and uploading files while the module is executing code will likely break the module and page. Reloading of the webpage becomes necessary should this occur. </p>
             <p>&nbsp;</p>
             <p><strong>Step 4: AI Code Assistant</strong></p>
@@ -584,7 +723,7 @@
         </div>
     </section>
 
-    <hr>
+<!--    <hr>
     <section class="ideas-projects" id="ideas-projects">
         <h2>Ideas and Related Projects</h2>
         <p>Showcase ideas for projects and showcase existing project, using the system.</p>
@@ -622,7 +761,7 @@
                 <p>A curated list of trusted vendors and suppliers for educational resources.</p>
             </div>
         </div>
-    </section>
+    </section>-->
 
     <hr>
     <section id="additional-resources">
