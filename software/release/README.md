@@ -21,10 +21,8 @@ The repository has the following directory tree.
     ├── boot.py
     ├── config.py
     ├── files.py
-    ├── hm1.py
     ├── hm3.py
     ├── icons.py
-    ├── main.py
     ├── networking.py
     ├── sensors.py
     ├── servo.py

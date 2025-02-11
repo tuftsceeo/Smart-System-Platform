@@ -5,6 +5,7 @@ import espnow
 import gc
 import struct
 import json
+import machine
 
 
 class Networking:
@@ -161,7 +162,7 @@ class Networking:
             if number > 14 or number < 0:
                 number = 0
             self._ap.config(channel=number)
-            self.master.dprint(f"AP channel set to {number}")
+            self.master.iprint(f"AP channel set to {number}")
 
     class Aen:
         def __init__(self, master):
@@ -394,7 +395,7 @@ class Networking:
             self.master.dprint("aen.ack")
             self.custom_ack = func
  
-        def _send(self, peers_mac, messages, channel, ifidx):
+        def _send(self, peers_mac, messages, channel, ifidx, long_msg=False):
             self.master.dprint("aen._send")
             if isinstance(peers_mac, bytes):
                 peers_mac = [peers_mac]
@@ -416,18 +417,21 @@ class Networking:
                     self.master.dprint(f"Added {peer_mac} to espnow buffer with channel {channel} and ifidx {ifidx}")
                 except Exception as e:
                     self.master.eprint(f"Error adding {peer_mac} to espnow buffer: {e}")
-                    
-                for m in range(len(messages)):
-                    for i in range(3):
-                        i += i
-                        try:
-                            self._aen.send(peer_mac, messages[m])
-                            break
-                        except Exception as e:
-                            self.master.eprint(f"Error sending to {peer_mac}: {e}")
-                    self.master.dprint(f"Sent {messages[m]} to {peer_mac} ({self.peer_name(peer_mac)})")
-                    gc.collect()
-                    
+                for _ in range(1 if long_msg else 1):
+                    stamp = None
+                    for m in range(len(messages)):
+                        for i in range(3):
+                            i += i
+                            try:
+                                if stamp and long_msg and len(messages) > 3:
+                                    time.sleep(0.01-(time.ticks_ms()-stamp)/1000)
+                                self._aen.send(peer_mac, messages[m])
+                                stamp = time.ticks_ms()
+                                break
+                            except Exception as e:
+                                self.master.eprint(f"Error sending to {peer_mac}: {e}")
+                        self.master.dprint(f"Sent {messages[m]} to {peer_mac} ({self.peer_name(peer_mac)})")
+                        gc.collect()
                 try:
                     self._aen.del_peer(peer_mac)
                     self.master.dprint(f"Removed {peer_mac} from espnow buffer")
@@ -463,9 +467,9 @@ class Networking:
             elif isinstance(payload, bool):  # bool
                 payload_type, payload_bytes = b'\x02', (b'\x01' if payload else b'\x00')
             elif isinstance(payload, int):  # int
-                payload_type, payload_bytes = b'\x03', struct.pack('>i', payload)
+                payload_type, payload_bytes = b'\x03', str(payload).encode('utf-8')
             elif isinstance(payload, float):  # float
-                payload_type, payload_bytes = b'\x04', struct.pack('>f', payload)
+                payload_type, payload_bytes = b'\x04', str(payload).encode('utf-8')
             elif isinstance(payload, str):  # string
                 payload_type, payload_bytes = b'\x05', payload.encode('utf-8')
             elif isinstance(payload, dict) or isinstance(payload, list):  # json dict or list
@@ -482,6 +486,7 @@ class Networking:
             header[1] = msg_type
             header[2] = subtype
             header[3:7] = timestamp.to_bytes(4, 'big')
+            long_msg = False
             if len(payload_bytes) < 242:  # 250-9=241=max_length
                 header[7] = payload_type[0]
                 total_length = 1 + 1 + 1 + 4 + 1 + len(payload_bytes) + 1
@@ -511,11 +516,23 @@ class Networking:
                     self.master.dprint(
                         f"Message {chunk_index + 1}/{total_chunk_number}; length: {len(message)}; Free memory: {gc.mem_free()}")
                     gc.collect()
+                    long_msg = True
             gc.collect()
-            self._send(peer_mac, messages, channel, ifidx)
- 
+            self._send(peer_mac, messages, channel, ifidx, long_msg)
+            
+            
+        def __remove_long_message_from_buffer(self, timer, key):
+            self.master.dprint("aen.__remove_long_message_from_buffer")
+            if key in self._long_buffer:
+                del self._long_buffer[key]
+            if key in self._long_buffer_size:
+                self._long_buffer_size[key]
+            gc.collect()
+            
         def _receive(self):
             self.master.dprint("aen._receive")
+            
+
 
             def __process_message(self, sender_mac, message, receive_timestamp):
                 self.master.dprint("aen.__process_message")
@@ -546,20 +563,21 @@ class Networking:
 
                 if payload_type == b'\x07':
                     self.master.dprint("Long message received, processing...")
-                    part_n = int.from_bytes(payload[0:1], 'big')
-                    total_n = int.from_bytes(payload[1:2], 'big')
-                    payload_type = bytes(payload[2:3])
-                    payload = payload[3:]
+                    part_n = int.from_bytes(payload_bytes[0:1], 'big')
+                    total_n = int.from_bytes(payload_bytes[1:2], 'big')
+                    payload_type = bytes(payload_bytes[2:3])
 
                     # Create a key as a bytearray: (msg_type, subtype, timestamp, payload_type, total_n)
                     key = bytearray()
-                    key.extend(msg_type)
-                    key.extend(subtype)
+                    key.extend(message[1:2])
+                    key.extend(message[2:3])
                     key.extend(message[3:7])
                     key.extend(payload_type)
-                    key.append(total_n)
+                    key.extend(payload_bytes[1:2])
                     key = bytes(key)
                     self.master.dprint(f"Key: {key}")
+                    
+                    payload_bytes = payload_bytes[3:]
 
                     # Check if the key already exists in the long buffer
                     if key in self._long_buffer:
@@ -573,6 +591,8 @@ class Networking:
                             if any(value is None for value in self._long_buffer[key]):
                                 gc.collect()
                                 return
+                        else:
+                            return
                     else:
                         # Initialize the long message buffer for this key
                         payloads = [None] * total_n
@@ -585,14 +605,17 @@ class Networking:
                         while len(self._long_buffer) > 8 or sum(self._long_buffer_size.values()) > 75000:
                             self.master.dprint(
                                 f"Maximum buffer size reached: {len(self._long_buffer)}, {sum(self._long_buffer_size.values())} bytes; Reducing!")
-                            self._long_buffer.popitem(last=False)
-                            self._long_buffer_size.popitem(last=False)
+                            oldest_key = next(iter(self._long_buffer))
+                            del self._long_buffer[oldest_key]
+                            del self._long_buffer_size[oldest_key]
                         gc.collect()
+                        timer = machine.Timer(0)
+                        timer.init(period=10000, mode=machine.Timer.ONE_SHOT, callback=lambda t: self.__remove_long_message_from_buffer(t, key))
                         return
 
                     # If all parts have been received, reconstruct the message
                     if not any(value is None for value in self._long_buffer[key]):
-                        payload = bytearray()
+                        payload_bytes = bytearray()
                         for i in range(0, total_n):
                             payload_bytes.extend(self._long_buffer[key][i])
                         del self._long_buffer[key]
@@ -602,6 +625,8 @@ class Networking:
                         self.master.dprint("Long Message: Safeguard triggered, code should not have gotten here")
                         gc.collect()
                         return
+                
+                payload_size = len(payload_bytes)
                     
                 self.master.dprint("aen.__decode_payload")
                 if payload_type == b'\x00':  # None
@@ -611,9 +636,9 @@ class Networking:
                 elif payload_type == b'\x02':  # bool
                     payload = payload_bytes[0:1] == b'\x01'
                 elif payload_type == b'\x03':  # int
-                    payload = struct.unpack('>i', payload_bytes)[0]
+                    payload = int(payload_bytes.decode('utf-8'))
                 elif payload_type == b'\x04':  # float
-                    payload = struct.unpack('>f', payload_bytes)[0]
+                    payload = float(payload_bytes.decode('utf-8'))
                 elif payload_type == b'\x05':  # string
                     payload = payload_bytes.decode('utf-8')
                 elif payload_type == b'\x06':  # json dict or list
@@ -626,17 +651,17 @@ class Networking:
                 # Handle the message based on type
                 if msg_type == 0x01:  # Command Message
                     msg_key = "cmd"
-                    __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
+                    __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, payload_size, msg_key)
                 elif msg_type == 0x02:  # Informational Message
                     msg_key = "inf"
-                    __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
+                    __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, payload_size, msg_key)
                 elif msg_type == 0x03:  # Acknowledgement Message
                     msg_key = "ack"
-                    __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key)
+                    __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, payload_size, msg_key)
                 else:
                     self.master.iprint(f"Unknown message type from {sender_mac} ({self.peer_name(sender_mac)}): {message}")
 
-            def __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
+            def __handle_cmd(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, payload_size, msg_key):
                 self.master.dprint(f"aen.__handle_cmd")
                 if (msg_subkey := "Ping") and subtype == 0x01 or subtype == 0x10:  # Ping
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)})")
@@ -663,7 +688,7 @@ class Networking:
                         self.custom_cmd([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
                     self.master.iprint(f"Unknown command subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
-            def __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
+            def __handle_inf(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, payload_size, msg_key):
                 self.master.dprint("aen.__handle_inf")
                 if (msg_subkey := "RSSI/Status/Config-Boop") and subtype == 0x00 or subtype == 0x20:  # RSSI/Status/Config-Boop
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
@@ -684,7 +709,7 @@ class Networking:
                 elif (msg_subkey := "Message") and subtype == 0x02 or subtype == 0x22:  # Message / Other
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
                     self._received_messages.append((sender_mac, payload, receive_timestamp))
-                    self._received_messages_size.append(len(payload))
+                    self._received_messages_size.append(payload_size)
                     while len(self._received_messages) > 2048 or sum(self._received_messages_size) > 20000:
                         self.master.dprint(f"Maximum buffer size reached: {len(self._received_messages)}, {sum(self._received_messages_size)} bytes; Reducing!")
                         self._received_messages.pop(0)
@@ -698,13 +723,14 @@ class Networking:
                         self.custom_inf([sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key])
                     self.master.iprint(f"Unknown info subtype from {sender_mac} ({self.peer_name(sender_mac)}): {subtype}")
 
-            def __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key):
+            def __handle_ack(self, sender_mac, subtype, send_timestamp, receive_timestamp, payload, payload_size, msg_key):
                 self.master.dprint("aen.__handle_ack")
                 if (msg_subkey := "Pong") and subtype == 0x10:  # Pong
                     self.add_peer(sender_mac, payload[2], payload[0], payload[1])
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp - payload[3]}")
                 elif (msg_subkey := "Echo") and subtype == 0x15:  # Echo
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {payload}")
+                    self.last_echo = payload
                 elif (msg_subkey := "Success") and subtype == 0x11:  # Success
                     # payload should return a list with a cmd type and payload
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")
@@ -741,5 +767,7 @@ class Networking:
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
 # | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp (ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
+
+
 
 

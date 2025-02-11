@@ -18,6 +18,7 @@ The repository has the following directory tree.
     ├── README.rmarkdown
     ├── community.html
     ├── images
+    ├── index copy.html
     ├── index.html
     ├── mission.html
     ├── privacy.html
