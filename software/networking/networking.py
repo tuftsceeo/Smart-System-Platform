@@ -417,21 +417,20 @@ class Networking:
                     self.master.dprint(f"Added {peer_mac} to espnow buffer with channel {channel} and ifidx {ifidx}")
                 except Exception as e:
                     self.master.eprint(f"Error adding {peer_mac} to espnow buffer: {e}")
-                for _ in range(1 if long_msg else 1):
-                    stamp = None
-                    for m in range(len(messages)):
-                        for i in range(3):
-                            i += i
-                            try:
-                                if stamp and long_msg and len(messages) > 3:
-                                    time.sleep(0.01-(time.ticks_ms()-stamp)/1000)
-                                self._aen.send(peer_mac, messages[m])
-                                stamp = time.ticks_ms()
+                for m in range(len(messages)):
+                    i = 0
+                    while i in range(3):
+                        i += i
+                        ack = False
+                        try:
+                            ack = self._aen.send(peer_mac, messages[m], True)
+                            self.master.dprint(f"Receipt confirm: {ack}")
+                            if ack:
                                 break
-                            except Exception as e:
-                                self.master.eprint(f"Error sending to {peer_mac}: {e}")
-                        self.master.dprint(f"Sent {messages[m]} to {peer_mac} ({self.peer_name(peer_mac)})")
-                        gc.collect()
+                        except Exception as e:
+                            self.master.eprint(f"Error sending to {peer_mac}: {e}")
+                    self.master.dprint(f"Sent {messages[m]} to {peer_mac} ({self.peer_name(peer_mac)}) with {ack}")
+                    gc.collect()
                 try:
                     self._aen.del_peer(peer_mac)
                     self.master.dprint(f"Removed {peer_mac} from espnow buffer")
