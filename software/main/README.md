@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/software/main/archive/README.qmd
+## Location: /work/Smart-System-Platform/Smart-System-Platform/software/main/README.qmd
 
 ### Description
 
@@ -16,10 +16,11 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
-    ├── am1.py
     ├── boot.py
     ├── hm1.py
-    └── main.py
+    ├── main.py
+    ├── sl1.py
+    └── sm3.py
 
 A short description of the directories can be found below.
 

@@ -30,14 +30,9 @@ The repository has the following directory tree.
     │   └── filedownload.py
     ├── p2p
     │   └── main.py
-    ├── ping
-    │   ├── echo.py
-    │   └── shout.py
-    ├── ping_rssi_loss_test
-    │   ├── echoer.py
-    │   └── sender.py
-    └── rssi_testing
-        └── rssi.py
+    └── ping
+        ├── echo.py
+        └── shout.py
 
 A short description of the directories can be found below.
 
