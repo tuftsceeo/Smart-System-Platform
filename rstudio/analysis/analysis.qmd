@@ -1,0 +1,638 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyverse)
+library(tidyr)
+library(mgcv)
+
+custom_colours <- c("#F8766D","#00BFC4")
+
+```
+
+```{r}
+
+case <- "ESP32C3"
+
+sender_folder <- paste0("data/", case, "/sender/")
+echo_folder <- paste0("data/", case, "/echoer/")
+
+sender_files <- list.files(sender_folder, full.names = TRUE, pattern = "\\.csv$")
+
+sender_data <- sender_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Range = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI2 = RSSI) %>% 
+    na.omit()
+  )
+
+echo_files <- list.files(echo_folder, full.names = TRUE, pattern = "\\.csv$")
+
+echo_data <- echo_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Range = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI1 = RSSI) %>%
+    select(-Ping) %>% 
+    na.omit() 
+  )
+
+combined_data <- full_join(sender_data, echo_data, by = c("Packet","Range")) %>%
+  mutate(Time1 = send_time_sender - recv_time_echoer,
+         Time2 = send_time_echoer - recv_time_sender,
+         Range = as.numeric(Range) / 100
+        ) %>%
+  select(-recv_time_echoer, -send_time_sender,-recv_time_sender, -send_time_echoer) %>%
+  select(-Time1, -Time2)
+
+
+boxplot_data <- combined_data %>%
+  pivot_longer(cols = c(RSSI1, RSSI2), names_to = "RSSI_Type", values_to = "RSSI_Value") %>%
+  drop_na(RSSI_Value) %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+p <- ggplot(boxplot_data, aes(x = factor(Range), y = RSSI_Value, fill = RSSI_Type)) + 
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplots of RSSI Values per Range using two ESP32C3s",
+       x = "Range (meters)",
+       y = "RSSI Value (asu [0 - -100])",
+       fill = "Device") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim (-100,0)
+
+ggsave(filename = paste0("plots/", case, "_rssi_box.png"), plot = p, width = 8, height = 6, dpi = 300)
+
+
+avg_rssi_data <- boxplot_data %>%
+  group_by(Range, RSSI_Type) %>%
+  summarize(Average_RSSI = mean(RSSI_Value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+
+avg_rssi_data <- avg_rssi_data %>% filter(!is.na(Range) & Range > 0)
+
+rssi1_data <- filter(avg_rssi_data, RSSI_Type == "Echoer")
+rssi2_data <- filter(avg_rssi_data, RSSI_Type == "Sender")
+
+log_fit_rssi1 <- nls(Average_RSSI ~ a + b * log(Range), 
+                      data = rssi1_data, 
+                      start = list(a = max(rssi1_data$Average_RSSI, na.rm = TRUE), b = -10))
+
+log_fit_rssi2 <- nls(Average_RSSI ~ a + b * log(Range), 
+                      data = rssi2_data, 
+                      start = list(a = max(rssi2_data$Average_RSSI, na.rm = TRUE), b = -10))
+
+summary(log_fit_rssi1)
+summary(log_fit_rssi2)
+
+coef_rssi1 <- coef(log_fit_rssi1)
+coef_rssi2 <- coef(log_fit_rssi2)
+
+eq_rssi1 <- paste0("Echoer: RSSI = ", round(coef_rssi1["a"], 2), " + ", round(coef_rssi1["b"], 2), " * log(Range)")
+eq_rssi2 <- paste0("Sender: RSSI = ", round(coef_rssi2["a"], 2), " + ", round(coef_rssi2["b"], 2), " * log(Range)")
+
+smooth_range <- data.frame(Range = seq(0.1, 100, by = 0.5))
+
+smooth_rssi1 <- smooth_range
+smooth_rssi1$RSSI_Type <- "Echoer"
+smooth_rssi1$Fitted_RSSI <- predict(log_fit_rssi1, newdata = smooth_range)
+
+smooth_rssi2 <- smooth_range
+smooth_rssi2$RSSI_Type <- "Sender"
+smooth_rssi2$Fitted_RSSI <- predict(log_fit_rssi2, newdata = smooth_range)
+
+smooth_fitted_data <- bind_rows(smooth_rssi1, smooth_rssi2)
+
+ggplot(avg_rssi_data, aes(x = Range, y = Average_RSSI, color = RSSI_Type)) +
+  geom_point(size = 3) +  
+  geom_line(data = smooth_fitted_data, aes(x = Range, y = Fitted_RSSI, color = RSSI_Type), linetype = "dashed") +  
+  theme_minimal() +
+  labs(title = "Average RSSI Values per Range with Logarithmic Fit using two ESP32C3s",
+       x = "Range (meters)",
+       y = "Average RSSI (asu [0 - -100])",
+       color = "Device") +
+  annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI), label = eq_rssi1, hjust = 0, size = 5, color = custom_colours[1]) +
+  annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI) - 5, label = eq_rssi2, hjust = 0, size = 5, color = custom_colours[2]) +
+  ylim (-100,0)
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_rssi.png"), width = 8, height = 6, dpi = 300)
+
+
+
+ping_data <- combined_data %>%
+  select(Range, Ping) %>%  # Keep only Range and Ping
+  drop_na(Ping)  # Remove NA values
+
+p_ping <- ggplot(ping_data, aes(x = factor(Range), y = Ping)) + 
+  geom_boxplot(fill = custom_colours[2]) +  # Single color since only one device
+  theme_minimal() +
+  labs(title = "Boxplots of Ping Time per Range using two ESP32C3s",
+       x = "Range (meters)",
+       y = "Ping Time (ms)") +
+  ylim (0,40)
+
+# Save the boxplot
+ggsave(filename = paste0("plots/", case, "_ping_box.png"), plot = p_ping, width = 8, height = 6, dpi = 300)
+
+avg_ping_data <- ping_data %>%
+  group_by(Range) %>%
+  summarize(Average_Ping = mean(Ping, na.rm = TRUE), .groups = "drop")
+
+p_avg_ping <- ggplot(avg_ping_data, aes(x = Range, y = Average_Ping)) +
+  geom_point(size = 3, color = custom_colours[2]) +  # Scatter plot of actual data
+  #geom_line(data = smooth_ping, aes(x = Range, y = Fitted_Ping), color = "#00BFC4", linetype = "dashed") +  # Smooth log fit
+  theme_minimal() +
+  geom_smooth(method = "lm", se = FALSE, color = custom_colours[2], linetype = "dashed") +  # Custom-colored smooth fit
+  labs(title = "Average Ping Time per Range using two ESP32C3s",
+       x = "Range (meters)",
+       y = "Average Ping Time (ms)") +
+  ylim (0,40)
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_ping.png"), plot = p_avg_ping, width = 8, height = 6, dpi = 300)
+
+
+```
+
+```{r}
+case <- "ESP32C6"
+
+sender_folder <- paste0("data/", case, "/sender/")
+echo_folder <- paste0("data/", case, "/echoer/")
+
+sender_files <- list.files(sender_folder, full.names = TRUE, pattern = "\\.csv$")
+
+sender_data <- sender_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Range = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI2 = RSSI) %>% 
+    na.omit()
+  )
+
+echo_files <- list.files(echo_folder, full.names = TRUE, pattern = "\\.csv$")
+
+echo_data <- echo_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Range = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI1 = RSSI) %>%
+    select(-Ping) %>% 
+    na.omit() 
+  )
+
+combined_data <- full_join(sender_data, echo_data, by = c("Packet","Range")) %>%
+  mutate(Time1 = send_time_sender - recv_time_echoer,
+         Time2 = send_time_echoer - recv_time_sender,
+         Range = as.numeric(Range) / 100
+        ) %>%
+  select(-recv_time_echoer, -send_time_sender,-recv_time_sender, -send_time_echoer) %>%
+  select(-Time1, -Time2)
+
+
+boxplot_data <- combined_data %>%
+  pivot_longer(cols = c(RSSI1, RSSI2), names_to = "RSSI_Type", values_to = "RSSI_Value") %>%
+  drop_na(RSSI_Value) %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+p <- ggplot(boxplot_data, aes(x = factor(Range), y = RSSI_Value, fill = RSSI_Type)) + 
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplots of RSSI Values per Range using two ESP32C6s",
+       x = "Range (meters)",
+       y = "RSSI Value (asu [0 - -100])",
+       fill = "Device") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim (-100,0)
+
+ggsave(filename = paste0("plots/", case, "_rssi_box.png"), plot = p, width = 8, height = 6, dpi = 300)
+
+
+avg_rssi_data <- boxplot_data %>%
+  group_by(Range, RSSI_Type) %>%
+  summarize(Average_RSSI = mean(RSSI_Value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+
+avg_rssi_data <- avg_rssi_data %>% filter(!is.na(Range) & Range > 0)
+
+rssi1_data <- filter(avg_rssi_data, RSSI_Type == "Echoer")
+rssi2_data <- filter(avg_rssi_data, RSSI_Type == "Sender")
+
+log_fit_rssi1 <- nls(Average_RSSI ~ a + b * log(Range), 
+                      data = rssi1_data, 
+                      start = list(a = max(rssi1_data$Average_RSSI, na.rm = TRUE), b = -10))
+
+log_fit_rssi2 <- nls(Average_RSSI ~ a + b * log(Range), 
+                      data = rssi2_data, 
+                      start = list(a = max(rssi2_data$Average_RSSI, na.rm = TRUE), b = -10))
+
+summary(log_fit_rssi1)
+summary(log_fit_rssi2)
+
+coef_rssi1 <- coef(log_fit_rssi1)
+coef_rssi2 <- coef(log_fit_rssi2)
+
+eq_rssi1 <- paste0("Echoer: RSSI = ", round(coef_rssi1["a"], 2), " + ", round(coef_rssi1["b"], 2), " * log(Range)")
+eq_rssi2 <- paste0("Sender: RSSI = ", round(coef_rssi2["a"], 2), " + ", round(coef_rssi2["b"], 2), " * log(Range)")
+
+smooth_range <- data.frame(Range = seq(0.1, 100, by = 0.5))
+
+smooth_rssi1 <- smooth_range
+smooth_rssi1$RSSI_Type <- "Echoer"
+smooth_rssi1$Fitted_RSSI <- predict(log_fit_rssi1, newdata = smooth_range)
+
+smooth_rssi2 <- smooth_range
+smooth_rssi2$RSSI_Type <- "Sender"
+smooth_rssi2$Fitted_RSSI <- predict(log_fit_rssi2, newdata = smooth_range)
+
+smooth_fitted_data <- bind_rows(smooth_rssi1, smooth_rssi2)
+
+ggplot(avg_rssi_data, aes(x = Range, y = Average_RSSI, color = RSSI_Type)) +
+  geom_point(size = 3) +  
+  geom_line(data = smooth_fitted_data, aes(x = Range, y = Fitted_RSSI, color = RSSI_Type), linetype = "dashed") +  
+  theme_minimal() +
+  labs(title = "Average RSSI Values per Range with Logarithmic Fit using two ESP32C6s",
+       x = "Range (meters)",
+       y = "Average RSSI (asu [0 - -100])",
+       color = "Device") +
+  annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI), label = eq_rssi1, hjust = 0, size = 5, color = custom_colours[1]) +
+  annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI) - 5, label = eq_rssi2, hjust = 0, size = 5, color = custom_colours[2]) +
+  ylim (-100,0)
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_rssi.png"), width = 8, height = 6, dpi = 300)
+
+
+
+ping_data <- combined_data %>%
+  select(Range, Ping) %>%  # Keep only Range and Ping
+  drop_na(Ping)  # Remove NA values
+
+p_ping <- ggplot(ping_data, aes(x = factor(Range), y = Ping)) + 
+  geom_boxplot(fill = custom_colours[2]) +  # Single color since only one device
+  theme_minimal() +
+  labs(title = "Boxplots of Ping Time per Range using two ESP32C6s",
+       x = "Range (meters)",
+       y = "Ping Time (ms)") +
+  ylim (0,40)
+
+# Save the boxplot
+ggsave(filename = paste0("plots/", case, "_ping_box.png"), plot = p_ping, width = 8, height = 6, dpi = 300)
+
+avg_ping_data <- ping_data %>%
+  group_by(Range) %>%
+  summarize(Average_Ping = mean(Ping, na.rm = TRUE), .groups = "drop")
+
+p_avg_ping <- ggplot(avg_ping_data, aes(x = Range, y = Average_Ping)) +
+  geom_point(size = 3, color = custom_colours[2]) +  # Scatter plot of actual data
+  #geom_line(data = smooth_ping, aes(x = Range, y = Fitted_Ping), color = "#00BFC4", linetype = "dashed") +  # Smooth log fit
+  theme_minimal() +
+  geom_smooth(method = "lm", se = FALSE, color = custom_colours[2], linetype = "dashed") +  # Custom-colored smooth fit
+  labs(title = "Average Ping Time per Range using two ESP32C6s",
+       x = "Range (meters)",
+       y = "Average Ping Time (ms)") +
+  ylim (0,40)
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_ping.png"), plot = p_avg_ping, width = 8, height = 6, dpi = 300)
+
+
+```
+
+```{r}
+case <- "ESP32C36"
+
+sender_folder <- paste0("data/", case, "/sender/")
+echo_folder <- paste0("data/", case, "/echoer/")
+
+sender_files <- list.files(sender_folder, full.names = TRUE, pattern = "\\.csv$")
+
+sender_data <- sender_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Range = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI2 = RSSI) %>% 
+    na.omit()
+  )
+
+echo_files <- list.files(echo_folder, full.names = TRUE, pattern = "\\.csv$")
+
+echo_data <- echo_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Range = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI1 = RSSI) %>%
+    select(-Ping) %>% 
+    na.omit() 
+  )
+
+combined_data <- full_join(sender_data, echo_data, by = c("Packet","Range")) %>%
+  mutate(Time1 = send_time_sender - recv_time_echoer,
+         Time2 = send_time_echoer - recv_time_sender,
+         Range = as.numeric(Range) / 100
+        ) %>%
+  select(-recv_time_echoer, -send_time_sender,-recv_time_sender, -send_time_echoer) %>%
+  select(-Time1, -Time2)
+
+
+boxplot_data <- combined_data %>%
+  pivot_longer(cols = c(RSSI1, RSSI2), names_to = "RSSI_Type", values_to = "RSSI_Value") %>%
+  drop_na(RSSI_Value) %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+p <- ggplot(boxplot_data, aes(x = factor(Range), y = RSSI_Value, fill = RSSI_Type)) + 
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplots of RSSI Values per Range using one ESP32C3 and one ESP32C6",
+       x = "Range (meters)",
+       y = "RSSI Value (asu [0 - -100])",
+       fill = "Device") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim (-100,0)
+
+ggsave(filename = paste0("plots/", case, "_rssi_box.png"), plot = p, width = 8, height = 6, dpi = 300)
+
+
+avg_rssi_data <- boxplot_data %>%
+  group_by(Range, RSSI_Type) %>%
+  summarize(Average_RSSI = mean(RSSI_Value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+
+avg_rssi_data <- avg_rssi_data %>% filter(!is.na(Range) & Range > 0)
+
+rssi1_data <- filter(avg_rssi_data, RSSI_Type == "Echoer")
+rssi2_data <- filter(avg_rssi_data, RSSI_Type == "Sender")
+
+log_fit_rssi1 <- nls(Average_RSSI ~ a + b * log(Range), 
+                      data = rssi1_data, 
+                      start = list(a = max(rssi1_data$Average_RSSI, na.rm = TRUE), b = -10))
+
+log_fit_rssi2 <- nls(Average_RSSI ~ a + b * log(Range), 
+                      data = rssi2_data, 
+                      start = list(a = max(rssi2_data$Average_RSSI, na.rm = TRUE), b = -10))
+
+summary(log_fit_rssi1)
+summary(log_fit_rssi2)
+
+coef_rssi1 <- coef(log_fit_rssi1)
+coef_rssi2 <- coef(log_fit_rssi2)
+
+eq_rssi1 <- paste0("Echoer: RSSI = ", round(coef_rssi1["a"], 2), " + ", round(coef_rssi1["b"], 2), " * log(Range)")
+eq_rssi2 <- paste0("Sender: RSSI = ", round(coef_rssi2["a"], 2), " + ", round(coef_rssi2["b"], 2), " * log(Range)")
+
+smooth_range <- data.frame(Range = seq(0.1, 100, by = 0.5))
+
+smooth_rssi1 <- smooth_range
+smooth_rssi1$RSSI_Type <- "Echoer"
+smooth_rssi1$Fitted_RSSI <- predict(log_fit_rssi1, newdata = smooth_range)
+
+smooth_rssi2 <- smooth_range
+smooth_rssi2$RSSI_Type <- "Sender"
+smooth_rssi2$Fitted_RSSI <- predict(log_fit_rssi2, newdata = smooth_range)
+
+smooth_fitted_data <- bind_rows(smooth_rssi1, smooth_rssi2)
+
+ggplot(avg_rssi_data, aes(x = Range, y = Average_RSSI, color = RSSI_Type)) +
+  geom_point(size = 3) +  
+  geom_line(data = smooth_fitted_data, aes(x = Range, y = Fitted_RSSI, color = RSSI_Type), linetype = "dashed") +  
+  theme_minimal() +
+  labs(title = "Average RSSI Values per Range with Logarithmic Fit using one ESP32C3 and C6",#one ESP32
+       x = "Range (meters)",
+       y = "Average RSSI (asu [0 - -100])",
+       color = "Device") +
+  annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI), label = eq_rssi1, hjust = 0, size = 5, color = custom_colours[1]) +
+  annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI) - 5, label = eq_rssi2, hjust = 0, size = 5, color = custom_colours[2]) +
+  ylim (-100,0)
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_rssi.png"), width = 8, height = 6, dpi = 300)
+
+
+
+ping_data <- combined_data %>%
+  select(Range, Ping) %>%  # Keep only Range and Ping
+  drop_na(Ping)  # Remove NA values
+
+p_ping <- ggplot(ping_data, aes(x = factor(Range), y = Ping)) + 
+  geom_boxplot(fill = custom_colours[2]) +  # Single color since only one device
+  theme_minimal() +
+  labs(title = "Boxplots of Ping Time per Range using one ESP32C3 and one ESP32C6",
+       x = "Range (meters)",
+       y = "Ping Time (ms)") +
+  ylim (0,50)
+
+# Save the boxplot
+ggsave(filename = paste0("plots/", case, "_ping_box.png"), plot = p_ping, width = 8, height = 6, dpi = 300)
+
+avg_ping_data <- ping_data %>%
+  group_by(Range) %>%
+  summarize(Average_Ping = mean(Ping, na.rm = TRUE), .groups = "drop")
+
+p_avg_ping <- ggplot(avg_ping_data, aes(x = Range, y = Average_Ping)) +
+  geom_point(size = 3, color = custom_colours[2]) +  # Scatter plot of actual data
+  #geom_line(data = smooth_ping, aes(x = Range, y = Fitted_Ping), color = "#00BFC4", linetype = "dashed") +  # Smooth log fit
+  theme_minimal() +
+  geom_smooth(method = "lm", se = FALSE, color = custom_colours[2], linetype = "dashed") +  # Custom-colored smooth fit
+  labs(title = "Average Ping Time per Range using one ESP32C3 and one ESP32C6",
+       x = "Range (meters)",
+       y = "Average Ping Time (ms)") +
+  ylim (0,40)
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_ping.png"), plot = p_avg_ping, width = 8, height = 6, dpi = 300)
+
+
+```
+
+
+
+```{r}
+
+case <- "angle"
+
+sender_folder <- paste0("data/", case, "/sender/")
+echo_folder <- paste0("data/", case, "/echoer/")
+
+sender_files <- list.files(sender_folder, full.names = TRUE, pattern = "\\.csv$")
+
+sender_data <- sender_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Angle = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI2 = RSSI) %>% 
+    na.omit()
+  )
+
+echo_files <- list.files(echo_folder, full.names = TRUE, pattern = "\\.csv$")
+
+echo_data <- echo_files %>%
+  map_df(~ read_csv(.x) %>%
+    mutate(
+      Packet = row_number(),
+      Angle = tools::file_path_sans_ext(basename(.x))
+    ) %>%
+    rename(RSSI1 = RSSI) %>%
+    select(-Ping) %>% 
+    na.omit() 
+  )
+
+combined_data <- full_join(sender_data, echo_data, by = c("Packet","Angle")) %>%
+  mutate(Time1 = send_time_sender - recv_time_echoer,
+         Time2 = send_time_echoer - recv_time_sender,
+         Angle = as.numeric(Angle)
+        ) %>%
+  select(-recv_time_echoer, -send_time_sender,-recv_time_sender, -send_time_echoer) %>%
+  select(-Time1, -Time2)
+
+
+boxplot_data <- combined_data %>%
+  pivot_longer(cols = c(RSSI1, RSSI2), names_to = "RSSI_Type", values_to = "RSSI_Value") %>%
+  drop_na(RSSI_Value) %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+p <- ggplot(boxplot_data, aes(x = factor(Angle), y = RSSI_Value, fill = RSSI_Type)) + 
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplots of RSSI Values per Angle using two ESP32C3s",
+       x = "Angle (degrees)",
+       y = "RSSI Value (asu [0 - -100])",
+       fill = "Device") +
+  ylim (-25,-50)
+
+ggsave(filename = paste0("plots/", case, "_rssi_box.png"), plot = p, width = 8, height = 6, dpi = 300)
+
+
+avg_rssi_data <- boxplot_data %>%
+  group_by(Angle, RSSI_Type) %>%
+  summarize(Average_RSSI = mean(RSSI_Value, na.rm = TRUE), .groups = "drop") %>%
+  mutate(RSSI_Type = recode(RSSI_Type, 
+                            "RSSI1" = "Echoer", 
+                            "RSSI2" = "Sender"))
+
+
+avg_rssi_data <- avg_rssi_data %>% filter(!is.na(Angle))
+
+# rssi1_data <- filter(avg_rssi_data, RSSI_Type == "Echoer")
+# rssi2_data <- filter(avg_rssi_data, RSSI_Type == "Sender")
+# 
+# log_fit_rssi1 <- nls(Average_RSSI ~ a + b * log(Angle), 
+#                       data = rssi1_data, 
+#                       start = list(a = max(rssi1_data$Average_RSSI, na.rm = TRUE), b = -10))
+# 
+# log_fit_rssi2 <- nls(Average_RSSI ~ a + b * log(Angle), 
+#                       data = rssi2_data, 
+#                       start = list(a = max(rssi2_data$Average_RSSI, na.rm = TRUE), b = -10))
+# 
+# summary(log_fit_rssi1)
+# summary(log_fit_rssi2)
+# 
+# coef_rssi1 <- coef(log_fit_rssi1)
+# coef_rssi2 <- coef(log_fit_rssi2)
+# 
+# eq_rssi1 <- paste0("Echoer: RSSI = ", round(coef_rssi1["a"], 2), " + ", round(coef_rssi1["b"], 2), " * log(Angle)")
+# eq_rssi2 <- paste0("Sender: RSSI = ", round(coef_rssi2["a"], 2), " + ", round(coef_rssi2["b"], 2), " * log(Angle)")
+# 
+# smooth_Angle <- data.frame(Angle = seq(0.1, 100, by = 0.5))
+# 
+# smooth_rssi1 <- smooth_Angle
+# smooth_rssi1$RSSI_Type <- "Echoer"
+# smooth_rssi1$Fitted_RSSI <- predict(log_fit_rssi1, newdata = smooth_Angle)
+# 
+# smooth_rssi2 <- smooth_Angle
+# smooth_rssi2$RSSI_Type <- "Sender"
+# smooth_rssi2$Fitted_RSSI <- predict(log_fit_rssi2, newdata = smooth_Angle)
+# 
+# smooth_fitted_data <- bind_rows(smooth_rssi1, smooth_rssi2)
+
+ggplot(avg_rssi_data, aes(x = Angle, y = Average_RSSI, color = RSSI_Type)) +
+  geom_point(size = 3) +  
+  #geom_line(data = smooth_fitted_data, aes(x = Angle, y = Fitted_RSSI, color = RSSI_Type), linetype = "dashed") +  
+  theme_minimal() +
+  labs(title = "Average RSSI Values per Angle using two ESP32C3s",
+       x = "Angle (degrees)",
+       y = "Average RSSI (asu [0 - -100])",
+       color = "Device") +
+  ylim (-25,-50) +
+  scale_x_continuous(breaks = c(0, 45, 90, 135, 180))
+  #annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI), label = eq_rssi1, hjust = 0, size = 5, color = custom_colours[1]) +
+  #annotate("text", x = 20, y = max(avg_rssi_data$Average_RSSI) - 5, label = eq_rssi2, hjust = 0, size = 5, color = custom_colours[2])
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_rssi.png"), width = 8, height = 6, dpi = 300)
+
+
+
+ping_data <- combined_data %>%
+  select(Angle, Ping) %>%  # Keep only Angle and Ping
+  drop_na(Ping)  # Remove NA values
+
+p_ping <- ggplot(ping_data, aes(x = factor(Angle), y = Ping)) + 
+  geom_boxplot(fill = custom_colours[2]) +  # Single color since only one device
+  theme_minimal() +
+  labs(title = "Boxplots of Ping Time per Angle using two ESP32C3s",
+       x = "Angle (degrees)",
+       y = "Ping Time (ms)") +
+  ylim (0,40)
+
+# Save the boxplot
+ggsave(filename = paste0("plots/", case, "_ping_box.png"), plot = p_ping, width = 8, height = 6, dpi = 300)
+
+avg_ping_data <- ping_data %>%
+  group_by(Angle) %>%
+  summarize(Average_Ping = mean(Ping, na.rm = TRUE), .groups = "drop")
+
+p_avg_ping <- ggplot(avg_ping_data, aes(x = Angle, y = Average_Ping)) +
+  geom_point(size = 3, color = custom_colours[2]) +  # Scatter plot of actual data
+  #geom_line(data = smooth_ping, aes(x = Angle, y = Fitted_Ping), color = "#00BFC4", linetype = "dashed") +  # Smooth log fit
+  theme_minimal() +
+  ylim (0,40) +
+  scale_x_continuous(breaks = c(0, 45, 90, 135, 180)) +
+  #geom_smooth(method = "lm", se = FALSE, color = custom_colours[2], linetype = "dashed") +  # Custom-colored smooth fit
+  labs(title = "Average Ping Time per Angle using two ESP32C3s",
+       x = "Angle (degrees)",
+       y = "Average Ping Time (ms)")
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_avg_ping.png"), plot = p_avg_ping, width = 8, height = 6, dpi = 300)
+
+
+```
+
+
+
+
+
+
