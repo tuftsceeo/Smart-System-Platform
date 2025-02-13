@@ -17,8 +17,15 @@ The repository has the following directory tree.
     ├── README.qmd
     ├── README.rmarkdown
     ├── analysis
-    │   └── data
-    └── exampleREADME.qmd
+    │   ├── analysis.qmd
+    │   ├── data
+    │   └── plots
+    ├── exampleREADME.qmd
+    └── survey
+        ├── Smart_System_Platform_Feedback.docx
+        ├── Smart_System_Platform_Feedback.pdf
+        ├── Smart_System_Platform_Feedback.qsf
+        └── data
 
 A short description of the directories can be found below.
 

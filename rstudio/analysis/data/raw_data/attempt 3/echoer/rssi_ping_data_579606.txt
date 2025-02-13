@@ -1,2 +1,0 @@
-Packet Loss: 0 %
-RSSI: {'mean': -71.49, 'max': -71, 'min': -72, 'std_dev': 0.5, 'median': -71.0}
