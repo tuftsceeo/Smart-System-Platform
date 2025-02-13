@@ -19,6 +19,8 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
+    ├── battery_test
+    │   └── battery test.py
     ├── boop-o-meters
     │   ├── boop-o-meter 100.py
     │   ├── boop-o-meter 200.py
@@ -30,9 +32,11 @@ The repository has the following directory tree.
     │   └── filedownload.py
     ├── p2p
     │   └── main.py
-    └── ping
-        ├── echo.py
-        └── shout.py
+    ├── ping
+    │   ├── echo.py
+    │   └── shout.py
+    └── rssi_testing
+        └── rssi.py
 
 A short description of the directories can be found below.
 
