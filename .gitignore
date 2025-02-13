@@ -12,3 +12,4 @@ software/networking/.venv
 software/release/.idea
 software/release/__pycache__
 
+.DS_Store
