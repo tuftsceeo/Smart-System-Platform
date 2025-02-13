@@ -41,23 +41,23 @@ An OLED screen, a button and a potentiometer are located on the front face. Ther
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/top.png}
+        \includegraphics[width=\linewidth]{overleaf/images/sm_top.jpg}
     \end{subfigure}
     \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/front.png}
+        \includegraphics[width=\linewidth]{overleaf/images/sm_front.jpg}
     \end{subfigure}
     \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/left.png}
+        \includegraphics[width=\linewidth]{overleaf/images/sm_left.jpg}
     \end{subfigure}
     \\\vspace{2pt}
     \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/right.png}
+        \includegraphics[width=\linewidth]{overleaf/images/sm_right.jpg}
     \end{subfigure}
     \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/bottom.png}
+        \includegraphics[width=\linewidth]{overleaf/images/sm_back.jpg}
     \end{subfigure}
     \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/back.png}
+        \includegraphics[width=\linewidth]{overleaf/images/sm_bottom.jpg}
     \end{subfigure}
     \\\vspace{\ftspace}
     \caption{Smart Motor v3 displayed from each side. In the first row, from left to right views from the top, front and left are shown, while on the second row, from left to right, views from the right, back and bottom are displayed.}
@@ -222,7 +222,7 @@ The design of the visual information on the screen, as shown in Figure \ref{fig:
 \subsubsection{\label{sec:rev_esp}ESP32 System-on-Chip Family}
 
 ESP32 refers to a family of SoCs designed and developed by Espressif Systems, starting with the ESP32 series of SoCs, originally manufactured by Taiwan Semiconductor Manufacturing Company Limited (TSMC) using their $40\ nm$ process \citep{espressif_systems_esp32_2025}.
-Further series have been developed and released over time, including the ESP32C3 and ESP32C6 series, which Seeed Studio has used to develop the corresponding XIAO development boards. The first of these, the ESP32C3-based MCB, is of particular interest due to its use in the SM v3, though consideration will also be given to the newer ESP32C6-based MCB. Although even newer series of the SoC, such as the ESP32C5 and ESP32C61, have been announced and their respective chips are already available for purchase \citep{espressif_systems_esp_nodate}, their respective datasheets have not yet been released, nor is there any indication of development of the respective development boards by Seeed Studio at the time of writing.
+Further series have been developed and released over time, including the ESP32C3 and ESP32C6 series, which Seeed Studio has used to develop the corresponding XIAO development boards. The first of these, the ESP32C3-based MCB, is of particular interest due to its use in the SM v3, though consideration will also be given to the newer ESP32C6-based MCB. Although even newer series of the SoC, such as the ESP32C5 and ESP32C61, have been announced \citep{espressif_systems_esp_nodate}, their respective datasheets have not yet been released, nor is there any indication of development of the respective development boards by Seeed Studio at the time of writing.\\
 
 % \begin{figure}[H]
 %     \centering
@@ -273,7 +273,7 @@ The board also includes an on-board antenna, as well as a Hirose U.FL antenna in
 & \textbf{BLE} & Bluetooth 5.3, Bluetooth Mesh & Bluetooth 5.0, Bluetooth Mesh \\\cline{2-4}
 & \textbf{Other} & Zigbee, Thread, IEEE 802.15.4 & / \\\cline{2-4}
 & \textbf{Antenna} & U.FL interface with ext. antenna & On-board antenna + U.FL interface \\\hline
-\multicolumn{2}{|c|}{\textbf{On-chip Memory}} & 512KB SRAM \& 4MB Flash & 400KB SRAM \& 4MB Flash \\\hline
+\multicolumn{2}{|c|}{\textbf{On-chip Memory}} & 512kB SRAM \& 4MB Flash & 400kB SRAM \& 4MB Flash \\\hline
 \multicolumn{2}{|c|}{\multirow{2}{*}{\textbf{Interface}}} & 1x UART, 1x LP\_UART, 1x I2C, 1x LP\_IIC, 1x SPI, 11x GPIO(PWM),   7x ADC, 1x SDIO & 2x UART, 1x I2C, 1x SPI, 11x GPIO(PWM), 4x ADC \\\cline{3-4}
 \multicolumn{2}{|c|}{} & \multicolumn{2}{c|}{1x Reset button, 1x Boot button} \\\hline
 \multicolumn{2}{|c|}{\textbf{Dimensions}} & \multicolumn{2}{c|}{21 x 17.8 mm} \\\hline
@@ -351,22 +351,23 @@ Wi-Fi is a family of wireless transmission technologies that enable wireless loc
 \end{table}
 
 %\textbf{Wi-Fi on the ESP32C3 and ESP32C6}\\\\
-The ESP32C3 SoC supports the IEEE Standard 802.11b, -g and -n, which correspond to Wi-Fi 1\footnote{\label{note:wifi_name}Wi-Fi 0, Wi-Fi 1, Wi-Fi 2 and Wi-Fi 3 were names not used in proper Wi-Fi nomenclature, but are retrospectively inferred to the respective IEEE standards with the introduction of the IEEE Standard 802.11n, which was named Wi-Fi 4 by the Wi-Fi Alliance, with which official Wi-Fi generation numbering began. \citep{wi-fi_alliance_generational_2023}}, Wi-Fi 3\footnote{See Footnote \ref{note:wifi_name}} and Wi-Fi 4 respectively \citep{seeed_studio_seeed_2024-2, espressif_systems_esp32-c3_2024, wi-fi_alliance_generational_2023, noauthor_ieee_2000,noauthor_ieee_2003, noauthor_ieee_2009}, while the ESP32C6 SoC supports the IEEE Standard 802.11ax, which corresponds to Wi-Fi 6 \citep{seeed_studio_seeed_2024-1, espressif_systems_esp32-c6_2024, wi-fi_alliance_generational_2023, noauthor_ieee_2021}. In both cases, the frequency band used is the $2.4\ GHz$ ISM band due to hardware restrictions, despite both Wi-Fi 4 and Wi-Fi 6 protocols supporting higher frequency bands as well. An overview of the two generations used by the two SoCs is given in the Table \ref{tab:esp_wifi}.\\
+The ESP32C3 SoC supports the IEEE Standard 802.11b, -g and -n, which correspond to Wi-Fi 1\footnote{\label{note:wifi_name}Wi-Fi 0, Wi-Fi 1, Wi-Fi 2 and Wi-Fi 3 were names not used in proper Wi-Fi nomenclature, but are retrospectively inferred to the respective IEEE standards with the introduction of the IEEE Standard 802.11n, which was named Wi-Fi 4 by the Wi-Fi Alliance, with which official Wi-Fi generation numbering began. \citep{wi-fi_alliance_generational_2023}}, Wi-Fi 3\footnote{See Footnote \ref{note:wifi_name}} and Wi-Fi 4 respectively \citep{seeed_studio_seeed_2024-2, espressif_systems_esp32-c3_2024, wi-fi_alliance_generational_2023, noauthor_ieee_2000,noauthor_ieee_2003, noauthor_ieee_2009}, while the ESP32C6 SoC supports the IEEE Standard 802.11ax, which corresponds to Wi-Fi 6 \citep{seeed_studio_seeed_2024-1, espressif_systems_esp32-c6_2024, wi-fi_alliance_generational_2023, noauthor_ieee_2021}. In both cases, the frequency band used is the $2.4\ GHz$ ISM band due to hardware restrictions. An overview of the two generations used by the two SoCs is given in the Table \ref{tab:esp_wifi}.\\
 
 \textbf{ESP-Wi-Fi-Mesh}\\\\
 Based on standard Wi-Fi protocols, Espressif Systems has developed ESP-WIFI-MESH, a mesh networking implementation specifically for ESP32-based devices. Traditionally, in a Wi-Fi network, all peers are connected directly to the AP in a hub-and-spoke fashion. With ESP-WIFI-MESH, nodes outside the range of the AP, but within range of the root node connected to the Wi-Fi, or an intermediate node connected to the root node either directly or via another intermediate note, can be connected to the Wi-Fi. This is done by creating multiple Wi-Fi networks, taking advantage of the fact that the ESP32 devices have two Wi-Fi interfaces (one Wi-Fi and one AP), allowing nodes to host their own network while being connected to another network. The mesh network hence forms a tree-like structure with a maximum depth of four layers, starting from a root node that is either manually selected or automatically selected based on the RSSI strength of beacon frames from a Wi-Fi router or access point (AP). The network operates autonomously, is self-organising and has self-healing capabilities should a node become inoperable. To form the network, connected nodes, starting with the root node, send out Wi-Fi beacon frames, which inform nodes in their vicinity of their presence. Upon receiving one or more such signals, the surrounding node then connects to a possible parent node, first considering the depth of the parent node, choosing the less deep, followed by the number of children of two similarly deep parent nodes, choosing the one with fewer children. Since the topography of the network is defined, not intertwined, and the root and parent nodes know their respective subnets (in the form of a table or table of tables of MAC addresses), nodes can forward messages directly to the respective child or intermediate child node if the MAC is contained in their table. If the MAC cannot be found, i.e. it is not part of that parent node's subnet, the node sends the message to its parent node, and so on until it reaches the root node, which has information about the entire mesh network. As the MC have two MAC addresses, one for the AP and one for the Wi-Fi, the Wi-Fi MAC address is used as an identifier.
-The ESP-WIFI-MESH implementation is available for use with ESP32-based devices using the Espressif IoT Development Framework (ESP IDF) and standard ESP AT firmware, but there is currently no library implementation for ESP32 devices using MicroPython firmware. \citep{espressif_systems_esp-wifi-mesh_nodate}\\
+The ESP-WIFI-MESH implementation is available for use with ESP32-based devices using the Espressif IoT Development Framework (ESP IDF) and standard ESP AT firmware, but no implementation is currently available for the MicroPython firmware. \citep{espressif_systems_esp-wifi-mesh_nodate} \\
 
 \textbf{PainlessMesh}\\\\
 The PainlessMesh library is an open source project written in C++ for ESP32-based devices using Arduino, and enables the creation of ad-hoc, decentralised, stand-alone, Wi-Fi-based network meshes. The project is written using native ESP32 SDK libraries. The mesh is self-organising, self-healing and somewhat decentralised in structure, meaning that there is no central root node, although a central root node can be set if required. During formation, a node first considers which AP to join based on the list of other nodes to which it is connected (either directly or indirectly), thus avoiding loops in the network, and then the second choice is based on the RSSI value. This is possible because the topology of the mesh is known to all nodes and is constantly updated. As such, the structure of the mesh contains no entanglement, as nodes can only connect to one AP, but multiple nodes can connect to the same AP, although there is a risk of multiple separate mesh networks being formed. To prevent the formation of multiple smaller networks, nodes disconnect and randomly connect to different nodes to form a single coherent mesh, although this process is random and time consuming. Message transmission is simple as there is only one route between any two nodes and all nodes are aware of the entire network topology. The ESP32 chip ID is used as a unique identifier and for readability, messaging is JSON based.
-PainlessMesh is designed to work with Arduino and is available for use with ESP32-based devices using Arduino firmware, but there is currently no library implementation for ESP32 devices using MicroPython firmware. \citep{van_leeuwen_painlessmesh_2019}
+PainlessMesh is designed to work with Arduino and is available for use with ESP32-based devices using Arduino firmware, but there is currently no library implementation for ESP32 devices using MicroPython firmware. \citep{van_leeuwen_painlessmesh_2019}\\
 
 \textbf{ESP-NOW}\\\\
-ESP-NOW is connectionless communication protocol, created by Espressif Systems, which uses Wi-Fi management frames to transmit small messages in a peer-to-peer or peer-to-all fashion. A Wi-Fi Management Frame is a type of message defined by the IEEE Standard 802.11 \citep{noauthor_ieee_2024-1}, which are data packets used to manage and control Wi-Fi connections. To this end, since management and control of a connection is independent of the actual connection, they can be transmitted to and received by any Wi-Fi enabled device, even if it is not connected to any network, as long as the frame is addressed to the MAC address of that device or the broadcast MAC address (\textit{xff:0xff:0xff:0xff:0xff:0xff}) in the MAC-Header. Specifically, in the MAC header, the first address is set to the receiver MAC address, the second address is set to the transmitter MAC address, and the third address is set to the broadcast MAC address. The specific management frame used is the Vendor-Specific Action Frame (category code 127), the structure of which is shown in Table \ref{tab:managementframe}. The Organisation Identifier is set to \textit{0x18fe34} for Espressif systems. The Vendor Specific Content, shown in Table \ref{tab:vendorpecificcontent}, is of particular interest as it provides space in the body field for custom content that ESP-NOW uses to transmit its message. The space available is $250\ bytes$, which is the maximum message length of ESP-NOW v1.0, although there is a newer version, ESP-NOW v2.0, which increases the maximum message size to $1490\ bytes$. While devices using ESP-NOW v2.0 can receive messages from ESP-NOW v1.0 devices, the reverse is only true if the v2.0 message is $250\ bytes$ or less. Looking at the OSI network model, ESP-NOW operates at a low level, just above the physical hardware layer and the data link layer.
+ESP-NOW is connectionless communication protocol, created by Espressif Systems, which uses Wi-Fi management frames to transmit small messages in a peer-to-peer or peer-to-all fashion. A Wi-Fi Management Frame is a type of message defined by the IEEE Standard 802.11 \citep{noauthor_ieee_2024-1}, which are data packets used to manage and control Wi-Fi connections. To this end, since management and control of a connection is independent of the actual connection, they can be transmitted to and received by any Wi-Fi enabled device, even if it is not connected to any network, as long as the frame is addressed to its MAC address or a broadcast MAC address (\textit{xff:0xff:0xff:0xff:0xff:0xff}) in the MAC-Header. In the MAC header, the first address is set to the receiver MAC address, the second address is set to the transmitter MAC address, and the third address is set to the broadcast MAC address. The specific management frame used is the Vendor-Specific Action Frame (category code 127), the structure of which is shown in Table \ref{tab:managementframe}. The Organisation Identifier is set to \textit{0x18fe34} for Espressif systems. The Vendor Specific Content, shown in Table \ref{tab:vendorpecificcontent}, is of particular interest as it provides space in the body field for custom content that ESP-NOW uses to transmit its message. The space available is $250\ bytes$, which is the maximum message length of ESP-NOW v1.0, although in a newer version, ESP-NOW v2.0, this is increased to $1490\ bytes$. %While devices using ESP-NOW v2.0 can receive messages from ESP-NOW v1.0 devices, the reverse is only true if the v2.0 message is $250\ bytes$ or less. 
+Looking at the Open Systems Interconnection (OSI) reference model \citep{zimmermann_osi_1980}, ESP-NOW operates at a low level, just above the physical hardware layer and the data link layer. 
 
 \begin{table}[H]
     \centering
-    Vendor Specific Action Frame:
+    %Vendor Specific Action Frame:
     \begin{tabular}{|c|c|>{\centering\arraybackslash}m{70pt}|>{\centering\arraybackslash}m{60pt}|>{\centering\arraybackslash}m{70pt}|c|}
         \hline
         \textbf{MAC-Header} & \textbf{Category Code} & \textbf{Organization Identifier} & \textbf{Random Values} & \textbf{Vendor Specific Content} & \textbf{FCS} \\
@@ -383,7 +384,7 @@ ESP-NOW is connectionless communication protocol, created by Espressif Systems, 
 
 \begin{table}[H]
     \centering
-    Vendor Specific Content:
+    %Vendor Specific Content:
     \begin{tabular}{|c|c|>{\centering\arraybackslash}m{70pt}|c|c|c|c|}
         \hline
         \textbf{Element-ID} & \textbf{Length} & \textbf{Organization Identifier} & \textbf{Type} & \textbf{Version} & \textbf{Body} \\
@@ -431,12 +432,12 @@ As a first step, a number of requirements for the development of the networking 
     \item Incorporation of simple command and response logic, data transmission and simple message validation
 \end{itemize}
 
-Based on the technology studied and the requirements outlined above, ESP-NOW was chosen as the basis for the networking protocol because of its low-tech, peer-to-peer, non-connected functionality and its ready availability on the hardware and firmware used for the SM. A further advantage is that ESP-NOW is easy to set up, it works out of the box and does not require any configuration or pairing for transmissions to take place, the setup can be done in a few simple lines of code and once initialised runs in the background, allowing a main program to run while still allowing networking based on IRQ handling, making it compatible with most main module code.\\\\
+Based on the technology studied and the requirements outlined above, ESP-NOW was chosen as the basis for the networking protocol because of its low-tech, peer-to-peer, non-connected functionality and its ready availability on the hardware and firmware used for the SM. A further advantage is that ESP-NOW is easy to set up, it works out of the box and does not require any configuration or pairing for transmissions to take place, the setup can be done in a few simple lines of code and once initialised runs in the background, allowing a main program to run while still allowing networking based on IRQ handling, making it compatible with most main module code.\\
 In a second step, using the ESP-NOW protocol as a base, a more detailed networking concept was developed, taking into account the ESP-NOW capabilities and limitations. This included the design of a common message structure, providing for different types of messages, allowing for predetermined handling based on identifiers and codes, and measures to identify the message and check its validity. In order to support this concept of command type messages, the following basic message types have been defined, which should also be reflected in the message structure: Command (\textit{cmd}), Information (\textit{inf}) and Acknowledgement (\textit{ack}).
 \textit{Cmd} messages require some sort of handling or action to be performed by the receiving device. 
 \textit{Inf} messages are the standard type of message, containing some sort of information or data, such as sensor data, that could be used by the MC's main programme. \textit{Ack} message are responses, either to commands or to information messages, which acknowledge or confirm the command, or may be the direct result of a command returning an information message, such as the proposed ping message (\textit{cmd} type) which should initiate a pong response (\textit{ack} type). To allow for a variety of these base message types, they should be able to contain different sub-types.
 As ESP-NOW uses the MAC address of the receiver to address and send messages, which may not be known to the device, a way of identifying the surrounding modules must be implemented. To this end, the library should include an address book to store the MAC addresses as well as associated information such as name, configuration and the Wi-Fi channel used for transmission. 
-It should also attempt to find a way around the $20$ peer limit of the ESP-NOW peer buffer (for unencrypted messages), as well as examining the $250\ byte$ message limit and considering a way to send longer messages.
+It should also attempt to find a way around the $20$ peer limit of the ESP-NOW peer buffer (for unencrypted messages), as well as examining the $250\ byte$ message limit and considering a way to send longer messages.\\
 The library should also be designed to be adaptable and usable as a block based on other message subtypes and commands and their respective handling logic.
 In addition, coding standards and best practices such as the Python Enhancement Proposal 8 outlined in the Python style guide \citep{rossum_python_2001} should be applied. The following design principles were outlined for consideration in the development of the network protocol:
 \begin{itemize}
@@ -445,10 +446,10 @@ In addition, coding standards and best practices such as the Python Enhancement 
     \item Flexibility (in terms of application)
     \item Adaptability (in terms of flexibility and application)
 \end{itemize}
-
+\newpage
 \subsection{\label{sec:methods_ssp_des}Platform Architecture and Design}
 
-In order to support the networking capability, and given the evolution of the Smart Motor, a broader framework has been designed to support this capability, called the Smart System Platform. \\
+In order to support the networking capability, and given the evolution of the Smart Motor, a broader framework has been designed to enable access and support use, interaction and development, called the Smart System Platform. \\
 
 The platform is divided into three parts, as shown in Figure \ref{fig:met:ssp_architecture}, consisting of the hardware, which includes modules, called Smart Modules, with their different designs and components, the software, which includes the code and libraries for the different functionalities, and at its core, the Networking Library, and the documentation and development part, which includes various resources, such as the GitHub page, a website containing guides and support material, as well as the development and management tools designed to support the use of the Networking Library and development using it.
 
@@ -468,26 +469,28 @@ In an effort to clarify the concept and the used terms, the SSP-specific nomencl
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{|pp{50pt}|p{300pt}|}
+    \begin{tabular}{|p{125pt}|p{325pt}|}
     \hline
-        Name & The Platform \\\hline
+        \textbf{Term} & \textbf{Description} \\\hline
         Hardware        & Physical parts of the Smart System Platform \\\hline
-        Module          & Stand alone modules, such as the Smart Motor \\\hline
-        Component       & Hardware contained in the module, such as sensors, motors etc. \\\hline
+        Module          & Stand alone modules, such as the Smart Motor, also called Smart Modules \\\hline
+        Component       & Hardware contained in the module, such as sensors, motors, etc. \\\hline
         Input           & Component that provides data input, such as a sensor \\\hline
         Output          & Component that provides output, such as a motor \\\hline
-        UI              & Components that are used to be interacted with  \\\hline
+        UI              & Components that are used to allow user interaction  \\\hline
         Software        & Code files and library saved and running on a Module \\\hline
         Library         & A file to enable a component or capability to work on the module \\\hline
         Networking      & The networking library \\\hline
+        SSP Networking  & The SSP-specific networking library add-on library\\\hline
         Firmware        & Firmware running on a Module \\\hline
         Documentation   & Documentation for the Smart System Platform, its modules incl. the website, the development and management tools and the GitHub \\\hline
         Website         & The Website, hosting information and the dev suite, part of documentation \\\hline
         GitHub          & The GitHub page of the Smart System Platform hosting code and all the files \\\hline
-        Network Management and Module Configuration Tool   & PyScript page, part of the website. \\\hline
-        Integrated Development Environment                  & PyScript page, part of the website \\\hline
-        asdf
-        asdf
+        Network Management and Module Configuration Tool & PyScript-based web-application, which allows network management and module control and configuration \\\hline
+        Integrated Development Environment & PyScript-based custom web-IDE \\\hline
+        Module Management Tool & PyScript-based web-application, which allows modules to be updated to the newest version, based on its configuration \\\hline
+        AI Coding Assistant   & ChatGPT-based Large Langue Model (LLM), primed for coding and development assistant using the SSP \\\hline
+        AI Module Configuration Assistant & ChatGPT-based LLM, primed for configuring SSP modules for interaction using the Network Management and Module Configuration Tool \\\hline
     \end{tabular}
     \vspace{\ftspace}
     \caption{Nomenclature for the Smart System Platform}
@@ -556,7 +559,7 @@ However, the message structure does not include the sender's MAC address, as thi
 
 \subsubsection{\label{sec:methods_send_logic}Send Logic}
 
-The send logic of the Networking Library is outlined in Figure \ref{fig:net_send_logic}. The structure is similar to a funnel, and as such the pipeline can be called in a number of ways, either by directly calling one of the implemented command functions, which will format the content and send the appropriate cmd or info type message, such as the ping, echo and boop commands, as well as normal message or data type messages. There is also a command to send custom type of msg, which requires the message type and message subtype to be specified. These functions, which can be called manually by users or by code using the library, although there are some other internal functions, can only be called from within the network code. This is the case for sending most ack message types such as pong, confirmation, success or fail. The various functions for sending specific command types contain logic to look up the appropriate code and format the payload as required by the custom handling logic, and then call the custom send command in the network. Depending on the specific commands, different inputs are required, at least the mac address or a list of mac addresses if the message needs no content, as in the case of ping, or the mac and the message or data, as in the case of message or data type messages. And as mentioned above, the type and subtype are also required for the custom send commands. These functions then call the compose function, which attempts to encode the content into payloads. After encoding the content into the payload, the code checks the length of the payload and, if necessary, splits the message into several parts to ensure a size of $250\ bytes$ or less for each message. The payload is then structured into the message or messages according to the msg structure. To avoid confusion with the message type of the same name, these encoded messages are referred to only as msg. The code then loops through the list of macs, attempts to add them to the ESP-NOW buffer, then loops through all the msgs and attempts to send each corresponding message. This function will attempt to resend the message three times if an error occurs or if a receipt is not received from the recipient. After sending, the corresponding mac address is immediately removed from the ESP-NOW buffer to avoid a buffer overflow and to circumvent the 20 peer limit imposed by ESP-NOW. Exception handling is included throughout the code to prevent an error in the sending process from interrupting the main code, including but not limited to catching invalid mac addresses, invalid message content, or when interfacing with the ESP-NOW library.
+The send logic of the Networking Library is outlined in Figure \ref{fig:net_send_logic}. The structure is similar to a funnel, with the pipeline able to be called in a number of ways, either by directly calling one of the implemented command functions, which will format the content and send the appropriate cmd or info type message, such as the ping, echo and boop commands, as well as normal message or data type messages. There is also a command to send custom type of msg, which requires the message type and message subtype to be specified. These functions can be called manually by users or by code using the library, although there are some other internal functions, which start the send pipeline, which can only be automatically called from within the network code. This is the case for sending most ack message types such as pong, confirmation, success or fail. The various functions for sending specific command types contain logic to look up the appropriate code and format the payload as required by the custom handling logic, and then call the custom send command in the network. Depending on the specific commands, different inputs are required, at least the mac address or a list of mac addresses if the message needs no content, as in the case of ping, or the mac and the message or data, as in the case of message or data type messages. And as mentioned above, the type and subtype are also required for the custom send commands. These functions then call the compose function, which attempts to encode the content into payloads. After encoding the content into the payload, the code checks the length of the payload and, if necessary, splits the message into several parts to ensure a size of $250\ bytes$ or less for each message. The payload is then structured into the message or messages according to the msg structure. To avoid confusion with the message type of the same name, these encoded messages are referred to only as msg. The code then loops through the list of macs, attempts to add them to the ESP-NOW buffer, then loops through all the msgs and attempts to send each corresponding message. This function will attempt to resend the message three times if an error occurs or if a receipt is not received from the recipient. After sending, the corresponding mac address is immediately removed from the ESP-NOW buffer to avoid a buffer overflow and to circumvent the 20 peer limit imposed by ESP-NOW. Exception handling is included throughout the code to prevent an error in the sending process from interrupting the main code, including but not limited to catching invalid mac addresses, invalid message content, or when interfacing with the ESP-NOW library.
 
 \begin{figure}[H]
     \centering
@@ -568,7 +571,7 @@ The send logic of the Networking Library is outlined in Figure \ref{fig:net_send
 
 \subsubsection{\label{sec:methods_recv_logic}Receive Logic}
 
-The receive logic of the networking library is more complex than the send pipeline. It starts as a linear pipeline since it can only be called by the interrupt function (IRQ) of ESP-NOW, which is called when ESP-NOW has received a new msg. The logic follows a tree shape and splits into many different branches to handle the different message types, as shown in Figure \ref{fig:net_recv_logic}. \\
+The receive logic of the networking library is more complex than the send pipeline. It starts as a linear pipeline since the function to start it, can only be called by a interrupt request (IRQ) of ESP-NOW, which is called when ESP-NOW has received a new msg. The logic follows a tree shape and splits into many different branches to handle the different message types, as shown in Figure \ref{fig:net_recv_logic}. \\
 The first step is for the ESP32 to receive a msg which, after some magic, is handled by ESP-NOW. ESP-NOW then calls the IRQ function, which in our case checks if there is a msg in the ESP-NOW buffer, and then calls the receive function. The receive function loops and gets msg and sender mac from the ESP-NOW msg buffer as long as there are msgs in the ESP-NOW msg buffer. For each msg it receives, it calls the process function, which attempts to add the sender's mac address to the network address book. It then calls the decode function which tries to split the msg according to its structure. If the msg has the wrong structure, does not start with our identifier, or the checksum is incorrect, the msg is discarded. If the msg is split successfully, the payload type is checked, and if the payload type indicates a long message, the msg is sent to the long msg handlers, which decode the payload, collect its number, the total part of msgs and the actual payload type, and add it to the payload buffer. If the payload buffer now contains all parts of the msg, the payload is assembled and passed on. There it attempts to decode the message according to the data type specified by the payload type variable. It is then passed to the handler function, which sorts the msg by type, passes it to the appropriate handler, sorts it by subtype, and calls the appropriate code or logic. In the case of a ping cmd msg, this will result in a pong ack msg being sent back to the sender. In the case of a message or data type msg, the content is added to the message or data buffer, while ack msg types usually do nothing with the message, except in the case of the pong msg, the information encoded in the content of the msg is used to add further information about the peer to the networking library address book. If the subtype of the message is not found, the custom subtype handler, if set, is called, where custom handlers are checked. This is the case for the additional SSP networking library, which defines a number of additional msg subtypes and their respective handling. In any case, any received msg that ahs made it to the handler will be logged as level information. Finally, custom IRQ functions can be called for different message types, if set, and a general custom IRQ function is called after all messages in the ESP-NOW msg buffer have been processed. \\
 Exception handling is included throughout the code to prevent an error in the sending process from interrupting the main code, including but not limited to catching msgs with an invalid structure, msgs with an invalid payload encoding, or invalid content in terms of handling logic, or any errors that may occur when interfacing with the ESP-NOW library.
 
@@ -794,15 +797,13 @@ A customisable boot program has also been written, which automatically calls the
 
 \subsubsection{\label{sec:methods_hw}Hardware}
 %Modules, overview of existing technology, go into the analysis results of the used software, firmware and chips, how modular they are and what could be used for them and show the graphics with example input / output matrix as 
-In terms of hardware, the development of the Networking Library and the Smart System Platform used Smart Motors, prototyped derivatives such as the Smart Light, which is a Smart Motor but uses an LED ring instead of a motor output, stand-alone Dahal Boards and certain prototypes from the Smart Playground project such as the Splat Module and the Button Module.
-
-The interfaces of the Dahal board, outlined in Section \ref{fig:sm_dahal_board}, proved to be very modular, allowing plug and play with a variety of sensor inputs and outputs, an overview of the possibilities can be seen in Figure \ref{fig:met_hardware}.
+During the development of the Networking Library and the Smart System Platform, in terms of hardware, Smart Motors were used, alongside other prototyped derivatives such as the Smart Light, which is a Smart Motor which uses an LED ring instead of a motor as output, and stand-alone Dahal Boards, as well as certain prototypes from the Smart Playground project such as the Splat Module and the Button Module. The Dahal Board especially, proved to be a useful asset, thanks to its many interfaces, outlined in Section \ref{fig:sm_dahal_board}, allowing plug and play with a variety of sensor inputs and outputs. An overview of the possibilities, based on which any Smart Modules could be developed, can be seen in Figure \ref{fig:met_hardware}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{overleaf/images/Smart Systems Platform-io.drawio.png}
+    \includegraphics[width=.75\linewidth]{overleaf/images/Smart Systems Platform-io.drawio.png}
     \vspace{\ftspace}
-    \caption{Hardware matrix with possible inputs and outputs for smart modules}
+    \caption{Hardware matrix with possible inputs and outputs for Smart Modules}
     \label{fig:met_hardware}
 \end{figure}
 
@@ -810,6 +811,18 @@ As part of the ongoing Smart Playground project \citep{jess_smart_2025}, which w
 
 \begin{figure}[H]
     \centering
+    \begin{subfigure}[b]{0.25\textwidth}
+        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \end{subfigure}
+    \hspace{10pt}
+    \begin{subfigure}[b]{0.25\textwidth}
+        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \end{subfigure}
+    \hspace{10pt}
+    \begin{subfigure}[b]{0.25\textwidth}
+        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \end{subfigure}
+    \\
     \begin{subfigure}[b]{0.25\textwidth}
         \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
     \end{subfigure}
@@ -838,13 +851,13 @@ The following tests were designed during the development of the Networking Libra
 \subsubsection{\label{sec:methods_test_boop}Robustness - Boop-o-Meter}
 In an effort to assess and test the reliability and sturdiness of the Networking Library with a larger amount of modules, a program called the boop-o-meter\footnote{The name is a reference to he Tumblr April 1st joke in 2021, by which the tool was inspired} was created. The program runs on Dahal-Board hardware and uses a simple interaction design, discovering all modules in its vicinity using the ping functionality of the Networking Library, and then lists all the discovered modules in a list on the screen and then allows a message to be sent to the highlighted mac address in a list of mac addresses of discovered devices, which also includes the broadcast address, keeping count of received and sent messages. The test was conducted during Hackathon 1 with 18 devices, the goal was then to send and receive 999 messages.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{overleaf/images/Smart Systems Platform-io.drawio.png}
-    \vspace{\ftspace}
-    \caption{Boop-o-meter UI design}
-    \label{fig:boop-o-meter}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=\linewidth]{overleaf/images/Smart Systems Platform-io.drawio.png}
+%     \vspace{\ftspace}
+%     \caption{Boop-o-meter UI design}
+%     \label{fig:boop-o-meter}
+% \end{figure}
 
 The results of this test are outlined in Section \ref{sec:res_reliability} and the code can be found in Appendix \ref{chap:apx_e}.
 
