@@ -631,8 +631,30 @@ ggsave(filename = paste0("plots/", case, "_avg_ping.png"), plot = p_avg_ping, wi
 
 ```
 
+```{r}
 
+case <- "ping"
 
+ping_data <- read.csv("data/ping/ping.csv")
 
+# Display the first few rows
+head(ping_data)
+
+# Summary statistics
+summary(ping_data)
+
+# Create a boxplot
+p_net_ping <- ggplot(ping_data, aes(x = factor(1), y = ping_values)) + 
+  geom_boxplot(fill = custom_colours[2]) +  # Custom color
+  theme_minimal() +
+  labs(title = "Boxplot of Ping Values",
+       x = "Range (meters)",
+       y = "Ping Time (ms)") +
+  ylim(40, 60)  # Adjusted Y-limit
+
+# Save the plot
+ggsave(filename = paste0("plots/", case, "_net_ping.png"), plot = p_net_ping, width = 8, height = 6, dpi = 300)
+
+```
 
 
