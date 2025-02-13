@@ -3,6 +3,7 @@ project.Rproj
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
 keys/ACTIONS_RENDER
 keys/ACTIONS_RENDER.pub
 docs/.idea
@@ -11,4 +12,5 @@ software/networking/.idea
 software/networking/.venv
 software/release/.idea
 software/release/__pycache__
+
 
