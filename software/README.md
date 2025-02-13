@@ -20,11 +20,13 @@ The repository has the following directory tree.
     │   ├── MnS
     │   ├── README.md
     │   ├── README.qmd
+    │   ├── battery_test
     │   ├── boop-o-meters
     │   ├── display
     │   ├── githubfiledownload
     │   ├── p2p
-    │   └── ping
+    │   ├── ping
+    │   └── rssi_testing
     ├── archive
     │   ├── 4sophie.py
     │   ├── aioespnow.py

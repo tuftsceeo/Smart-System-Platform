@@ -347,6 +347,10 @@ class Networking:
                 gc.collect()
                 return messages
             return [(None, None, None)]
+
+        def return_data(self):
+            self.master.dprint("aen.return_data")
+            return self.received_sensor_data
         
         def _irq(self, espnow):
             self.master.dprint("aen._irq")
@@ -659,6 +663,8 @@ class Networking:
                     payload["time_sent"] = send_timestamp
                     payload["time_recv"] = receive_timestamp
                     self.master.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.peer_name(sender_mac)}): {payload}")
+                    if sender_mac in self.received_sensor_data:
+                        self.received_sensor_data[b'prev_' + sender_mac] = self.received_sensor_data[sender_mac]
                     self.received_sensor_data[sender_mac] = payload
                     # __send_confirmation(self, "Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
                 elif (msg_subkey := "Message") and subtype == 0x02 or subtype == 0x22:  # Message / Other

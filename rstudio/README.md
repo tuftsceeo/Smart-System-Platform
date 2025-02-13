@@ -20,12 +20,7 @@ The repository has the following directory tree.
     │   ├── analysis.qmd
     │   ├── data
     │   └── plots
-    ├── exampleREADME.qmd
-    └── survey
-        ├── Smart_System_Platform_Feedback.docx
-        ├── Smart_System_Platform_Feedback.pdf
-        ├── Smart_System_Platform_Feedback.qsf
-        └── data
+    └── exampleREADME.qmd
 
 A short description of the directories can be found below.
 

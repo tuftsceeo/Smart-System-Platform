@@ -43,6 +43,8 @@ The repository has the following directory tree.
     │   ├── ETH_zurich.png
     │   ├── GitHub-QRcode.png
     │   ├── Master Thesis-QRcode.png
+    │   ├── Smart Systems Platform-io.drawio.png
+    │   ├── Smart Systems Platform.drawio.png
     │   ├── Tree_example_VIS.jpg
     │   ├── Tufts_black.png
     │   ├── Tufts_blue.png
@@ -50,14 +52,24 @@ The repository has the following directory tree.
     │   ├── Tufts_univ_blue.png
     │   ├── add.png
     │   ├── angletest.drawio.png
+    │   ├── back.jpg
+    │   ├── back.png
+    │   ├── bottom.png
     │   ├── ceeo_black.png
     │   ├── ceeo_blue.png
     │   ├── code_structure.png
     │   ├── dmavt-logo.pdf
     │   ├── eth_logo.png
+    │   ├── front.jpg
+    │   ├── front.png
     │   ├── ghe.png
+    │   ├── ide.png
+    │   ├── ide_raw.png
+    │   ├── left.png
     │   ├── logos.png
     │   ├── networking_structure.drawio.png
+    │   ├── nmmct.png
+    │   ├── nmmct_raw.png
     │   ├── pcb_sch.png
     │   ├── placeholder.png
     │   ├── play.png
@@ -66,13 +78,23 @@ The repository has the following directory tree.
     │   ├── readme.png
     │   ├── receive_logic.drawio.png
     │   ├── remove.png
+    │   ├── right.png
     │   ├── send_logic.drawio.png
+    │   ├── sm_back.jpg
+    │   ├── sm_bottom.jpg
     │   ├── sm_concept.png
+    │   ├── sm_front.jpg
+    │   ├── sm_left.jpg
+    │   ├── sm_right.jpg
+    │   ├── sm_top.jpg
     │   ├── small-multiple.png
     │   ├── ssp_networking_structure.drawio.png
+    │   ├── top.png
     │   ├── train.png
     │   ├── trainplay.png
     │   ├── website-QRcode.png
+    │   ├── website_desktop.png
+    │   ├── website_mobile.png
     │   ├── xiaoesp32c3.png
     │   └── xiaoesp32c6.png
     ├── main.tex

@@ -1,6 +1,6 @@
 from machine import Pin
 import machine
-from config import config
+from config import config, hive_config
 import time
 import gc
 
@@ -27,7 +27,7 @@ errmsg = True
 global timer
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 configuration = config["configuration"]
-hive = config["hive"]
+hive = hive_config["hive"]
 if configuration == "AM1":
     infmsg = True
 
@@ -94,6 +94,25 @@ if not hive:
         print("idle")
         idle()
 else:
-    run_config_module("hm1")
+    #run_config_module("hm1")
     # insert code here to run in case of hive motor!
+    recipients = hive_config["recipients"]
+    formula = hive_config["formula"]
+    conversion = hive_config["conversion"]
+    controller = hive_config["controller"]
 
+    #function that determines which sensor to use (acc or if another one is plugged in) and then sends this data to the recipient list in the config file, make logic that ensures the send freq isn't too high
+
+def on_data_recv():
+    data = networking.return_data()
+    result = formula(data)
+    #do something with that result and then output it somehow
+def on_sensor_change():
+    acc_data = None
+    sensor_data = None
+    data = {
+        "sensors": ["accelerometer", "sensor"],
+        "accelerometer": acc_data, #acc data
+        "sensor": sensor_data,  #sensor data
+    }
+    networking.send_data(recipients, data)
