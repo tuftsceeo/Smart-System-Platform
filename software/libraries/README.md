@@ -22,7 +22,6 @@ The repository has the following directory tree.
     ├── sensors.py
     ├── servo.py
     ├── smartlight.py
-    ├── splat.py
     ├── ssd1306.py
     └── variableLED.py
 
