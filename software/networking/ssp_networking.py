@@ -126,7 +126,7 @@ class SSP_Networking:
 
     def hive_configure(self, mac, hive_config, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.hive_configure")
-        self.send_custom("Hive-Configure", mac, hive_config, channel, ifidx, sudo)
+        self.send_custom("Hive-Configure", mac, f"{hive_config}", channel, ifidx, sudo)
 
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
@@ -257,7 +257,7 @@ class SSP_Networking:
                             __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload)
                             machine.reset()
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -265,8 +265,9 @@ class SSP_Networking:
                     self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            from config import hive_config
-                            hive_config.update(payload[0])
+                            #from config import hive_config
+                            #hive_config.update(payload[0])
+                            hive_config = payload[0]
                             file_path = "config.py"
                             with open(file_path, "r") as f:
                                 lines = f.readlines()
@@ -279,7 +280,7 @@ class SSP_Networking:
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                             machine.reset()
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -291,7 +292,7 @@ class SSP_Networking:
                             self.master.networking.iprint("no update logic written just yet")
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -303,7 +304,7 @@ class SSP_Networking:
                             self.master.networking.iprint("No update logic written just yet")
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -322,7 +323,7 @@ class SSP_Networking:
                             #         mip.install(base + f)
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -337,7 +338,7 @@ class SSP_Networking:
                             link = "webrepl link"
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", link)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -354,7 +355,7 @@ class SSP_Networking:
                             __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload)
                             exec(code)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -458,7 +459,7 @@ class SSP_Networking:
                 #                             self.master.networking.iprint("no pairing logic written just yet")
                 #                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                 #                         except Exception as e:
-                #                             self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                #                             self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                 #                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 #                     elif self._pairing_enabled and self._pairing and networking_keys["handshake_key_3"] == payload:
                 #                         self._paired = True
@@ -472,7 +473,7 @@ class SSP_Networking:
                 #                             self._pairing_enabled = payload[0]
                 #                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                 #                         except Exception as e:
-                #                             self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                #                             self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                 #                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 #                     else:
                 #                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -526,7 +527,7 @@ class SSP_Networking:
                             self.master.sta.connect(payload[0], payload[1])
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -539,7 +540,7 @@ class SSP_Networking:
                             self.master.sta.disconnect()
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e}")
+                            self.master.networking.eprint(f"Error: {e}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -555,7 +556,7 @@ class SSP_Networking:
                             self.master.ap.setap(ssid, password)
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
-                            self.master.networking.eiprint(f"Error: {e} with payload: {payload}")
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
@@ -619,3 +620,4 @@ class SSP_Networking:
             self.master.networking.aen.cmd(custom_cmd_handler)
             self.master.networking.aen.inf(custom_inf_handler)
             self.master.networking.aen.ack(custom_ack_handler)
+
