@@ -16,11 +16,18 @@ The repository has the following directory tree.
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
+    ├── am1.py
+    ├── archive
+    │   ├── am1.py
+    │   ├── boot.py
+    │   ├── hm1.py
+    │   └── main.py
     ├── boot.py
-    ├── hm1.py
+    ├── hm3.py
     ├── main.py
     ├── sl1.py
-    └── sm3.py
+    ├── sm3.py
+    └── sp1.py
 
 A short description of the directories can be found below.
 

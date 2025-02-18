@@ -35,6 +35,9 @@ The repository has the following directory tree.
     ├── ping
     │   ├── echo.py
     │   └── shout.py
+    ├── ping_rssi_loss_test
+    │   ├── echoer.py
+    │   └── sender.py
     └── rssi_testing
         └── rssi.py
 
