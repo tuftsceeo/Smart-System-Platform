@@ -68,15 +68,15 @@ An OLED screen, a button and a potentiometer are located on the front face. Ther
 There are two mechanical interfaces for the Smart Motor v3. One is the motor output, which protrudes from the top of the Smart Motor and is designed to mimic the connection of a LEGO Education motor, allowing LEGO pegs to be connected to the motor output of the Smart Motor. The other is the back of the Smart Motor shell, which is designed to accept LEGO connector pins, allowing components of the LEGO system in play to be attached to the motor or, conversely, the motor to be attached to a LEGO component-based structure. While the system is not directly compatible with LEGO bricks, the dimensions of the shell are approximately the size of a 6x6x5 brick. Specifically, the cube-shaped shell of the Smart Motor v3 is $47\ mm$ x $47\ mm$ x $47\ mm$ (W x B x H), which is the same size as a LEGO brick, making it partially compatible with the LEGO system in terms of pure dimensions. However, in newer iterations, the extrusions added to the side buttons extend beyond this frame, as do the button and potentiometer on the front and the motor on the top of the cube-shaped Smart Motor.
 
 \subsubsection{\label{sec:methods_sm_elec}Electronics Component and Schematics}
-The electronical schematics of the Smart Motor v3 closely resembles the general Smart Motor system outlined in Figure \ref{fig:sm_schematic}. The complete electronical system schematics, including all potential components, including wiring, are display in Figure \ref{fig:sm_elec_schematic}.
+The electronical schematics of the Smart Motor v3 closely resembles the general Smart Motor system outlined in Figure \ref{fig:sm_schematic}. %The complete electronical system schematics, including all potential components, including wiring, are display in Figure \ref{fig:sm_elec_schematic}.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\linewidth]{overleaf/images/placeholder.png}
-    \vspace{\ftspace}
-    \caption{Detailed electronic component schematic, including wiring, of the Smart Motor v3 and its custom PCB}
-    \label{fig:sm_elec_schematic}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.75\linewidth]{overleaf/images/placeholder.png}
+%     \vspace{\ftspace}
+%     \caption{Detailed electronic component schematic, including wiring, of the Smart Motor v3 and its custom PCB}
+%     \label{fig:sm_elec_schematic}
+% \end{figure}
 
 At the heart of the system is a custom printed circuit board (PCB) called the Dahal Board, which houses a Seeed Studio XIAO ESP32C3 development board, powered by a ESP32C3-series System on Chip (SoC) microcontroller (MC). For simplicity sake, the Seeed Studio XIAO ESP32C3 will be referred to as the microcontroller-board (MCB). The MCB includes a USB-C connector, and the board provides various connection options, such as a Grove-compatible sensor port, two connections for a motor or other analogue outputs, as well as two I2C ports and a battery connection. A variety of components can be connected to the board, although in the case of the Smart Motor, the only fixed connections are to the motor, the screen, which is connected to one of the I2C ports and the battery. The board contains a built-in accelerometer which is used as the default sensor, although it is possible to connect and use other types of sensor to the external sensor port. The board also contains other types of user interface such as an OLED screen, two small buttons, one large button and a potentiometer to allow and enable user interaction directly on the system. A comprehensive list of the Smart Motor v3 components and their price are listed in Table \ref{tab:components}.
 
@@ -307,7 +307,7 @@ While both classic Bluetooth and BLE maintain full backwards compatibility with 
         Bluetooth version & Bluetooth 5.0 Low Energy & Bluetooth 5.3 Low Energy \\\hline
         Maximum data rate & 2 Mbps & 2 Mbps \\\hline
         Frequency band & 2.4 GHz & 2.4 GHz \\\hline
-        Frequency range & 2402 MHz & 2480 MHz \\\hline
+        Frequency range & 2402-2480 MHz & 2402-2480 MHz \\\hline
         %Channel width &  &  \\\hline
         Range & Up to 4x of Bluetooth 4.2 & Up to 4x of Bluetooth 4.2 \\\hline
         Advertising channels & 3 & 3 \\\hline
@@ -480,8 +480,8 @@ In an effort to clarify the concept and the used terms, the SSP-specific nomencl
         UI              & Components that are used to allow user interaction  \\\hline
         Software        & Code files and library saved and running on a Module \\\hline
         Library         & A file to enable a component or capability to work on the module \\\hline
-        Networking      & The networking library \\\hline
-        SSP Networking  & The SSP-specific networking library add-on library\\\hline
+        Networking      & The Networking Library \\\hline
+        SSP Networking  & The SSP Add-on library\\\hline
         Firmware        & Firmware running on a Module \\\hline
         Documentation   & Documentation for the Smart System Platform, its modules incl. the website, the development and management tools and the GitHub \\\hline
         Website         & The Website, hosting information and the dev suite, part of documentation \\\hline
@@ -520,18 +520,18 @@ An iterative approach has been used in the development of the Networking and the
 
 %Code structure, Commands, Interactions, etc. Message flows, message types, large message handling, IRQ implementation, all commands and handlers Setup with congif, networking and ssp\_networking Boop-o-meter
 
-Given the the requirements and concept for the networking protocol defined in Section \ref{sec:methods_net_des}, the networking library has been split into two parts, the base networking library, which contains the basic networking logic and the more specific SSP networking library, which contains more SSP specific networking logic.
+Given the the requirements and concept for the networking protocol defined in Section \ref{sec:methods_net_des}, the Networking Library has been split into two parts, the base Networking Library, which contains the basic networking logic and the more specific SSP Add-on Library, which contains more SSP specific networking logic.
 
-\subsubsection{\label{sec:methods_networking}Base Networking Library}
+\subsubsection{\label{sec:methods_networking}Networking Library}
 
 %\textbf{\label{sec:methods_additional}Additional Considerations}\\\\
 
-The Base Networking Library is a generic, all-purpose, customisable networking library built on top of ESP-NOW protocol, that introduces the basic networking functionality and aims to enhance and exploit the capabilities of ESP-NOW. As outlined in Section \ref{sec:methods_net_des}, ESP-NOW uses MAC addresses to address messages, however, these addresses might not be know beforehand. To this end an address book is included in the networking library, which is automatically populated when a message is sent to a new MAC address or received from an unknown MAC address. In order to be able to discover and gather information about the surrounding modules, the ping command message outlined before, contains information about the sender, such as name and configuration. This ping command can be sent out to the general broadcast address and when received by any device running the networking library, prompts that devices to return a pong message to the sender, which in turn contains information about itself. In this scenario, both devices have now added each other to their respective address books, which includes the mac address, name and configuration. This address book, however, is not persistent and the information is lost upon reboot of the device. In addition, an echo command, which prompts the receiver to return the same message content to the sender, and a boop command, which is intended to calculate and return the stored RSSI values of the last message of every MAC address a message was received from, were also designed as key commands to be included in the base network. Exception catching and handling is included throughout the code to prevent an error in the message transmission or handling process from interrupting the main code. The library also includes time-stamped information, debug and error statement printing in the REPL and logging to a local log.txt file. These three levels of printing and logging can be individually enabled or disabled. Information print statements are placed only when necessary, such as when sending or receiving, while debug logs are placed in every function and additionally at every critical point in the code, and error logs are logs of caught exceptions.\\
+The custom Networking Library, from her on referred to as Networking Library is a generic, all-purpose, customisable Networking Library built on top of ESP-NOW protocol, that introduces the basic networking functionality and aims to enhance and exploit the capabilities of ESP-NOW. As outlined in Section \ref{sec:methods_net_des}, ESP-NOW uses MAC addresses to address messages, however, these addresses might not be know beforehand. To this end an address book is included in the Networking Library, which is automatically populated when a message is sent to a new MAC address or received from an unknown MAC address. In order to be able to discover and gather information about the surrounding modules, the ping command message outlined before, contains information about the sender, such as name and configuration. This ping command can be sent out to the general broadcast address and when received by any device running the Networking Library, prompts that devices to return a pong message to the sender, which in turn contains information about itself. In this scenario, both devices have now added each other to their respective address books, which includes the mac address, name and configuration. This address book, however, is not persistent and the information is lost upon reboot of the device. In addition, an echo command, which prompts the receiver to return the same message content to the sender, and a boop command, which is intended to calculate and return the stored RSSI values of the last message of every MAC address a message was received from, were also designed as key commands to be included in the base network. Exception catching and handling is included throughout the code to prevent an error in the message transmission or handling process from interrupting the main code. The library also includes time-stamped information, debug and error statement printing in the REPL and logging to a local log.txt file. These three levels of printing and logging can be individually enabled or disabled. Information print statements are placed only when necessary, such as when sending or receiving, while debug logs are placed in every function and additionally at every critical point in the code, and error logs are logs of caught exceptions.\\
 
 \textbf{\label{sec:methods_msg_struct}Message Structure}\\\\
-The message structure developed for the networking library is shown in Table \ref{tab:msg_struct}. The message starts with a header ($0x2a$, 1 byte) which is used to identify that the message has been sent by a friendly networking library. 
+The message structure developed for the Networking Library is shown in Table \ref{tab:msg_struct}. The message starts with a header ($0x2a$, 1 byte) which is used to identify that the message has been sent by a friendly Networking Library. 
 This is followed by the message type, which currently identifies the message as one of the three different message types ($0x01$ for \textit{cmd}, $0x02$ for \textit{inf} and $0x03$ for \textit{ack}, $1\ byte$) defined in Section \ref{sec:methods_net_des}. 
-The type is followed by the message subtype, which identifies the specific subtype of the message (\textit{cmd}: $0x10$ for \textit{ping}, $0x13$ for \textit{boop} and $0x15$ for \textit{echo}; \textit{inf}: $0x20$ for \textit{boop response}, $0x21$ for \textit{data} and $0x22$ for \textit{message}; \textit{ack}: $0x10$ for \textit{pong} and $0x15$ for \textit{echo}), although only a few subtypes are defined in the basic network. However, the library has provisions to allow the user to define their own message subtypes and their respective handling logic, as is done in the more application specific SSP networking library.
+The type is followed by the message subtype, which identifies the specific subtype of the message (\textit{cmd}: $0x10$ for \textit{ping}, $0x13$ for \textit{boop} and $0x15$ for \textit{echo}; \textit{inf}: $0x20$ for \textit{boop response}, $0x21$ for \textit{data} and $0x22$ for \textit{message}; \textit{ack}: $0x10$ for \textit{pong} and $0x15$ for \textit{echo}), although only a few subtypes are defined in the basic network. However, the library has provisions to allow the user to define their own message subtypes and their respective handling logic, as is done in the more application specific SSP Add-on Library.
 The timestamp is populated at the time of sending with \verb!time.ticks\_ms\end!, which is the time in milliseconds since the device was started. \verb!time.ticks\_ms! returns a $32-bit$ unsigned integer, ensuring that it always stays under $4\ bytes$ by rolling over when it reaches its maximum value. In the case of a $32-bit$ integer, the maximum would be $2^{32} -1\ ms = 4'294'967^295\ ms = 49.71\ days$. However, according to the MicroPython documentation \citep{micropython_micropython_2025-2}, the exact maximum size of \verb!time.ticks\_ms\! in MicroPython is opaque, although in the case of the MicroPython implementation for ESP32s, the maximum size appears to be only 30 bits, resulting in a maximum of $2^{30}-1\ ms=1'073'741'823\ ms = 12.43\ days$.
 As such, the timestamp is only used to calculate relative durations or differences, for example in the ping command, where the timestamp is returned to the original sender, who then calculates the ping time, the time it took for the message to travel back and forth.
 The data type field is used to identify the encoding of the payload, as the network code allows the following data types to be encoded: \textit{integer}, \textit{string}, \textit{float}, \textit{list}, \textit{dictionary}, \textit{bytes} and \textit{bytearray}. In addition, the data type is also used to identify long messages, i.e. when a payload longer than $241\ bytes$ is split and sent using multiple messages. In this case the payload type is set to the long message code, where the payload contains its own structure, namely the part number of the message, the total number of parts of the long message and the payload type of the message. Taking into account these three additional meta-informations, each of which occupies one byte per message, the remaining payload is $238\ bytes$. With one byte allocated to the part number of the message, the maximum number of parts is $256$ as the part number is stored in $1\ byte$, giving a theoretical payload limit of $256*238\ bytes = 60'928\ bytes$. The logic of long message handling is further defined in Section \ref{fig:net_recv_logic}. With eight options, the data type field is ($1\ byte$).
@@ -571,8 +571,8 @@ The send logic of the Networking Library is outlined in Figure \ref{fig:net_send
 
 \subsubsection{\label{sec:methods_recv_logic}Receive Logic}
 
-The receive logic of the networking library is more complex than the send pipeline. It starts as a linear pipeline since the function to start it, can only be called by a interrupt request (IRQ) of ESP-NOW, which is called when ESP-NOW has received a new msg. The logic follows a tree shape and splits into many different branches to handle the different message types, as shown in Figure \ref{fig:net_recv_logic}. \\
-The first step is for the ESP32 to receive a msg which, after some magic, is handled by ESP-NOW. ESP-NOW then calls the IRQ function, which in our case checks if there is a msg in the ESP-NOW buffer, and then calls the receive function. The receive function loops and gets msg and sender mac from the ESP-NOW msg buffer as long as there are msgs in the ESP-NOW msg buffer. For each msg it receives, it calls the process function, which attempts to add the sender's mac address to the network address book. It then calls the decode function which tries to split the msg according to its structure. If the msg has the wrong structure, does not start with our identifier, or the checksum is incorrect, the msg is discarded. If the msg is split successfully, the payload type is checked, and if the payload type indicates a long message, the msg is sent to the long msg handlers, which decode the payload, collect its number, the total part of msgs and the actual payload type, and add it to the payload buffer. If the payload buffer now contains all parts of the msg, the payload is assembled and passed on. There it attempts to decode the message according to the data type specified by the payload type variable. It is then passed to the handler function, which sorts the msg by type, passes it to the appropriate handler, sorts it by subtype, and calls the appropriate code or logic. In the case of a ping cmd msg, this will result in a pong ack msg being sent back to the sender. In the case of a message or data type msg, the content is added to the message or data buffer, while ack msg types usually do nothing with the message, except in the case of the pong msg, the information encoded in the content of the msg is used to add further information about the peer to the networking library address book. If the subtype of the message is not found, the custom subtype handler, if set, is called, where custom handlers are checked. This is the case for the additional SSP networking library, which defines a number of additional msg subtypes and their respective handling. In any case, any received msg that ahs made it to the handler will be logged as level information. Finally, custom IRQ functions can be called for different message types, if set, and a general custom IRQ function is called after all messages in the ESP-NOW msg buffer have been processed. \\
+The receive logic of the Networking Library is more complex than the send pipeline. It starts as a linear pipeline since the function to start it, can only be called by a interrupt request (IRQ) of ESP-NOW, which is called when ESP-NOW has received a new msg. The logic follows a tree shape and splits into many different branches to handle the different message types, as shown in Figure \ref{fig:net_recv_logic}. \\
+The first step is for the ESP32 to receive a msg which, after some magic, is handled by ESP-NOW. ESP-NOW then calls the IRQ function, which in our case checks if there is a msg in the ESP-NOW buffer, and then calls the receive function. The receive function loops and gets msg and sender mac from the ESP-NOW msg buffer as long as there are msgs in the ESP-NOW msg buffer. For each msg it receives, it calls the process function, which attempts to add the sender's mac address to the network address book. It then calls the decode function which tries to split the msg according to its structure. If the msg has the wrong structure, does not start with our identifier, or the checksum is incorrect, the msg is discarded. If the msg is split successfully, the payload type is checked, and if the payload type indicates a long message, the msg is sent to the long msg handlers, which decode the payload, collect its number, the total part of msgs and the actual payload type, and add it to the payload buffer. If the payload buffer now contains all parts of the msg, the payload is assembled and passed on. There it attempts to decode the message according to the data type specified by the payload type variable. It is then passed to the handler function, which sorts the msg by type, passes it to the appropriate handler, sorts it by subtype, and calls the appropriate code or logic. In the case of a ping cmd msg, this will result in a pong ack msg being sent back to the sender. In the case of a message or data type msg, the content is added to the message or data buffer, while ack msg types usually do nothing with the message, except in the case of the pong msg, the information encoded in the content of the msg is used to add further information about the peer to the Networking Library address book. If the subtype of the message is not found, the custom subtype handler, if set, is called, where custom handlers are checked. This is the case for the additional SSP Add-on Library, which defines a number of additional msg subtypes and their respective handling. In any case, any received msg that ahs made it to the handler will be logged as level information. Finally, custom IRQ functions can be called for different message types, if set, and a general custom IRQ function is called after all messages in the ESP-NOW msg buffer have been processed. \\
 Exception handling is included throughout the code to prevent an error in the sending process from interrupting the main code, including but not limited to catching msgs with an invalid structure, msgs with an invalid payload encoding, or invalid content in terms of handling logic, or any errors that may occur when interfacing with the ESP-NOW library.
 
 \begin{figure}[H]
@@ -585,9 +585,9 @@ Exception handling is included throughout the code to prevent an error in the se
 
 %\textbf{\label{sec:methods_additional}Additional Considerations}\\\\
 
-\subsubsection{\label{sec:methods_ssp_networking}SSP Networking}
+\subsubsection{\label{sec:methods_ssp_networking}SSP Networking Add-on Library}
 
-Building on the base networking library and using the designed interfaces, the SSP specific networking add-on has been designed, which defines a variety of SSP specific commands and message types and subtypes, as well as the corresponding custom command handlers for use with different Smart Modules for different applications. The SSP networking library is specifically designed to work with Smart Motors and other Smart Modules and requires both the base networking.py and a smart module config.py configuration file to properly function, as shown in the Figure \ref{fig:net_code_structure}.
+Building on the Networking Library and using the designed interfaces, an SSP specific Networking Library add-on has been designed, from here on referred to as the SSPN Add-On Library , which defines a variety of SSP specific commands and message types and subtypes, as well as the corresponding custom command handlers for use with different Smart Modules for different applications. The SSP Add-on Library is specifically designed to work with Smart Motors and other Smart Modules and requires both the base Networking Library and a Smart Module config.py configuration file to properly function, as shown in the Figure \ref{fig:net_code_structure}.
 
 \begin{figure}[H]
     \centering
@@ -597,7 +597,7 @@ Building on the base networking library and using the designed interfaces, the S
     \label{fig:net_code_structure}
 \end{figure}
 
-With the aim of future-proofing the code design and making it easy to use the code provided for future projects, SSP Networking has been designed with a variety of applications and functionalities in mind, which is reflected in the large number of custom commands and message types. Figure \ref{fig:net_net_structure} shows the detailed class and function structure of the two libraries, which illustrates the variety of custom send commands available in the SSP Networking add-on. These include all the basic networking commands and some variations thereof, which are made accessible in the SSP Networking add-on, but call the underlying basic networking functions. In addition, the add-on includes commands such as reboot, commands to configure modules to interact, download files, enable AP, connect to Wi-Fi, get the MCBs file directory, change the configuration or configuration file of another module and so on. It also includes an authentication check that only executes certain commands from admin modules whose MAC address is in the configuration's whitelist, or which use a sudo bypass\footnote{This can be achieved by adding the string "sudo" to a payload list at position [-1].}. The handling of all the custom commands isn't split into different functions, but is contained within the three specific custom type handlers.
+With the aim of future-proofing the code design and making it easy to use the code provided for future projects, the SSP Add.on Library has been designed with a variety of applications and functionalities in mind, which is reflected in the large number of custom commands and message types. Figure \ref{fig:net_net_structure} shows the detailed class and function structure of the two libraries, which illustrates the variety of custom send commands available in the SSP Add-on Library. These include all the basic networking commands and some variations thereof, which are made accessible in the SSP Add-on Library, but call the underlying basic networking functions. In addition, the add-on includes commands such as reboot, commands to configure modules to interact, download files, enable AP, connect to Wi-Fi, get the MCBs file directory, change the configuration or configuration file of another module and so on. It also includes an authentication check that only executes certain commands from admin modules whose MAC address is in the configuration's whitelist, or which use a sudo bypass\footnote{This can be achieved by adding the string "sudo" to a payload list at position [-1].}. The handling of all the custom commands isn't split into different functions, but is contained within the three specific custom type handlers.
 
 \begin{figure}[H]
 	\centering%
@@ -609,7 +609,7 @@ With the aim of future-proofing the code design and making it easy to use the co
         \includegraphics[width=\textwidth]{overleaf/images/ssp_networking_structure.drawio.png}%
     \end{subfigure}%
     \vspace{\ftspace}
-    \caption{networking.py and ssp\_networking.py code structure}
+    \caption{Networking Library and SSP Add-on Library code structure}
     \label{fig:net_net_structure}
 \end{figure}
 
@@ -618,19 +618,17 @@ With the aim of future-proofing the code design and making it easy to use the co
 In addition to the concept and design of the Smart System Platform, described in Section \ref{sec:methods_ssp_des}, several components have been developed, which are described in this section. These include parts of the documentation, such as the GitHub page and the website, including the various networking development and management tools developed in PyScript that are part of the website.
 
 \subsubsection{\label{sec:methods_gh}GitHub}
-As part of the software development, a public GitHub page has been created for this thesis to host the code and development progress for the network. However, in line with the goal of accessibility, the public GitHub page also serves as the main host for all other information and resources of the Smart System Platform, including the website, all data related to this thesis, and more, with the exception of PyScript. The site is licensed under the MIT licence. 
+As part of the software development, a public GitHub page has been created for this thesis to host the code and development progress for the network. However, in line with the goal of accessibility, the public GitHub page also serves as the main host for all other information and resources of the Smart System Platform, including the website, all data related to this thesis, and more, with the exception of PyScript. The site is licensed under the MIT licence. \\
 
-In terms of organisation, the page is divided into SSP folders, namely docs, which contains the website files, firmware, which contains the firmware files, hardware, which contains the hardware related files and software, which contains the code. There are also thesis-specific folders, overleaf, which host the thesis report, and RStudio, which hosts the draft automated README files and any experimental data that has been analysed. The GitHub is connected to overleaf and RStudio to allow for automatic . There are also two hidden folders, .github, which hosts the custom GitHub workflows, and the .git folder, which hosts git-specific files.
+In terms of organisation, the page is divided into SSP folders, namely docs, which contains the website files, firmware, which contains the firmware files, hardware, which contains the hardware related files and software, which contains the code. There are also thesis-specific folders, overleaf, which host the thesis report, and RStudio, which hosts the draft automated README files and any experimental data that has been analysed. The GitHub is connected to overleaf and RStudio to allow for automatic . There are also two hidden folders, .github, which hosts the custom GitHub workflows, and the .git folder, which hosts git-specific files. The main branch of GitHub is restricted and protected, preventing direct commits to it, requiring a pull request that must be approved before merging. Active development takes place in subversions of the /dev branch. Development done by the author is hosted in the dev/nick branch. This was done in an effort to protect the main release versions of the code from accidental editing. \\
 
-The main branch of GitHub is restricted and protected, preventing direct commits to it, requiring a pull request that must be approved before merging. Active development takes place in subversions of the /dev branch. Development done by the author is hosted in the dev/nick branch. This was done in an effort to protect the main release versions of the code from accidental editing.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\linewidth]{overleaf/images/placeholder.png}
-    \vspace{\ftspace}
-    \caption{GitHub Workflow, Branches and Automation}
-    \label{fig:enter-label}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.5\linewidth]{overleaf/images/placeholder.png}
+%     \vspace{\ftspace}
+%     \caption{GitHub Workflow, Branches and Automation}
+%     \label{fig:enter-label}
+% \end{figure}
 
 To help with the development workflow, some automation has been introduced on GitHub. Automated activities include the building of the website, which is automated and triggered whenever there is a push or merge to the main branch. In addition to the website being built, there is a custom render and release pipeline that is triggered by merge commits. As the main branch is restricted and can't be committed to directly, it requires a pull request to be submitted and approved. The pipeline is triggered when the pull request is approved and merged. It then automatically populates the software/release folder with all relevant code files from their various locations, and updates config.py with the version of those files. The pipeline then renders all the Quarto Markdown README files, updating them to include the latest file structure and information about the respective folders and their files. Finally, the pipeline merges the above changes back into the branch from which the pull request originated.
 
@@ -645,7 +643,7 @@ To help with the development workflow, some automation has been introduced on Gi
 
 \subsubsection{\label{sec:methods_pyscript}Development and Management Tools}
 
-In an effort to facilitate interaction with the developed network library and for the sake of accessibility, various tools have been created to assist in the management and development using the Smart System Platform.\\
+In an effort to facilitate interaction with the developed Networking Library and for the sake of accessibility, various tools have been created to assist in the management and development using the Smart System Platform.\\
 
 \textbf{\label{sec:methods_ide}Integrated Development Environment}\\
 
@@ -663,7 +661,7 @@ The code stage area, which represents the website/computer side, includes a spac
     \label{fig:ide}
 \end{figure}
 
-Terminal pages can be added and removed using the Add REPL and Remove last REPL buttons. This allows multiple terminal pages to be added, which has been done in an effort to facilitate concurrent coding on multiple devices or modules, which is especially helpful when using the networking library. This capability comes directly from a shortcoming in other IDEs. For example, Thonny, a beginner-friendly Python IDE \citep{annamaa_thonny_2015, aivar_annamaa_thonny_2025,aivar_annamaa_thonny_nodate, annamaa_introducing_2015}, only allows one window to be open at a time.\\
+Terminal pages can be added and removed using the Add REPL and Remove last REPL buttons. This allows multiple terminal pages to be added, which has been done in an effort to facilitate concurrent coding on multiple devices or modules, which is especially helpful when using the Networking Library. This capability comes directly from a shortcoming in other IDEs. For example, Thonny, a beginner-friendly Python IDE \citep{annamaa_thonny_2015, aivar_annamaa_thonny_2025,aivar_annamaa_thonny_nodate, annamaa_introducing_2015}, only allows one window to be open at a time.\\
 
 \textbf{\label{sec:methods_configai}AI Code Assistant}\\\\
 In an effort to ease the learning curve and simplify development of code using the Networking Library and other SSP libraries, a Large Language Model (LLM), specifically  OpenAI's Chat-GPT, has been primed with instructions, coding documentation and documented code examples.
@@ -675,7 +673,7 @@ The concept of the Network Management and Module Configuration Tool is shown in 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\linewidth]{overleaf/images/placeholder.png}
+    \includegraphics[width=\linewidth]{overleaf/images/backend.png}
     \vspace{\ftspace}
     \caption{Functionality concept of the Network Management and Module Configuration Tool}
     \vspace{\ftspace}
@@ -723,27 +721,27 @@ To keep in line with the designing principles of keeping things simple, accessib
     \label{fig:website_layout}
 \end{figure}
 
-The website is divided into five parts: the home page or index page, which gives a brief introduction and overview of the Smart System Platform and provides links to the main resources; the idea page, which describes the concept of the Smart System Platform, the networking approach and provides technical background; the resources page, which contains a guide to getting started with the Smart System Platform, its tools and the Networking Library and links various other resources; the toolbox page, which links to the various tools developed, such as the IDE, the Network Management portal, the Module Management portal and the primed AI chatbots; and the social page, which provides background on the involved parties and the contact details. The different pages and their contents are also outlined in the table \ref{tab:website_content}.
+The website is divided into five parts: the home page or index page, which gives a brief introduction and overview of the Smart System Platform and provides links to the main resources; the idea page, which describes the concept of the Smart System Platform, the networking approach and provides technical background; the resources page, which contains a guide to getting started with the Smart System Platform, its tools and the Networking Library and links various other resources; the toolbox page, which links to the various tools developed, such as the IDE, the Network Management portal, the Module Management portal and the primed AI chatbots; and the social page, which provides background on the involved parties and the contact details. %The different pages and their contents are also outlined in the table \ref{tab:website_content}.
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|l||p{70pt}|p{70pt}|p{70pt}|p{70pt}|p{70pt}|}
-        \hline
-        \textbf{Page} & Index & Idea & Resources & Toolbox & Social \\\hline
-        \textbf{Content} & Overview & eh & eh & eh & eh \\
-    \end{tabular}
-    \vspace{\ftspace}
-    \caption{Website structure and page content}
-    \label{tab:website_content}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{|l||p{70pt}|p{70pt}|p{70pt}|p{70pt}|p{70pt}|}
+%         \hline
+%         \textbf{Page} & Index & Idea & Resources & Toolbox & Social \\\hline
+%         \textbf{Content} & Overview & eh & eh & eh & eh \\
+%     \end{tabular}
+%     \vspace{\ftspace}
+%     \caption{Website structure and page content}
+%     \label{tab:website_content}
+% \end{table}
 
 \subsubsection{\label{sec:methods_sw}Software}
 
-Various code and libraries have been written and collected as part of the platform, in addition to the networking library designed and developed in Section \ref{sec:methods_net_des} and Section \ref{sec:methods_net_dev} respectively. An overview of all SSP-related code and libraries, including their purpose and source where applicable, can be found in Table \ref{tab:software_files}.
+Various code and libraries have been written and collected as part of the platform, in addition to the Networking Library designed and developed in Section \ref{sec:methods_net_des} and Section \ref{sec:methods_net_dev} respectively. An overview of all SSP-related code and libraries, including their purpose and source where applicable, can be found in Table \ref{tab:software_files}.
 
 The various configuration files, such as prefs.py and version.py from the Smart Motors (see Section \ref{sec:methods_sm_soft}), have been merged into config.py, which contains other configuration values necessary for the networking and normal operation of the modules, such as the module configuration, id, code version numbers, and the STA and AP Wi-Fi channel on which the devices are operating. Except for the module type and its name, the values are set automatically when the module is powered up.  The file also contains dictionaries of network type and subtype keys and their codes, network handshake keys and codes, a whitelist of MAC addresses from which certain commands are accepted, and Wi-Fi network secrets for connecting to a specific Wi-Fi. The file also contains an i2c dictionary of common peripheral hardware i2c addresses and a dictionary of sensors and their respective range of output values, as well as the hive configuration, which includes values for which MAC addresses to send sensor data to, which devices to expect data from and which of their sensor values to use, how to use them, the rate at which data should be sent and output calculated, and more.
 
-A customisable boot program has also been written, which automatically calls the appropriate module main program from within boot, based on a value in config.py. The module's main program will first initialise the network so that the module can be found and receive messages and commands, set up everything based on its configuration, and then either run in hive mode or call the module's stand-alone main program. This allows the module to function as a stand-alone, but still receive and respond to commands using the networking library if necessary. These commands can be used to change its configuration and, for example, put it into hive mode. To enable certain hardware inputs and outputs, such as sensors, motors, lights, etc., various libraries are also required to support their functions, which are also included in the code list.
+A customisable boot program has also been written, which automatically calls the appropriate module main program from within boot, based on a value in config.py. The module's main program will first initialise the network so that the module can be found and receive messages and commands, set up everything based on its configuration, and then either run in hive mode or call the module's stand-alone main program. This allows the module to function as a stand-alone, but still receive and respond to commands using the Networking Library if necessary. These commands can be used to change its configuration and, for example, put it into hive mode. To enable certain hardware inputs and outputs, such as sensors, motors, lights, etc., various libraries are also required to support their functions, which are also included in the code list.
 
 \begin{table}[H]
     \centering
@@ -811,44 +809,51 @@ As part of the ongoing Smart Playground project \citep{jess_smart_2025}, which w
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\linewidth]{overleaf/images/smartlight.png}
+        \caption{Smart Light}
     \end{subfigure}
-    \hspace{10pt}
-    \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \begin{subfigure}[b]{0.38\textwidth}
+        \includegraphics[width=.49\linewidth]{overleaf/images/module_front.png}
+        \includegraphics[width=.49\linewidth]{overleaf/images/module_back.png}
+        \caption{Plushie Module}
     \end{subfigure}
-    \hspace{10pt}
-    \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\linewidth]{overleaf/images/button.png}
+        \caption{Button Module}
     \end{subfigure}
-    \\
-    \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    \begin{subfigure}[b]{0.19\textwidth}
+        \includegraphics[width=\linewidth]{overleaf/images/splat.png}
+        \caption{Smart Splat}
     \end{subfigure}
-    \hspace{10pt}
-    \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
-    \end{subfigure}
-    \hspace{10pt}
-    \begin{subfigure}[b]{0.25\textwidth}
-        \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
-    \end{subfigure}
+    % \\
+    % \begin{subfigure}[b]{0.25\textwidth}
+    %     \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    % \end{subfigure}
+    % \hspace{10pt}
+    % \begin{subfigure}[b]{0.25\textwidth}
+    %     \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    % \end{subfigure}
+    % \hspace{10pt}
+    % \begin{subfigure}[b]{0.25\textwidth}
+    %     \includegraphics[width=\linewidth]{overleaf/images/placeholder.png}
+    % \end{subfigure}
     \\\vspace{\ftspace}
-    \caption{Smart Light Module (left), Splat Module (middle) and Button Module (right), Smart Boards () and Plushies () \citep{jess_smart_2025}}
+     \caption{Various modules developed based on the Smart Motors project \citep{jess_smart_2025} (a) and by the Smart Playground project \citep{jess_smart_2025} (b, c and d)}
     \label{fig:hardware_examples}
 \end{figure}
 
 \subsubsection{\label{sec:methods_fw}Firmware}
-While a custom firmware was built for the Smart Motors with additional packages and libraries, and it was briefly considered to do the same and create our own firmware and include certain libraries, especially the networking library, in the firmware, it was decided not to do this, but to use the base MicroPython firmware for the sake of accessibility and interoperability.
+While a custom firmware was built for the Smart Motors with additional packages and libraries, and it was briefly considered to do the same and create our own firmware and include certain libraries, especially the Networking Library, in the firmware, it was decided not to do this, but to use the base MicroPython firmware for the sake of accessibility and interoperability.
+
 
 \section{\label{sec:methods_ph3}Phase 3: Testing and Validation}
-In a final phase, the developed Networking Library was tested and an attempt was made to test and validate the various parts, such as the tools and capabilities developed for the Smart System Platform.
+In a final phase, the developed Networking Library was tested and an attempt was made to test and validate the various parts, such as the tools and capabilities developed for the Smart System Platform. Furthermore, in an effort to test the use 
 
 \subsection{\label{sec:methods_test_net}Networking}
-The following tests were designed during the development of the Networking Library to assess, test and validate its networking capabilities.
+The following tests were designed during the development of the Networking Library to evaluate, validate, and assess its networking capabilities in relation to the first research question.
 
-\subsubsection{\label{sec:methods_test_boop}Robustness - Boop-o-Meter}
+\subsubsection{\label{sec:methods_test_boop}Robustness}
 In an effort to assess and test the reliability and sturdiness of the Networking Library with a larger amount of modules, a program called the boop-o-meter\footnote{The name is a reference to he Tumblr April 1st joke in 2021, by which the tool was inspired} was created. The program runs on Dahal-Board hardware and uses a simple interaction design, discovering all modules in its vicinity using the ping functionality of the Networking Library, and then lists all the discovered modules in a list on the screen and then allows a message to be sent to the highlighted mac address in a list of mac addresses of discovered devices, which also includes the broadcast address, keeping count of received and sent messages. The test was conducted during Hackathon 1 with 18 devices, the goal was then to send and receive 999 messages.
 
 % \begin{figure}[H]
@@ -859,19 +864,19 @@ In an effort to assess and test the reliability and sturdiness of the Networking
 %     \label{fig:boop-o-meter}
 % \end{figure}
 
-The results of this test are outlined in Section \ref{sec:res_reliability} and the code can be found in Appendix \ref{chap:apx_e}.
+The results of this test are outlined in Section \ref{sec:res_reliability} and the code can be found in Appendix \hyperref[chap:apx_e]{E}.
 
 \subsubsection{\label{sec:methods_test_range}Range}
-A further test was carried out to determine the maximum range at which messages could still be received, using the same programme as described for the robustness test, the code for which can be found in Appendix \ref{chap:apx_e}. Given the range requirements for this test, the test was conducted outdoors on a straight road between the CEEO offices and the Tufts campus to ensure an uninterrupted line of sight. 
+A further test was carried out to determine the maximum range at which messages could still be received, using the same programme as described for the robustness test, the code for which can be found in Appendix \hyperref[chap:apx_e]{E}. Given the range requirements for this test, the test was conducted outdoors on a straight road between the CEEO offices and the Tufts campus to ensure an uninterrupted line of sight. 
 Two people, connected via phone call, walked away from each other on the street and periodically sent messages to each other from the MCB. At the point where neither person was receiving messages, their positions were marked and the final distance was calculated using Google Earth. The results of this test are discussed in Section \ref{sec:res_range}.
 
 \subsubsection{\label{sec:methods_test_rssi}Response Time, RSSI and Packet Loss Rate by Range}
-To test the reliability of the transmission and to get an idea of the response time, RSSI values and packet loss by range, a test was carried out at different distances. As this code was intended to demonstrate the technical capabilities of the underlying ESP-NOW protocol, a specific code was written for this test, reducing the code and networking part to the absolute minimum. The code was designed to send 100 messages to the broadcast address, with the receiving module designed to echo the messages immediately on receipt. Sending was triggered manually and message exchange was monitored with print statements. The various modules logged relevant data, such as the message ID (to calculate the number of dropped messages), the time of reception and transmission to calculate the ping of a message sent back and forth, and the RSSI value. In a separate step, the logged raw values were then written to a file, and the various values of interest were calculated and stored in a separate step at the end. The code was kept to a minimum and the logged data was written after the fact to allow sufficient time for all messages to be received and returned. The test was carried out in two stages: for distances of less than one metre, the test was carried out in the laboratory, while for longer distances, in order to ensure a clear line of sight between the two devices, given the distance requirements, the test was carried out outdoors on the roof of the car park outside the CEEO offices at 200 Boston Avenue, MA, USA. The results of this test are discussed in Section \ref{sec:res_rssi} and the corresponding code and raw results can be found in Appendix \ref{chap:apx_e}.\\\\
+To test the reliability of the transmission and to get an idea of the response time, RSSI values and packet loss by range, a test was carried out at different distances. As this code was intended to demonstrate the technical capabilities of the underlying ESP-NOW protocol, a specific code was written for this test, reducing the code and networking part to the absolute minimum. The code was designed to send 100 messages to the broadcast address, with the receiving module designed to echo the messages immediately on receipt. Sending was triggered manually and message exchange was monitored with print statements. The various modules logged relevant data, such as the message ID (to calculate the number of dropped messages), the time of reception and transmission to calculate the ping of a message sent back and forth, and the RSSI value. In a separate step, the logged raw values were then written to a file, and the various values of interest were calculated and stored in a separate step at the end. The code was kept to a minimum and the logged data was written after the fact to allow sufficient time for all messages to be received and returned. The test was carried out in two stages: for distances of less than one metre, the test was carried out in the laboratory, while for longer distances, in order to ensure a clear line of sight between the two devices, given the distance requirements, the test was carried out outdoors on the roof of the car park outside the CEEO offices at 200 Boston Avenue, MA, USA. The results of this test are discussed in Section \ref{sec:res_rssi} and the corresponding code and raw results can be found in Appendix \hyperref[chap:apx_e]{E}.\\\\
 A further response time test was conducted using the Networking Library, to measure the time taken up by the additional calculation burden imposed by the library, which is discussed in Section \ref{sec:res_ping}.
 %(Temperatures for the outised tests were at -4* celsius with clear weather and some wind gusts.)
 
 \subsubsection{\label{sec:methods_test_angle}Antenna Angle Effects on RSSI and Ping}
-Based on anecdotal observations from the Smart Playground project using ESP32C3 and ESP32C6 devices with the developed SSP Networking Library, differences in RSSI values, which were used to approximate range, were observed for different devices. The effect of the relative antenna angle between two units was tested at a predefined distance of 1 metre, as outlined in Figure \ref{fig:angle}. The same program used to calculate the response time, RSSI values and packet loss rate for different distances was used for this test, the code for which can be found in Appendix \ref{chap:apx_e}. The results of this test are presented in Section \ref{sec:res_angle}.
+Based on anecdotal observations from the Smart Playground project using ESP32C3 and ESP32C6 devices with the developed SSP Add-on Library, differences in RSSI values, which were used to approximate range, were observed for different devices. The effect of the relative antenna angle between two units was tested at a predefined distance of 1 metre, as outlined in Figure \ref{fig:angle}. The same program used to calculate the response time, RSSI values and packet loss rate for different distances was used for this test, the code for which can be found in Appendix \hyperref[chap:apx_e]{E}. The results of this test are presented in Section \ref{sec:res_angle}.
 
 \begin{figure}[H]
     \centering
@@ -882,32 +887,28 @@ Based on anecdotal observations from the Smart Playground project using ESP32C3 
 \end{figure}
 
 \subsubsection{\label{sec:methods_test_batter}Power Consumption}
-Another test that was prepared after problems were discovered by the Smart Playground project when using networking in conjunction with various additional components such as audio output and LED lights, powered by three AAA batteries instead of the usual LiPo batteries, was that after about ten minutes the power was too low to run all three components simultaneously. To this end, a test was designed and carried out to determine the power consumption of the Networking Library when continuously sending and receiving messages. Starting with a full LiPo battery, echo type messages were sent every second, while a receiver connected to a laptop continued to log the time since startup when the last message was received. The code for this test can be found in Appendix \ref{chap:apx_e}, while the results are outlined in Section \ref{sec:res_battery}.
+Another test that was prepared after problems were discovered by the Smart Playground project when using networking in conjunction with various additional components such as audio output and LED lights, powered by three AA batteries instead of the usual LiPo batteries, was that after about ten minutes the power was too low to run all three components simultaneously. To this end, a test was designed and carried out to determine the power consumption of the Networking Library when continuously sending and receiving messages. Starting with a full LiPo battery, echo type messages were sent every second, while a receiver connected to a laptop continued to log the time since startup when the last message was received. The code for this test can be found in Appendix \hyperref[chap:apx_e]{E}, while the results are outlined in Section \ref{sec:res_battery}.
 
-\subsection{\label{sec:methods_tools}Smart System Platform: GitHub, Tools and Website}
+\subsection{\label{sec:methods_tools}Smart System Platform}
+In addressing the second research question, while an accessibility and design test for the website was conducted using Google Developer's PageSpeed Insights \citep{noauthor_about_nodate}, a comprehensive validation of the Smart System Platform can only be achieved through continued use, as discussed in Section \ref{sec:methods_example}. To facilitate this, the Networking Library and Smart System Platform were tested and utilised during two hackathons, detailed in Sections \ref{sec:methods_hackathon1} and \ref{sec:methods_hackathon2}.
 
-While it was possible to conduct an accessibility and design test for the website, using the Google Developer's PageSpeedInsights \citep{noauthor_about_nodate}, validation of the Smart System Platform as a whole, the GitHub, the website and the tools and the code and networking libraries can only be achieved by continued use, as described in and Section \ref{sec:methods_other}. However, an attempt to test it was made during the two Hackathons, outlined in Section \ref{sec:methods_hackathon1} and Section \ref{sec:methods_hackathon2}.
+\subsection{\label{sec:methods_}Utilisation and Outcomes}
+This section explores how the Networking Library and Smart System Platform were utilised in various contexts. 
 
 \subsubsection{\label{sec:methods_example}Example Applications}
-Some example applications were developed by the author during the research, using the developed Networking Library and Smart System Platform and its tools, such as the boop-o-meter, Smart Motors controlling each other and the Hive Motors project, which describes the Smart Modules set up to be configurable using the Network Management and Module Configuration Tool. The results of this are described in Section \ref{sec:res_examplekit}.
+Some example applications were developed by the author during the research, using the developed Networking Library and Smart System Platform and its tools, such as the boop-o-meter, Smart Motors controlling each other and the Hive Mode, which describes the Smart Modules set up to be configurable using the Network Management and Module Configuration Tool. The results of this are described in Section \ref{sec:res_examplekit}.
 
-\subsection{\label{sec:methods_hackathon1}Hackathon 1}
+\subsubsection{\label{sec:methods_hackathon1}Hackathon 1}
+The focus of the first hackathon was to test the robustness of the Networking Library and ESP-NOW and to explore the use and usability of the Networking Library. The hackathon was therefore divided into several parts, starting with an introduction to the research, the Networking Library and the proposed Smart System Platform. This was followed by a robustness test using the boop-o-meter program, as described in Section \ref{sec:methods_test_boop}. As a next step, the participants were tasked with brainstorming potential uses and applications of such a networked device, and then using the provided Networking Library and example code to build a small project using Smart Motors hardware. The results are outlined in Section \ref{sec:res_hackathon1}.
 
-The focus of the first hackathon was to test the robustness of the Networking Library and ESP-NOW and to explore the use and usability of the Networking Library. The hackathon was therefore divided into several parts, starting with an introduction to the research, the Networking Library and the proposed Smart System Platform. This was followed by a robustness test using the boop-o-meter program, as described in Section \ref{sec:methods_test_boop}. As a next step, the participants were tasked with brainstorming potential uses and applications of such a networked device, and then using the provided networking library and example code to build a small project using Smart Motors hardware. The results are outlined in Section \ref{sec:res_hackathon1}.
+\subsubsection{\label{sec:methods_hackathon2}Hackathon 2}
+To address the third research question, the focus of the second hackathon was to test the Smart System Platform as a whole, focusing on the usability of the development tools and the Networking Library, and to find out what students could do with the tools and capabilities provided. The hackathon will start with an introductory presentation about the project, the Networking Library and the Smart System Platform approach, a quick overview of the tools. Participants are then tasked in small groups to try out the tools and develop a small interactive project using the Networking Library and Smart System Platform tools. Feedback on the usability as well as the application potential was collected via a questionnaire, the results of which are discussed in Section \ref{sec:res_hackathon2}.
 
-\subsection{\label{sec:methods_hackathon2}Hackathon 2}
+%\subsubsection{\label{sec:methods_other}Use in Other Projects}
 
-The focus of the second hackathon was to test the Smart System Platform as a whole, focusing on the usability of the development tools and the Networking Library, and to find out what students could do with the tools and capabilities provided. The hackathon will start with an introductory presentation about the project, the Networking Library and the Smart System Platform approach, a quick overview of the tools. Participants are then tasked in small groups to try out the tools and develop a small interactive project using the Networking Library and Smart System Platform tools. Feedback on the usability as well as the application potential was collected via a questionnaire, the results of which are discussed in Section \ref{sec:res_hackathon2}.
-
-\subsection{\label{sec:methods_other}Use in Other Projects}
-
-\subsubsection{\label{sec:methods_me35}ME35}
-Some students have used the GitHub and Networking Library for some of their class projects as part of the Tufts class ME35, whose feedback was also gathered via questionnaire. The results of this, as well as the project developed using the provided networking capability are shown in Section \ref{sec:res_me35}.
+%\subsubsection{\label{sec:methods_me35}ME35}
+%Some students have used the GitHub and Networking Library for some of their class projects as part of the Tufts class ME35, whose feedback was also gathered via questionnaire. The results of this, as well as the project developed using the provided networking capability are shown in Section \ref{sec:res_me35}.
 
 \subsubsection{\label{sec:methods_smart_playground}Smart Playground}
 %Introduce project and that code and some of the ideas outlined in Section \ref{sec:methods_ssp_des} and Section \ref{sec:methods_ssp_dev} were used for this project.
-The Smart Playground project, developed concurrently with this research as a partnership between Tufts CEEO and Boston University, is a project... introduce project. 
-The main goal of the project is to create interactive playground and classroom experiences to teach computational thinking. The approach taken was to use interactive modules, some of which are carried or held individually by children, and others in the form of stations such as buttons or splats (see Section \ref{sec:methods_hw}). As such, the project required a way for the different modules to communicate and interact with each other, which was exactly the capability developed as part of this research in the form of the Networking Library. The project also based its hardware on the Dahal Board and ESP32 MCBs, which are fully compatible and in line with the aims of the Smart System Platform, one of which is to enable and facilitate such development, leading to some collaboration. The project relied on the Networking Library to develop the hardware for its initial tests, and used some of the ideas outlined in Section \ref{sec:methods_ssp_des} and Section \ref{sec:methods_ssp_dev} to develop hardware that is compatible and in line with the idea of the idea of Smart System Platform introduced in Section \ref{sec:methods_ssp_des}. The use of the Networking Library by the Smart Playground project is further explored and discussed in Section \ref{sec:res_smartplayground}.
-
-
-
+The Smart Playground project is a project run in cooperation by Tufts CEEO and Boston University, which was being developed at the same time at this research. The main goal of the project is to create interactive playground and classroom experiences to teach computational thinking. The approach taken was to use interactive modules, some of which are carried or held individually by children, and others in the form of stations such as buttons or splats (see Section \ref{sec:methods_hw}). As such, the project required a way for the different modules to communicate and interact with each other, which was exactly the capability developed as part of this research in the form of the Networking Library. The project also based its hardware on the Dahal Board and ESP32 MCBs, which are fully compatible and in line with the aims of the Smart System Platform, one of which is to enable and facilitate such development, leading to some collaboration. The project relied on the Networking Library to develop the hardware for its initial tests, and used some of the ideas outlined in Section \ref{sec:methods_ssp_des} and Section \ref{sec:methods_ssp_dev} to develop hardware that is compatible and in line with the idea of the idea of Smart System Platform introduced in Section \ref{sec:methods_ssp_des}. The use of the Networking Library by the Smart Playground project is further explored and discussed in Section \ref{sec:res_smartplayground}.
