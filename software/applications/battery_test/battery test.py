@@ -59,6 +59,7 @@ if configuration == "AM1":
             #lastPressed = time.ticks_ms()
             #networking.ping(peer_mac)
             #networking.echo(peer_mac, message)
+        #networking.echo(peer_mac, time.ticks_ms())
         networking.send(peer_mac, time.ticks_ms())
         print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
             #print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.rssi()}")

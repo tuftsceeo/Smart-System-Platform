@@ -183,7 +183,7 @@ if hive_config["hive"]:
                                     sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
                     output = output / len(receive_list)
                     output = bool(int(output))
-                    # print(f"Value: {output}")
+                    print(f"Value: {output}")
                     oled.fill(0)
                     oled.show()
                     oled.text("hive mode", 0, 28, 1)
@@ -200,7 +200,7 @@ if hive_config["hive"]:
                                     sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
                     output = output / len(receive_list)
                     output = int(output * 180)
-                    # print(f"Value: {output}")
+                    print(f"Value: {output}")
                     s.write_angle(output)
                 except Exception as e:
                     print(e)
@@ -221,7 +221,7 @@ if hive_config["hive"]:
 
         while hive_config["hive"]:
             get_sensor_data(None)
-            time.sleep(hive_config["refreshrate"])
+            time.sleep(hive_config["refreshrate"]/1000)
 
     except KeyboardInterrupt:
         #timer.deinit()
