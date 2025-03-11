@@ -39,7 +39,7 @@ start = time.ticks_ms()
 last_press_time = 0
 
 dictionary = {}
-sender = True
+sender = False
 
 
 # Callback function that retrieves the last message from the message buffer
