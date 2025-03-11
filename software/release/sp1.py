@@ -177,7 +177,7 @@ if hive_config["hive"]:
                                     sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
                     output = output / len(receive_list)
                     output = int(output * 7 + 1)
-                    # print(f"Value: {output}")
+                    print(f"Value: {output}")
                     s.set_color(output)
                 except Exception as e:
                     print(e)
@@ -194,7 +194,7 @@ if hive_config["hive"]:
 
         while hive_config["hive"]:
             get_sensor_data(None)
-            time.sleep(hive_config["refreshrate"])
+            time.sleep(hive_config["refreshrate"]/1000)
 
     except KeyboardInterrupt:
         #timer.deinit()

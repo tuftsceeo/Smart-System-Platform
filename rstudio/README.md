@@ -20,7 +20,9 @@ The repository has the following directory tree.
     │   ├── analysis.qmd
     │   ├── data
     │   └── plots
-    └── exampleREADME.qmd
+    ├── exampleREADME.qmd
+    └── survey
+        └── data
 
 A short description of the directories can be found below.
 
