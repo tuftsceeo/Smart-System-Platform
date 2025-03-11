@@ -5,16 +5,15 @@
 
 \section{\label{sec:res_networking}Networking}%should this be in firmware?
 
-As described in Section \ref{sec:methods_net_des} and Section \ref{sec:methods_net_dev}, and in line with research question 1, a networking structure has been designed and developed for use with the Smart Motors-based hardware.
+As outlined in Section \ref{sec:methods_net_des} and Section \ref{sec:methods_net_dev}, and in accordance with research question 1, a networking structure has been conceptualised and implemented for use with the Smart Motors-based hardware.
 
 \subsection{\label{sec:res_logic}Concept, Structure and Logic}
 
-As outlined in Section \ref{sec:methods_net_des} and Section \ref{sec:methods_net_dev}, the networking was designed and developed in two parts, the Networking Library and using the interfaces of the base networking as a base, the more specific SSP Add-on Library. \\
+As outlined in Section \ref{sec:methods_net_des} and Section \ref{sec:methods_net_dev}, the networking was designed and developed in two parts: the Networking Library and, using this library as a base, the SSP Add-on Library. \\
 
-The Networking library is designed to be a general purpose library that builds on ESP-NOW and adds some basic structure and functionality. This base networking introduces address book logic that bypasses ESP-NOW's 20 peer limit, allowing transmission to a theoretically unlimited number of peers at the expense of efficiency. It also introduces the basic message structure, including different message types (cmd, inf, ack) and different subtypes (cmd: ping, echo, boop; inf: msg, data; ack: pong, echo, boop). The library also includes logic to send data larger than $241\ bytes$, the maximum payload allowed using the message structure defined in Section \ref{sec:rev_net}, increasing it to a theoretical limit of $60'928\ bytes$. However, in reality the message limit is lower, with the maximum amount successfully transmitted at about 30 kB due to the memory limitations of the MicroPython firmware running on the ESP32C3. Also, sending large messages in chunks runs the risk of some chunks being lost during transmission (see Section \ref{sec:res_rssi}), especially over long distances, resulting in the entire message being dropped. While there is a provision in the code to remedy this by storing all parts of a long message in a buffer, and if the receiving device is missing one or more parts of a multi-part message after some time, it sends a message requesting the missing parts, this has been disabled for memory optimisation. 
-The network design also includes various interfaces for customisation and the addition of additional custom commands, message types and handling logic, including custom IRQ messages. \\
+The Networking library has been designed to serve as a general-purpose library, building upon ESP-NOW while incorporating essential structural and functional elements. It introduces address book logic that bypasses ESP-NOW's 20 peer limit, allowing transmission to a theoretically unlimited number of peers, though at the expense of efficiency. The library also introduces the fundamental message structure, including various message types (\textit{cmd}, \textit{inf}, \textit{ack}) and different subtypes (\textit{cmd}: \textit{ping}, \textit{echo}, \textit{boop}; \textit{inf}: \textit{msg}, \textit{data}; \textit{ack}: \textit{pong}, \textit{echo}, \textit{boop}, \textit{confirm}, \textit{success}, \textit{fail}). The library also includes logic to send data larger than $241\ bytes$, the maximum possible payload per message using the message structure defined in Section \ref{sec:rev_net}. This was increased to a theoretical limit of $60'928\ bytes$. In reality, however, the practical limit is lower, with the maximum amount successfully transmitted being about $30\ kB$ due to the memory limitations of the MicroPython firmware running on the ESP32C3. Additionally, the transmission of large messages in chunks entails the risk of some chunks being lost during transmission (see Section \ref{sec:res_rssi}), especially over long distances, resulting in the entire message being dropped. The code includes a provision to remedy this issue through the use of a buffer, wherein all components of a long message are stored. In the event that the receiving device fails to receive one or more parts of a multi-part message after a certain duration, it initiates a request for the missing parts. However, this functionality has been disabled to optimise memory usage. The network design incorporates a range of interfaces for customisation, with the potential for the inclusion of additional custom commands, message types and handling logic, including custom IRQ messages. \\
 
-Building on top of these interfaces of the base Networking Library, the SSP Networking Library introduces many additional smart module specific commands, handlers and message types, which allow the effective control and configuration of smart modules using the appropriate commands. The specific structure of the code of the two libraries and all their commands are shown in Figure \ref{fig:net_code_structure}.
+The SSP Add-on Library has been developed as an extension of the base Networking Library, introducing a range of additional Smart Module-specific commands, handlers and message types. These enable the effective control and configuration of Smart Modules through the utilisation of designated commands. The architecture of the code for both libraries, along with the full suite of commands available in each, is illustrated in Figure \ref{fig:net_code_structure}.\\
 
 % \begin{figure}[H]
 %     \centering
@@ -24,30 +23,30 @@ Building on top of these interfaces of the base Networking Library, the SSP Netw
 %     \label{fig:Networking overview}
 % \end{figure}
 
-As such, the Networking Library meets all the requirements outlined in Section \ref{sec:methods_net_des}. In particular, it is compatible with the Smart Motors hardware and with any ESP32-based hardware that includes Wi-Fi and thus ESP-NOW capabilities, as well as with the MicroPython firmware used. The protocol uses a peer-to-peer communication approach, inherited from the basic ESP-NOW design on which it is based, and requires no central root or hub or even configuration to use, other than initialising the library. It also includes message validation features, using a common message structure that includes an identifier and checksum, and provisions for easy module discovery, using the ping command defined in the base Networking Library, and interaction, using the various further defined commands and message types defined in the SSP networking add-on, which further satisfies the latter two requirements. In terms of design principles, the networking is split into two parts, allowing the base networking, which contains simple logic and commands, to be used in a variety of custom ways, and further allowing interfaces for customisation. The code is furthermore following the style Guide for Python Code based Python Enhancement Proposal 8. \citep{rossum_python_2001}
+As such, the Networking Library fulfils the requirements outlined in Section \ref{sec:methods_net_des}. Notably, it is compatible with the Smart Motors hardware and with any ESP32-based hardware that includes Wi-Fi and thus ESP-NOW capabilities, as well as with the MicroPython firmware used. The protocol uses a peer-to-peer communication approach, inherited from ESP-NOW protocol, on which it is based, and requires no central root or hub, nor any configuration to use, other than initialising the library. The library also includes message validation features, employing a common message structure that includes an identifier and checksum. It further facilitates module discovery, using the \textit{ping} command, and interaction via various further defined commands and message types specified in Networking Library and the SSP Add-on Library, thereby satisfying the latter two requirements. In terms of design principles, the networking is split into two parts, allowing the base networking, which contains simple logic and commands, to be used in a variety of custom ways, further facilitated by interfaces for customisation. Finally, the code adheres to the Style Guide for Python Code based PEP 8 \citep{rossum_python_2001}.
 
-\subsection{\label{sec:res_range}Range Test}
+\subsection{\label{sec:res_range}Maximum Range Test}
 
-As outlined in Section \ref{sec:methods_test_range}, the original range test was conducted using the boop-o-meter program on a street in front of the CEEO offices. The maximum range at which some messages were still being received by each of the two modules was approximately 242 meters, as shown in Figure \ref{sec:res_range}.
+As described in Section \ref{sec:methods_test_range}, the original range test was conducted using the \textit{boop-o-meter} program on a street near the CEEO offices. The maximum range at which some messages were still being received by each of the two ESP32C3 MCBs was approximately 242 meters, as shown in Figure \ref{sec:res_range}, as measured using Google Earth.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{overleaf/images/range.png}
-    \vspace{\ftspace}
-    \caption{Approximate range test on Boston Avenue, MA}
+    \includegraphics[width=\linewidth]{overleaf/images/range2.png}
+    \vspace{.5\ftspace}
+    \caption{Approximate maximum range test on Boston Avenue, MA}
     \label{fig:range}
 \end{figure}
 
 
 \subsection{\label{sec:res_rssi}Response Time, RSSI and Packet Loss Rate by Range}
 
-The RSSI, ping response and packege loss for various ranges was measured three times using two ESP32C3s, one ESP32C3 and one ESP32C6 and again using two ESP32C6s.
+The RSSI, ping response and packet loss for various ranges were measured three times using two ESP32C3s, one ESP32C3 and one ESP32C6 and again using two ESP32C6s.
 
 \subsubsection{ESP32C3 to ESP32C3}
 
-As expected, the RSSI values, an index for signal strength, drops for longer ranges, following a logarithmic curve, as shown in Figure \ref{sec:res_rssi}. The RSSI values for both devices are very similar and also follow a similar curve, with a slight divergence, which could be explained by differences in production quality of the antenna.
+As anticipated, RSSI values, an index of signal strength, decrease for extended ranges, following a logarithmic curve, as shown in Figure \ref{sec:res_rssi}. The values for both devices are similar and follow a similar curve, with marginal divergence, likely attributed to material variations.
 
-\begin{figure}[H]
+\begin{figure}[ht]
     \centering
     \begin{subfigure}{0.45\textwidth}
         \includegraphics[width=\linewidth]{rstudio/analysis/plots/ESP32C3_rssi_box.png}
@@ -63,13 +62,11 @@ As expected, the RSSI values, an index for signal strength, drops for longer ran
         \includegraphics[width=\linewidth]{rstudio/analysis/plots/ESP32C3_avg_ping.png}
     \end{subfigure}
     \vspace{\ftspace}
-    \caption{RSSI and Ping time depending on antenna angle}
+    \caption{RSSI and ping response time depending on range using two ESP32C3s}
     \label{fig:rssipingrange_esp32c3}
 \end{figure}
 
-In terms of ping time, the averages are not affected by range, which makes sense as the increase in travel time from 0 to 100 meters is only approximately $0.0000033356\ ms$ ($100\ m\ /\ 299'792'000'000\ m/ms$), which is insignificant compared to the time taken by the MCB to process it. Interestingly, the values tend to cluster at specific values with a distance of $10\ ms$, either $10\ ms$, $20\ ms$ or $30\ ms$, which might be caused by an underlying system clock rate of the MCB. There are various outliers in terms of ping time, more notably for the larger distances, though also for the measurements at 1 and 0.5 meters. The outliers of these two measurements were the first measurements of the tests, both likely taken after a restart of the used ESP32 MCBs. As such, the code had to add the peer it received the message from to its ESP-NOW buffer, which might explain some of the delay and the high ping response time for the first measurement. Subsequent measurements taken at the same distance, for example for the angle tests in Section \ref{sec:res_angle}, did not yield any such outliers, however most measurements after restart of the device, did. For other test sessions the code was usually tested in a first trial run, whose data was disregarded, which might be why this is only apparent for these two specific measurements.
-
-As for packet loss, transmission remains lossless until 25 meters, at which point packets start to become lost. These values increase with distance, with about one third of packages lost at a distance of 100 meters, as shown in Table \ref{tab:rssipingrange_esp32c3}.
+With regard to ping time, values remain largely unaffected by range, with a consistent median value of $20\ ms$ and mean values consistently around $20\ ms$. The increase in travel time from 0 to 100 meters of the radio wave is only approximately $0.0000033356\ ms$ ($100\ m\ /\ 299'792'458'000\ m/ms$), given the travel at the speed of light, which is insignificant compared to the time required to send and process the message by the MCB. Of particular interest is the observation that values are clustered at specific intervals of $10\ ms$, $20\ ms$, and $30\ ms$, which may be attributable to an underlying system clock rate of the MCB.
 
 \begin{table}[H]
     \centering
@@ -129,9 +126,14 @@ As for packet loss, transmission remains lossless until 25 meters, at which poin
         && Ping & [ms] & 26.29 & 18.17 & 10 & 141 & 20 \\\hline
     \end{tabular}
     \vspace{\ftspace}
-    \caption{RSSI, ping time and package loss measurements for various ranges}
+    \caption{RSSI, ping response time and packet loss measurements for various ranges using two ESP32C3s}
     \label{tab:rssipingrange_esp32c3}
 \end{table}
+\newpage
+
+There are various outliers in terms of ping time, notably for greater distances, though also for the measurements at 1 and 0.5 meters. The outliers observed in these two measurements were the first measurements of the series, both presumably taken after a restart of the used ESP32 MCBs. Consequently, the code had to add the MAC address it had received the message from to its ESP-NOW buffer, which might explain some of the delay and the elevated ping response time for that first measurement. Conversely, subsequent measurements taken at the same distance, for example for the angle tests in Section \ref{sec:res_angle}, did not yield any such outliers. For other test sessions the code was first run as a test of functionality, with data disregarded, which might be the reason why this issue is only apparent for these two specific measurements.\\
+
+As for packet loss, transmission remains lossless until 25 meters, at which point packets start to become lost. These values increase with distance, with approximately one third of messages lost at a distance of 100 meters, as shown in Table \ref{tab:rssipingrange_esp32c3}.
 
 \subsubsection{ESP32C3 to ESP32C6}
 
@@ -151,13 +153,18 @@ As for packet loss, transmission remains lossless until 25 meters, at which poin
         \includegraphics[width=\linewidth]{rstudio/analysis/plots/ESP32C36_avg_ping.png}
     \end{subfigure}
     \vspace{\ftspace}
-    \caption{RSSI and Ping response time depending on range}
+    \caption{RSSI and ping response time depending on range using one ESP32C3 and one ESP32C6}
     \label{fig:rssipingrange_esp32c36}
 \end{figure}
 
-Similar results were obtained using an ESP32C3 as the sender and an ESP32C6 as the receiver, the RSSI values followed a similar logarithmic path, although in this case the values were much lower for both devices, probably due to the lower on-board antenna used by the ESP32C6. The RSSI values for the sender (ESP32C3) remained significantly higher for most measurements, except for the 5 meter and 50 meter measurements where the values were similar. Surprisingly, the RSSI values for 100 meters were better than both 50 and 25 meters, with the lowest values for the test occurring at 25 meters. Ping values were also similar across the board, averaging around $20\ ms$, with some small outliers at longer distances.5
-In terms of packet loss, the trend seen for RSSI values is repeated, packet loss is highest for the measurement of 25 meters, with a similar amount of packets lost per way. Surprisingly, no packets were lost for the measurement at 100 meters. 
-There also seems to be an unexplained inconsistency in the data, specifically for the 10 meter measurement, the echo device did not receive two packets (number 62 and 72), but the sender did receive the return echo of these two packets. Something is obviously wrong here, but in the raw data collected, packets 62 and 72 are marked as received with a timestamp for the sender, whereas there are no entries for number 62 and 72 for the echo device. It has been considered whether an inaccuracy in the test code could have caused this, for example the dictionary not being cleared or reinitialised with previous values stored, but this seems improbable, as a dictionary is cleared and reinitialised as empty with every new run of the code as well as when data is written to files. although this seems unlikely as the timestamps match the surrounding entries. There could also have been an error on the part of the echoer in writing the data to the dictionary. As the response and echo logic is based on IRQ functions, an error would not have interrupted the code, so this may have gone unnoticed, but there seems no satisfactory way of explaining this inconsistency in the data. 
+Analogous results were obtained using an ESP32C3 as the sender and an ESP32C6 as the echoer. The RSSI values followed a similar logarithmic trajectory, although in this instance the values were considerably lower for both devices, likely attributed to the smaller on-board antenna used by the ESP32C6. The RSSI values for the sender (ESP32C3) remained significantly higher for most measurements, except for the 5 meter and 50 meter measurements, where the values were found to be similar. Surprisingly, the RSSI values for 100 meters were better than both 50 and 25 meters, with the lowest values for the test occurring at 25 meters. This might be explained by the intermittent fluctuation of RSSI values. While during standard deviation remains small, repeating the same measurement at the same range one a different day, can result in different RSSI values. The underlying cause of this variability remains unclear.\\
+
+The ping values also exhibited a uniform distribution, with an average of around $20\ ms$, with some minor outliers observed for greater distances.\\
+
+In terms of packet loss, a parallel trend to RSSI values is observed, with packet loss at the highest for the measurement at a range of 25 meters, with a similar amount of packets lost each direction. Notably, no packets were lost for the measurement at 100 meters. \\
+
+However, a single, isolated and unexplained inconsistency in the data is observed. Specifically for the 10 meter measurement, the echo device did not receive two packets (number 62 and 72), yet the sender did receive the return echo of these two packets. This discrepancy suggests the presence of an error, yet the raw data collected indicates that packets 62 and 72 were successfully received with a timestamp assigned to the sender. However, there are no records for these packets on the echo device. One possible explanation for this discrepancy is a bug in the test code, such as the dictionary not being cleared or reinitialised properly, retaining previous values. However, this appears improbable, as the dictionary is cleared and reinitialised empty with every new run of the code, as well as when data is written to files. Consequently, the most plausible explanation appears to be an error on the part of the echoer in writing the data to the dictionary. The echo logic and response are based on IRQ functions, so an error would not have interrupted the test and given the lack of logging, such an error may have gone unnoticed. 
+\newpage
 
 \begin{table}[H]
     \centering
@@ -217,7 +224,7 @@ There also seems to be an unexplained inconsistency in the data, specifically fo
         && Ping & [ms] & 21.25 & 1.76 & 17 & 31 & 21 \\\hline
     \end{tabular}
     \vspace{\ftspace}
-    \caption{RSSI, ping time and package loss measurements for various ranges}
+    \caption{RSSI, ping response time and packet loss measurements for various ranges using one ESP32C3 and one ESP32C6}
     \label{tab:rssipingrange_esp32c36}
 \end{table}
 
@@ -239,14 +246,17 @@ There also seems to be an unexplained inconsistency in the data, specifically fo
         \includegraphics[width=\linewidth]{rstudio/analysis/plots/ESP32C6_avg_ping.png}
     \end{subfigure}
     \vspace{\ftspace}
-    \caption{RSSI and Ping Time depending on antenna angle using two ESP32C6s}
+    \caption{RSSI and ping response time depending on range using two ESP32C6s}
     \label{fig:rssipingrange_esp32c6}
 \end{figure}
 
-However, when using two ESP32C6s, there were problems with transmission over a distance of more than 15 meters. As transmission with an ESP32C3 (sender) and an ESP32C6 (echo) was achieved up to 100 meters, the experiment was repeated with the ESP32C6 chip as the sender, which hadn't been validated in a previous test, but each time with different chips there were similar results, although in some trials the maximum distance was even lower. One suspicion for the cause of these problems was problems with the antenna, or rather the wrong antenna being used. As the MCB has two antennas, a built-in one and a connector, it is suspected that it may have been using the antenna connector (which allows short range transmission even when no antenna is connected). However, the chips are set to use the on-board antenna by default, and they seem to be set correctly. However, when connecting an antenna to the interface, a significant increase in RSSI values can be observed, furthermore, the RSSI values appear to be very similar to the ones received when using an ESP32C3 without antenna, which seems to affirm this theory. However, this raises questions as to how the ESP32C6 was then able to transmit over such a large distance. Hence, another possibility is that the problem is simply caused by the smaller on-board antenna of the ESP32C6. 
-In terms of RSSI values, the overall values were lower compared to the test with an ESP32C3 and an ESP32C6, which could also be explained by the two smaller antennas. The results also follow an expected logarithmic curve for the last measurement at 15 meters, where the RSSI values of the receiver are much higher compared to the immediately lower ranges and also compared to the RSSI values of the sender. However, this data-point is only compromised by four values due to the very high packet loss at 15 meters.
-As for the ping values, they are consistent as expected, although they are slightly lower at higher ranges.
-Locking at packet loss, minimal packages were lost for 5 and 10 meters respectively, however, at 15 meters 95 packets were lost on the return transmission.
+However, repeating the same test with two ESP32C6s, difficulties were encountered with transmission over a distance exceeding 15 meters. As transmission with an ESP32C3 (sender) and an ESP32C6 (echoer) was achieved up to 100 meters, the experiment was repeated with various ESP32C6 chips, to rule out hardware issues. However, similar results were obtained, though in some trials the maximum distance was even lower. One hypothesis to explain these issues are problems with the antenna, or rather the wrong antenna interface being used. 
+Given that the MCB is equipped with two antennas, a built-in one and a connector, it is hypothesised that it may have been utilising the antenna connector, with which short-range transmission is possible even in the absence of a connected antenna. However, it is important to note that by default, the chips are configured to use the onboard antenna, and this setting appears to be set correctly.. However, upon connecting an antenna to the interface, an increase in RSSI values was observed. Furthermore, the RSSI values measured with the on board antenna / without a connected external antenna exhibited a degree of similarity to those received when using an ESP32C3 without an antenna over short ranges, thereby substantiating this theory. However, in the prior test, transmission over a range of 100 meters was achieved with an ESP32C6 in connection with an ESP32C3 MCB, and hence it seems unlikely that the wrong antenna interface was used. Hence, a further hypothesis to explain this phenomenon is that the problem is simply caused by the ESP32C6's smaller on-board antenna. \\
+
+In terms of RSSI values, the overall values were lower in comparison to the test conducted with an ESP32C3 and an ESP32C6, a phenomenon that could be explained by the two smaller antennas. The results also follow the expected logarithmic curve. However, the RSSI values of the receiver at a distance of 15 meters are significantly higher than those at shorter ranges and also compared to the RSSI values of the sender. Though the reliability of this data point is questionable, as it is only compromised by four values due to the high rate of packet loss ($96\%$) at this range. \\
+
+With regard to the ping values, these were found to be consistent with expectations, albeit at a slightly lower level at higher ranges. This is likely to be a consequence of the reduced computational burden due to the higher packet loss. An examination of packet loss reveals that only a minimal number of messages were lost for 5 and 10 meters, respectively. However, at 15 meters, $1\%$ of packets were lost during outbound transmission, while $95\%$ of packets were lost during return transmission.
+\newpage
 
 \begin{table}[H]
     \centering
@@ -296,21 +306,22 @@ Locking at packet loss, minimal packages were lost for 5 and 10 meters respectiv
         && Ping & [ms] & 10 & 0 & 10 & 10 & 10 \\\hline
     \end{tabular}
     \vspace{\ftspace}
-    \caption{RSSI, ping time and package loss measurements for various ranges}
+    \caption{RSSI, ping response time and packet loss measurements for various ranges using two ESP32C6s}
     \label{tab:rssipingrange_esp32c6}
 \end{table}
 
 \subsection{\label{sec:res_ping}Networking Library Ping Response Time}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.45\textwidth]{rstudio/analysis/plots/ping_net_ping.png}
-    \vspace{\ftspace}
-    \caption{RSSI and Ping Time depending on antenna angle using two ESP32C6s}
-    \label{fig:net_ping}
-\end{figure}
+ \begin{figure}[H]
+     \centering
+     \includegraphics[width=.45\textwidth]{rstudio/analysis/plots/ping_net_ping.png}
+     \vspace{\ftspace}
+     \caption{Ping response time using two ESP32C3s with the Networking Library and SSP Add-on Library}
+     \label{fig:net_ping}
+ \end{figure}
 
-A ping measurement using the Networking Library and the SSP Add-On Library was performed at a fixed range of 1 meter, given the lack of variance in ping per range observed in Section \ref{sec:res_rssi}, to compare it with the time achieved by the test code used for the tests discussed in Section \ref{sec:res_rssi} and Section \ref{sec:res_angle}. The average value of the ping response time is about twice as high ($47.38\ ms$) compared to the values observed using the basic ESP-NOW code (looking at the same range of 1 meter $23.29\ ms$ and $20.04-20.14\ ms$ respectively), which is probably due to the greater amount of processing required, as well as the fact that the peer has to be added to the ESP-NOW peer buffer each time before sending, and then removed again afterwards. The ping time furthermore is very consistent with a very small std of only $1.21\ ms$ due to some outliers, as shown in Figure \ref{fig:net_ping} and Table \ref{tab:ping}. 
+A ping test using the Networking Library and the SSP Add-on Library was conducted at a fixed range of one meter. The test was only performed at a fixed range, given the lack of variance in ping response time observed in Section \ref{sec:res_rssi} for various ranges. This was done for the purpose of comparison with the ping response time achieved by the test code used for the tests discussed in Section \ref{sec:res_rssi} and Section \ref{sec:res_angle}. The average value of the ping response time is approximately twice as high ($47.38\ ms$) compared to the values observed using the basic ESP-NOW code ($23.29\ ms$ and $20.04-20.14\ ms$ respectively). This is likely due to increased processing demands and the necessity to add the peer's MAC address to the ESP-NOW peer buffer before each transmission and remove it afterward. The ping time demonstrates a high degree of consistent, with a standard deviation of only $1.21\ ms$, as shown in Figure \ref{fig:net_ping} and Table \ref{tab:ping}. 
+%However, it should be noted that there are some outliers present, as evidenced by the figures presented in the tables.
 
 \begin{table}[H]
     \centering
@@ -321,11 +332,11 @@ A ping measurement using the Networking Library and the SSP Add-On Library was p
         1 m & 0 & Ping & [ms] & 47.38 & 1.21 & 47 & 58 & 47 \\\hline
     \end{tabular}
     \vspace{\ftspace}
-    \caption{RSSI, ping time and package loss measurements for various ranges}
+    \caption{Ping time and packet loss measurements using the Networking Library and SSP Add-on Library}
     \label{tab:ping}
 \end{table}
 
-Using base ESP-NOW with minimal code, with no interrupt handlers and no other additional code, such as to save values for analysis, which might slow processing, the minimum value for ping time achieved at minimal range with optimal conditions was $4\ ms$.
+Using base ESP-NOW with minimal code, with no interrupt handlers and no other additional code, such as to save values for analysis, which might slow processing speed, the minimum value for ping response time achieved at minimal range under optimal conditions was $4\ ms$.
 
 \subsection{\label{sec:res_angle}Antenna Angle Effects on RSSI and Ping Response Time}
 
@@ -344,7 +355,7 @@ Using base ESP-NOW with minimal code, with no interrupt handlers and no other ad
     %     \includegraphics[width=\linewidth]{rstudio/analysis/plots/angle_avg_ping.png}
     % \end{subfigure}
     \vspace{\ftspace}
-    \caption{RSSI and Ping Time depending on antenna angle}
+    \caption{RSSI and ping response time depending on antenna angle}
     \label{fig:antennaangle}
 \end{figure}
 
@@ -354,57 +365,59 @@ Using base ESP-NOW with minimal code, with no interrupt handlers and no other ad
     \hline
         Angle & Packet Loss & \multicolumn{2}{l|}{Measurement} & \multicolumn{5}{c|}{Values} \\\hline
         [\degree] & [\%] & \multicolumn{2}{l|}{} & mean & std & min & max & median \\\hline\hline
-        \multirow{3}{*}{$0\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -35.71 & 0.6 & -37 & -35 & -36 \\\cline{2-9}\cline{2-9}
+        \multirow{3}{*}{$0\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -35.71 & 0.6 & -37 & -35 & -36 \\\cline{2-9}%\cline{2-9}
         %&& Time 1 &  &  &  &  &  \\\cline{2-9}\cline{2-9}
         & \multirow{2}{*}{0} & RSSI 2 & [asu] & -34.8 & 0.51 & -37 & -35 & -35 \\\cline{3-9}
         %&& Time 2 &  &  &  &  &  \\\cline{3-9}
         && Ping & [ms] & 20.2 & 1.53 & 10 & 30 & 20 \\\hline\hline
-        \multirow{3}{*}{$45\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -37.74 & 1.47 & -41 & -35 & 38 \\\cline{2-9}\cline{2-9}
+        \multirow{3}{*}{$45\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -37.74 & 1.47 & -41 & -35 & 38 \\\cline{2-9}%\cline{2-9}
         %&& Time 1 &  &  &  &  &  \\\cline{2-9}\cline{2-9}
         & \multirow{2}{*}{0} & RSSI 2 & [asu] & -37.47 &1.49 & -40 & -35 & -37 \\\cline{3-9}
         %&& Time 2 &  &  &  &  &  \\\cline{3-9}
         && Ping & [ms] & 20.14 & 0.58 & 17 & 21 & 20 \\\hline\hline
-        \multirow{3}{*}{$90\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -34.33 & 1.18 & -38 & -33 & -34 \\\cline{2-9}\cline{2-9}
+        \multirow{3}{*}{$90\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -34.33 & 1.18 & -38 & -33 & -34 \\\cline{2-9}%\cline{2-9}
         %&& Time 1 &  &  &  &  &  \\\cline{2-9}\cline{2-9}
         & \multirow{2}{*}{0} & RSSI 2 & [asu] & -33.68 & 1.15 & -37 & -32 & -33 \\\cline{3-9}
         %&& Time 2 &  &  &  &  &  \\\cline{3-9}
         && Ping & [ms] & 20.08 & 1.12 & 10 & 21 & 20 \\\hline\hline
-        \multirow{3}{*}{$135\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -35.12 & 0.72 & -36 & -33 & -35 \\\cline{2-9}\cline{2-9}
+        \multirow{3}{*}{$135\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -35.12 & 0.72 & -36 & -33 & -35 \\\cline{2-9}%\cline{2-9}
         %&& Time 1 &  &  &  &  &  \\\cline{2-9}\cline{2-9}
         & \multirow{2}{*}{0} & RSSI 2 & [asu] & -34.64 & 0.7 & -36 & -32 & -35 \\\cline{3-9}
         %&& Time 2 &  &  &  &  &  \\\cline{3-9}
         && Ping & [ms] & 20.12 & 0.77 & 14 & 21 & 20 \\\hline\hline
-        \multirow{3}{*}{$180\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -37.01 & 0.96 & -39 & -34 & -37 \\\cline{2-9}\cline{2-9}
+        \multirow{3}{*}{$180\degree$} & \multirow{1}{*}{0} & RSSI 1 & [asu] & -37.01 & 0.96 & -39 & -34 & -37 \\\cline{2-9}%\cline{2-9}
         %&& Time 1 &  &  &  &  &  \\\cline{2-9}\cline{2-9}
         & \multirow{2}{*}{0} & RSSI 2 & [asu] & -36.73 & 0.86 & -39 & -33 & -37 \\\cline{3-9}
         %&& Time 2 &  &  &  &  &  \\\cline{3-9}
         && Ping & [ms] & 20.04 & 1.05 & 11 & 21 & 20 \\\hline
     \end{tabular}
     \vspace{\ftspace}
-    \caption{RSSI, ping time and package loss measurements for various angles at fixed distance (1 meter)}
+    \caption{RSSI, ping response time and packet loss measurements depending on antenna angle}
     \label{tab:angle_res}
 \end{table}
 
-This test was conducted based on anecdotal observations from the Smart Playground project, as described in Section \ref{sec:methods_test_net}, that device and antenna orientation affect RSSI values. As can be seen in Figure \ref{fig:antennaangle}, the ping time values remain largely the same, so there appears to be no change in the RSSI values, which appear to be independent of the orientation of the MCBs and their antenna.
+This test was conducted on the basis of anecdotal observations from the Smart Playground project, as described in Section \ref{sec:methods_test_net}, which suspects that device and antenna orientation might affect RSSI values. As illustrated in Figure \ref{fig:antennaangle}, the ping time values remain largely consistent. While there is some slight variation in RSSI values, these are likely normal RSSI value fluctuations that were observed between different measurements, and therefore appear to be independent of the orientation of the MCBs and their antenna.
 
-\subsection{\label{sec:res_battery}Battery Test}
+\subsection{\label{sec:res_battery}Power Consumption and Battery Endurance}
 
-As outlined in Section \ref{sec:methods_test_net}, battery life of device was tested. With a fully charged $3.7\ V 350\ mAh$ battery, the device was able to broadcast messages every second for a little over $4.5\ hours$ ($16313723\ ms$ to be exact). %After this the device ran out of battery crashed, and while it managed to start up again a few times to send a couple more messages it eventually died completely.
+As outlined in Section \ref{sec:methods_test_net}, the endurance of the battery of devices was tested. With a fully charged LiPo battery, the device was able to broadcast messages every second for a duration of a slightly over $4.5\ hours$ ($16313723\ ms$) in the first test using a $3.7\ V\  350\ mAh$ battery. In the two subsequent tests, a slightly extended runtime of approximately $5\ hours$ ($18186793\ ms$ and $18135873\ ms$) using a $3.7\ V\  420\ mAh$ battery was achieved. %After this the device ran out of battery crashed, and while it managed to start up again a few times to send a couple more messages it eventually died completely.
 
-\subsection{\label{sec:res_reliability}Robustness Test}
-A reliability test was done during the first Hackathon which is detailed in Section \ref{sec:methods_hackathon1} and whose results are discussed in Section \ref{sec:res_hackathon1}. As part of this test, 18 participants used a Dahal Board running the boop-o-meter program to send messages to each other, while the boards kept count of the amount of messages sent and received, with the goal of reaching 999 received and sent messages. During the test, no issues with transmission or reliability of the networking protocol or ESP-NOW were observed, though given the amount of messages and their peer-to-peer nature, not every single message was tracked. The code used for this usability test, can be found in Appendix \hyperref[chap:apx_e]{E}.
+\subsection{\label{sec:res_reliability}Reliability}
+A reliability test was conducted during the first Hackathon, the methodology of which is detailed in Section \ref{sec:methods_hackathon1} and the results of which are discussed in Section \ref{sec:res_hackathon1}. As part of this test, 18 participants used a Dahal Board running the \textit{boop-o-meter} program to send messages to each other. The program kept track and count of the amount of messages sent and received, with the objective being to achieve 999 received and sent messages. During the test, no issues with transmission or reliability of the Networking Library or ESP-NOW were observed. However, given the high volume of messages and their peer-to-peer nature, it was not possible to track and validate every single message. The code used for this usability test, can be found in Appendix \hyperref[chap:apx_e]{E}.
 
 \subsection{\label{sec:res_limitations}Limitations}
 
-As outlined in the above results, the Networking Library comes with certain limitations. One such limitation comes inherit from the peer-to-peer connectionless networking, in which no connection is built up, but the system only sends out the message, similar to a radio station, with the one major difference being that the messages being addressed to certain recipients. While the Networking Library does include a test for the successful transmission, based on the built in ESP-NOW receipt confirmation, currently the Library only attempts to resend the message for a total of three attempts without any further failure handling. This is a conscious choice to keep the complexity of the Networking limited, but a limitation nonetheless and can lead to messages being lost in transmission, as demonstrated in Section \ref{sec:res_rssi}. While the transmission of messages using the library is reliable, there are circumstances and scenarios where this might be inhibited, hence in scenarios in which reliable message delivery is essential, the Networking Library might not be able to deliver the required reliability. \\\\
-Another limitation of the Networking Library is the increased processing time compared to the transmission time. With the Networking Library, a ping takes approximately $47\ ms$, but the fastest back and forth transmission achieved using ESP-NOW with MicroPython firmware was $4\ ms$. This illustrates the limitations of MicroPython, particularly its speed and memory constraints, but also shows the potential of the technology if it were optimised and written in a lower level language such as C++, which could work more efficiently on resource-constrained environments such as the MCB. This inefficiency can hinder scalability and responsiveness for larger and more complex projects; it's a trade-off between optimisation and accessibility.\\\\
-During testing, particularly using ESP32C6s, outliers and anomalies were observed, such as in the limited range when testing ESP32C6s against each other, which could indicate inconsistencies in the underlying hardware or network transmission performance that could affect overall reliability. These problems were not observed with the ESP32C3, which could transmit up to a maximum of $240\ meters$, with reliable transmission possible up to $50\ meters$, at which point packet loss became an issue. \\\\
-The development process further revealed various issues with the underlying ESP-NOW implementation for MicroPython. Specifically various errors, such as unknown Wi-Fi errors and memory errors were encountered once the Networking Library had become complex enough, as well as errors with Thonny and its interaction with ESP32-based MCBs. To highlight the unknown Wi-Fi error, the troubleshooting of which was further complicated by the fact that once the error had occurred, initialisation of the networking was no longer possible, requiring the firmware to be re-flashed onto the MCB. Documentation of this error and reports, while existent, had brought no firm solution to light. Through rigorous testing, some causes could be identified, with the length of the Networking Library files as the major one. This has in part, also influenced the decision to split the library into the Networking Library and the SSP Library Add-on, after which no such issues were faced any more.
+As outlined in the above results, the Networking Library is subject to certain limitations. One such limitation is inherent to the peer-to-peer connectionless networking model, in which no connection is established, with the system merely transmitting the message, akin to a radio station, with the notable distinction that the messages are directed to specific recipients. While the Networking Library does include a test for successful transmission based on the built-in ESP-NOW receipt confirmation, currently the Library only attempts to resend the message for a total of three attempts without any further failure handling. This is a deliberate choice to minimise the complexity of the Networking approach, but a limitation nonetheless and can result in messages being lost during transmission, as discussed in Section \ref{sec:res_rssi}. While the transmission of messages using the library is reliable, there are circumstances and scenarios where this might be inhibited. Hence, in scenarios in which reliable message delivery is essential, the Networking Library might not be able to deliver the required reliability. \\
 
+A further limitation of the Networking Library is the increased processing time in comparison to the transmission time. Specifically, the Networking Library requires approximately $47\ ms$ for a ping, whereas the fastest back-and-forth transmission achieved using ESP-NOW with MicroPython firmware was $4\ ms$. This discrepancy illustrates a limitations of MicroPython, particularly its speed and memory constraints. However, it also highlights the potential of the technology if it were to be optimised and written in a lower-level language such as C++, which could enhance its efficiency in a resource-constrained environment such as the MCB. This inefficiency can hinder scalability and responsiveness for larger and more complex projects. This represents the trade-off between optimisation, feature richness and accessibility.\\
+
+During testing, particularly the RSSI, ping response time and packet loss measurement test using two ESP32C6 MCBs, issues were encountered. These tests revealed challenges in achieving a transmission distances greater than 15 meters using two ESP32C6 MCBs, which could be indicative of  inconsistencies in the underlying hardware or network transmission performance that could affect overall reliability of the system. These issues, however, were not observed with the ESP32C3, which could transmit up to a maximum range of 240 meters, with reliable transmission possible up to 50 meters, at which point packet loss became an issue. \\
+
+The development process further revealed some issues with the underlying ESP-NOW implementation for MicroPython. Once the Networking Library had become sufficiently complex, unknown Wi-Fi errors and memory errors were encountered, in addition to errors with Thonny and its interaction with ESP32-based MCBs. The unknown Wi-Fi error, in particular, proved to be a significant challenge in the troubleshooting process, further complicated by the fact that once this error occurred, the initialisation of the networking was no longer possible, necessitating the re-flashing of the firmware onto the MCB. While some reports of this error were available online, they provided no definitive solution. Through rigorous debugging, a cause was identified, with the length of the Networking Library files being the primary factor. It was observed that the error manifested itself once the library exceeded approximately 1000 lines in length. This finding has influenced the decision to divide the library into two parts: the Networking Library and the SSP Add-on Library. Following this decision, no further issues were encountered.
 
 \section{\label{sec:res_capabilities}Smart System Platform} %reference to methods
 
-To validate the design of the Smart System Platform and to support the core networking capability, certain parts of the platform were developed as a proof of concept, as well as used and validated during the second Hackathon, discussed in Section \ref{sec:res_hackathon2}. The various developed parts are presented in this section.
+In order to validate the design of the Smart System Platform and to support the core networking capability, certain parts of the platform were developed as a proof of concept, as well as used and validated during the second Hackathon, which is discussed in Section \ref{sec:res_hackathon2}. The various developed parts are presented in this section.
 
 \subsection{\label{sec:res_design}Platform and Framework Design} %reference to methods
 
@@ -416,17 +429,17 @@ To validate the design of the Smart System Platform and to support the core netw
     \label{fig:ssp_architecture}
 \end{figure}
 
-Based on the second research question of how to enable usability and accessibility to such a networking feature for an educational robotics system such as Smart Motors, the Smart System Platform has been designed and partially developed as a framework to address this question. The platform outlines a basic concept which can be used as a stepping stone for the creation and development of network-enabled educational robotics projects. \\\\
-The design of the Smart System Platform, as outlined in section \ref{sec:methods_ssp_des} and depicted in a simplified version in Figure \ref{fig:ssp_architecture}, is divided into three parts:
+In response to the second research question, which sought to ascertain methods for enhancing usability and accessibility of the developed networking capability for an educational robotics system such as the Smart Motors, the Smart System Platform was designed and partially developed. The platform is a basic framework, centred around the networking capability and is designed to be usable as a platform for the creation and development of network-enabled educational robotics projects. \\
+
+The design of the Smart System Platform is outlined in Section \ref{sec:methods_ssp_des} and depicted in a simplified version in Figure \ref{fig:ssp_architecture}, is divided into three parts:
 \begin{itemize}
     \item Hardware:\\
-    This part contains the supported hardware, called modules, which can be any MCB based on an ESP3 SoC running MicroPython firmware. It also includes the supported components, inputs and outputs, such as sensors and motors. The support is mainly based on the design of the Dahal board, the central component of the Smart Motors. 
+    This component encompasses the supported hardware, designated modules, which can be any MCB based on an ESP3 SoC running MicroPython firmware. It also includes the supported components, inputs and outputs, such as sensors and motors. The support is primarily based on the design of the Dahal board, which is the central component of the Smart Motors. 
     \item Software:\\
-    This part is at the centre of the platform and includes the various capabilities that the platform has been designed around and to enable, namely the Networking Library. The software part also includes various libraries and components for component support. 
+    This component is situated at the core of the platform and includes the various capabilities that the platform has been designed around and to enable, namely the Networking Library. The software part also includes various libraries and components for component support. 
     \item Documentation and Development:\\
-    The third part of the platform includes the various tools and resources necessary to support the accessibility of the main parts of the platform, mainly its software, its use and its development. As such, it includes the GitHub site, the central repository for any code or data related to the SSP project, a website that serves as an outreach platform and also as a base for hosting the various network development and management tools and user guides.
+    The third part of the platform is concerned with documentation and development, and includes the various tools and resources necessary to support the accessibility of the main parts of the platform, mainly its software, its use and its development. This third component includes the GitHub site, the central repository for any code or data related to the SSP project, a website that serves as an outreach platform and also as a base for hosting the various network development and management tools and user guides.
 \end{itemize}
-
 
 \subsection{\label{sec:res_website}Website}
 
@@ -439,7 +452,7 @@ The design of the Smart System Platform, as outlined in section \ref{sec:methods
     \label{fig:website_landing}
 \end{figure}
 
-The website includes various pages, such as the user guide, it further hosts links to the various tools and provides background information on the concept of the Smart System Platform. It was designed as outlined in Section \ref{sec:methods_website}, using the Swiss design style, with the core goal of accessibility and the transformation of knowledge. The website was tested using the Google for Developers PageSpeed Insights \citep{noauthor_about_nodate}, which resulted in an overall accessibility and usability score of 100 out of 100 for both mobile and desktop version of the webpage.
+The website consists of various pages, including an introduction page, information about the project and involved parties, as well as a user guide. It further hosts links to the various tools and provides background information on the concept of the Smart System Platform. The website's design aligns with the Swiss design style outlined in Section \ref{sec:methods_website}, as referenced by \citet{muller-brockmann_grid_2020, hollis_swiss_2006} in their work on the Swiss design style. The primary objective of the website's design is to ensure accessibility and the facilitate the effective dissemination of information. The website was tested using the Google for Developers PageSpeed Insights \citep{noauthor_pagespeed_nodate}, which resulted in an overall accessibility and usability score of 100 out of 100 for both mobile and desktop version of the webpage.
 
 \begin{figure}[H]
     \centering
@@ -453,11 +466,11 @@ The website includes various pages, such as the user guide, it further hosts lin
     \label{fig:website_questions}
 \end{figure}
 
-The ratings given for the website by participants of Hackathon 2, shown in Figure \ref{fig:website_questions}, edge on the positive side, especially in terms of content and features. However, based on the ratings and the individual comments, there appears to be room for improvement in certain areas, such as accessibility, the intuitiveness and the design of the website, as some technical difficulties and navigation issues were encountered by users.
+The ratings given to the website by the participants of Hackathon 2, shown in Figure \ref{fig:website_questions}, are predominantly positive, particularly with regard to content and features. Nevertheless, the ratings and the especially the individual comments suggest there are potential areas for enhancement, especially with regard to accessibility, the intuitiveness and the design of the website, as some technical difficulties and navigation issues were encountered by some users.
 
 \subsection{\label{sec:res_tools}Development and Management Tools}
 
-One of the core parts of the website, and the Smart System Platform, in an effort to make the use and development using the core networking capability accessible, are the various networking development and management tools, which are examined and discussed in this Section.
+One of the website's and the Smart System Platform's main components, are the various networking development and management tools. The purpose of these tools is to facilitate the utilisation and advancement of the core networking functionality. The following section will thus examine and discuss these tools.
 
 \subsubsection{\label{sec:res_ide}Integrated Development Environment}
 
@@ -470,7 +483,7 @@ One of the core parts of the website, and the Smart System Platform, in an effor
     \label{fig:ide_raw}
 \end{figure}
 
-The developed custom Web-IDE, specifically developed for use with the Smart System Platform and the developed Networking Library, features a variety of custom features, such as the The most notable features being the multiple development tabs that can be added to the page, which allow for simultaneous development and REPL control of multiple devices, which is useful for networking development. Furthermore, the IDE allows networking initialisation and networking commands to be sent with pre-coded buttons within the REPL area. User feedback on the IDE is positive, though there appears to be room for improvement in the accessibility, in form of intuitiveness and design, as well as performance, based on specific user feedback.
+The custom Web-IDE was specifically developed for use with the Smart System Platform and the developed Networking Library, as described in Section \ref{sec:methods_ide}, and features a variety of custom features. The most notable feature being the multiple development tabs that can be added to the page. These tabs permit simultaneous development and REPL control of multiple devices, which is advantageous for networking development. Furthermore, the IDE facilitates the initiation of networking and the transmission of networking commands via pre-coded buttons within the REPL area. User feedback on the IDE has been largely positive, with suggestions for improvement relating to accessibility, intuitiveness and design, as well as performance, based on specific user feedback.
 
 \begin{figure}[H]
     \centering
@@ -482,7 +495,7 @@ The developed custom Web-IDE, specifically developed for use with the Smart Syst
 \end{figure}
 
 \subsubsection{\label{sec:res_ai_code}AI Code Assistant}
-In an effort to make development with the Networking Library and the Smart System as a whole even more accessible, the as outlined in Section \ref{sec:methods_codeai}. However, the primed LLM was not directly tested and no feedback was gathered from users using it, so only anecdotal feedback can be presented. While the LLM has been primed with knowledge of the Smart System Platform, all of its libraries, sample code and other files, including the Networking Library for networking, and as such gets the basic nomenclature and commands right, there have been reports of mistakes being made in the example syntax for certain commands provided by the assistant, which significantly limits the usefulness as users likely to use the AI Code Assistant are not familiar with the code and as such may not notice the incorrect code and the support provided to them.
+In an effort to facilitate development with the Networking Library and the Smart System Platform more accessible, a LLM was primed with the code library, example code and the provided guides, as outlined in Section \ref{sec:methods_codeai}. However, the primed LLM was not directly tested and no structured feedback was gathered from users using it. Consequently, the presented feedback is of an anecdotal nature. While the LLM has been primed with knowledge of the Smart System Platform, all of its libraries, sample code and other files, including the Networking Library for networking, and mostly returns correct structure, nomenclature and commands, students reported mistakes being made in the example syntax and structure for certain commands provided by the assistant, which significantly limits the usefulness as users likely to use the AI Code Assistant are not familiar with the code and as such may not notice the incorrect code and the support provided to them.
 
 \subsubsection{\label{sec:res_nmmct}Network Management and Module Configuration Tool}
 
@@ -495,8 +508,20 @@ In an effort to make development with the Networking Library and the Smart Syste
     \label{fig:nmmct_raw}
 \end{figure}
 
-The Network Management and Module Configuration Tool has been developed in an attempt to allow management of the network and other modules using the Networking Library. As such it has a number of features. These include the ability to find any Smart Module with an initialised network class, to retrieve information from the module such as name, configuration and more, and to send commands to the module directly from the web page. The web page is also designed to work with the hive program written for some sample modules, which allows modules to be configured to send their data to specific MAC addresses, and to use data sent from specific other modules in a specific way. This functionality is further described and discussed in Section \ref{sec:res_examplekit}.
-A drawback of the tool is that a module with an initialised network library must be connected to gain access to the ESP-NOW functionality, as this is not possible directly from the website or computer. 
+The Network Management and Module Configuration Tool has been developed to allow and facilitate management of the networking operations and associated modules using the Networking Library. The tool hence has a number of features, which include the ability to find any Smart Module with an initialised network class, retrieve information from the module such as name, configuration and more, and to send commands to the module directly from the web page. The web page has also been designed to work with the hive mode program written for some sample modules, which allows modules to be configured to send their data to specific MAC addresses, and to use data sent from specific other modules in a specific way. Further details and more in-depth discussion of that program and functionality can be found in Section \ref{sec:res_examplekit}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{overleaf/images/nmmct_drop2.png}
+    \vspace{\ftspace}
+    \caption{Network Management and Module Configuration Tool: Drop-down configuration feature with input options}
+    \vspace{\ftspace}
+    \label{fig:nmmct_drop}
+\end{figure}
+
+In order to further simplify the use of the Network Management and Module Configuration Tool in connection with the \textit{hive mode} program, drop-down based configuration had been developed, which is shown in Figure \ref{fig:nmmct_drop}. Instead of the arduous task of manually inputting the variables into the command prompt, the configuration command can be sent with the press of a button, using the values set via the drop-down menus, which are populated with the information of all the other operational modules found in the vicinity. This feature is a result of feedback gathered during the hackathons and was subsequently developed and not tested in the hackathons. \\
+
+This webpage incorporates all the necessary technical capabilities and could serve as the back-end for a graphical user interface (GUI). A notable limitation of the tool is that ESP-NOW-based networking can not be accessed directly from a computer or a website, necessitating the connection of a Smart Module with an initialised network library to the computer via USB to serve as a gateway.
 
 \begin{figure}[H]
     \centering
@@ -507,15 +532,15 @@ A drawback of the tool is that a module with an initialised network library must
     \label{fig:nmmct_q}
 \end{figure}
 
-Based on the feedback gathered in Hackathon 2, shown in Figure \ref{fig:nmmct_q}, the ratings for this tool are mediocre in all areas, with only the features receiving a slightly positive rating. Even with the user guide provided by the website, it appears that the tool was too complex and not intuitive enough to be considered accessible. This is supported by the participants' comments. In terms of functionality and technology, the tool had all the necessary features and capabilities, but users couldn't use them because the complexity of the tool acted as a barrier to its usability.
+Based on the evaluation gathered in Hackathon 2, shown in Figure \ref{fig:nmmct_q}, the ratings for this tool are mediocre in all areas, with only the features receiving a slightly positive rating. Despite the existence of a user guide provided on the website, it appears that the tool was too complex and not intuitive enough to be considered accessible. This assertion is supported by the participants' comments. Although the tool had all the necessary features and capabilities in terms of functionality and technology, the complexity of the GUI and the tool itself acted as a barrier to its usability. Users therefore found it difficult to make constructive use of the tool.
 
 \subsubsection{\label{sec:res_ai_config}AI Module Configuration Assistant}
 
-As described in Section \ref{sec:methods_configai}, another LLM was primed to assist in the configuration of interaction modules. However, while the tool was useful in principle, when it worked and provided accurate information, similar to the problems encountered with the AI Code Assistant this LLM also had problems with the accuracy of the output it provided. It should have provided the required key values for the configuration fields, but in some cases the LLM parsed the provided data incorrectly, confusing the MAC address of the MCB with the chip ID and returning the latter instead of the MAC address for the required values for the hive configuration command. In these cases the usefulness was diminished significantly.
+As outlined in Section \ref{sec:methods_configai}, an additional LLM was primed to assist in the hive configuration to make modules interact. However, while the tool was useful in principle, when it worked and provided accurate information, similar to the problems encountered with the AI Code Assistant, this LLM also exhibited issues with the accuracy of the output it provided. Specifically, the LLM was expected to provide the necessary configuration values for the configuration fields, however, it frequently parsed the provided data incorrectly. For example, it confused  the MAC address of the MCB with the chip ID, returning the latter instead of the MAC address for the required values for the hive configuration command. In these cases the usefulness of this tool was diminished significantly.
 
 \subsubsection{\label{sec:res_mmt}Module Management Tool}
 
-As described in Section \ref{sec:methods_up}, this tool has been designed to facilitate updating a smart module by checking the version number in the config file if an update is required, and then based on the selected configuration, updating the module with the latest software, which is taken directly from the software/release folder of the Smart System Platform GitHub and loaded onto the module, automating software updates with minimal user intervention.
+As described in Section \ref{sec:methods_up}, this tool has been developed to facilitate updating the software of a Smart Module. This is achieved by checking the version number in the configuration file of the motor against the latest release version to determine if an update is required. Based on the selected configuration, the latest software files are downloaded from the \textit{software/release} folder of the Smart System Platform GitHub and loaded onto the module, updating the \textit{config.py} file accordingly. This process is automated, thereby minimising the need for user intervention.
 
 % \begin{figure}[H]
 %     \centering
@@ -551,14 +576,14 @@ As described in Section \ref{sec:methods_up}, this tool has been designed to fac
 \subsection{\label{sec:res_examplekit}Example Applications}
 %ehhhhhhhhh, maybe present the three little programs I had written here
 
-During the research of this thesis, various example programs were developed, a selection of which is introduced and described below. 
+In the course of the research for this thesis, a number of example programs were developed, a selection of which is introduced and described here: 
 \begin{itemize}
     \item \textbf{boop-o-meter:}\\
-    The boop-o-meeter program was written early during development of the Networking Library, with the goal in mind to test and showcase the directed peer-to-peer messaging capabilities of the ESP-NOW based networking approach. The simple program run on a Dahal board features a user interface in the form of the screen and buttons, with an option to scan for nearby devices, which will send out a ping cmd. Based on the pong return, a list is populated with the discovered devices, which are selectable, in addition to the general broadcast MAC address. One can then send a message to the selected recipient. The program further tracks the amount of sent messages, as well as received messages, with a maximum set at 999 for each.
+    The boop-o-meeter program was developed during the early stages of the Networking Library's development, with the objective to evaluate and demonstrate the direct peer-to-peer and peer-to-all messaging capabilities of the ESP-NOW-based networking approach. The program runs on a Dahal board, and makes use of the included user interface in the form of the screen to display information and buttons for interaction. In addition, it includes the capability to scan for nearby devices, which will sends out a \textit{ping} command to the broadcast address. Based on the \textit{pong} returned by other devices in the vicinity, a list of the discovered devices' MAC address, in addition to the general broadcast MAC address, is populated and displayed on the screen. By selecting one of the entries a message is sent to the selected recipient. The program tracks the number of sent and received messages, with a maximum set at 999 for each.
     \item \textbf{Hive Motors:}\\
-    To showcase networking application using Smart Motors, a showcase was prepared in which two Smart Motors were hard-coded to send their sensor data streams to each other using the developed Networking Library. Instead of using their own sensor input to be mapped against the output for the standard Smart Motor program, they use the other Motor's sensor, turning the program into a collaborative task, as each motor controls each other. This was done in an effort to try and showcase the data transmission capabilities of the networking protocol.
-    \item \textbf{Hive Mode:}\\
-    In an attempt to get different smart modules to interact in a certain way without having to manually hardcode them, an approach was developed to allow hive configuration of the modules using networking commands. The software was adapted to run a boot.py file, which determines the configuration based on the entry in config.py and runs the corresponding main program. This program initialises the networking and other required libraries and then, by default, runs the main standalone logic of the module, if any. For example, in the case of Smart Motors, boot.py initialises a main program that checks if the module is in hive mode, and if not, runs the main stand-alone Smart Motor logic. However, with the network initialised, the module is discoverable, can receive messages and commands, and can be managed by the network management and module configuration tool. The second part of the name of the tools comes from the ability to send configuration commands to the respective modules, a functionality added for this specific mode of operation. When the module receives a hive configuration command, it writes the transmitted configuration values into the configuration file, which consists of the MAC addresses of the modules to which it should send its data, the MAC addresses and sensors it should use to determine its output, the rate at which it should send messages, and the mode of interaction. The module then reboots and enters hive mode, in which it operates according to its hive configuration. The concept is illustrated in the Figure \ref{fig:hivemode}.
+    In order to demonstrate the networking capabilities of Smart Motors, a showcase was prepared in which two Smart Motors were hard-coded to transmit their sensor data streams to each other using the developed Networking Library. Rather than using their own sensor input to be mapped against the output for the standard Smart Motor program, they use the other Smart Motor's sensor, thereby transforming the program into a collaborative task, with each motor exerting control over the other. This configuration was adopted to demonstrate the data transmission capabilities of the networking approach.
+    \item \textbf{Hive Mode Program:}\\
+    In an effort to facilitate interaction of different Smart Modules without the necessity of manually hardcoding, an approach was devised to allow configuration of the module interaction using networking commands. The software has been adapted to run a \textit{boot.py} file, which determines the configuration based on the entry in \textit{config.py} and runs the corresponding main program. This program initialises the networking and other required libraries and then, by default, runs the main stand-alone logic of the module, if available. For example, in the case of Smart Motors, the aforementioned \textit{boot.py} initialises the SSP Add-on Library, which in turn initialises the Networking Library, and checks if the module is in hive mode, and if it is not, runs the main stand-alone Smart Motor program. However, with the networking initialised, the module becomes discoverable, and is able receive messages and commands, and can be managed by the Network Management and Module Configuration Tool. The second part of the name of the tools derives from the ability to send configuration commands to the respective modules, a functionality that has been added for this specific mode of operation. Upon receiving a hive configuration command, the module saves the transmitted configuration values into the configuration file. This configuration consists of the MAC addresses of the modules to which it should send its data, the MAC addresses of the module it should expect data from and which sensor data should be used to determine the output, the rate at which messages should be sent, and the mode of interaction. The module then reboots and enters hive mode, in which it operates according to its hive configuration. The concept is illustrated in the Figure \ref{fig:hivemode}.
 \end{itemize}
 
 \begin{figure}[H]
@@ -588,17 +613,17 @@ During the research of this thesis, various example programs were developed, a s
 
 \subsection{\label{sec:res_hackathon1}Hackathon 1}
 
-The first hackathon aimed to test the Networking Library and gather ideas for potential applications, as well as conduct a robustness test using the boop-o-meter program, whose results are discussed in Section \ref{sec:res_reliability}. While users got engaged in the Networking Library and the concept of the Smart System Platform, the feedback from participants revealed significant challenges in getting started with the library, particularly for those with no prior experience. The absence of structured onboarding materials made the initial setup difficult, and the provided example.py file was insufficient as a starting point and groups faces some issues with basic tasks, such as trying to find their MAC address. Additionally, the high volume of network messages—due to every participant broadcasting to all others on the same channel caused confusion and made meaningful project development challenging.
+The first hackathon was designed to evaluate the Networking Library and gather ideas for potential applications. It also involved conducting the reliability test using the \textit{boop-o-meter} program, the result of which are discussed in Section \ref{sec:res_reliability}. While users demonstrated engagement with both the Networking Library and the concept of the Smart System Platform, the feedback from participants revealed significant challenges in getting started with the library, particularly for those with no prior coding experience. The absence of structured onboarding materials rendered the initial setup difficult, and the provided \textit{example.py} file was insufficient as a starting point. Groups encountered issues with fundamental tasks, such as trying to find their MAC address. Additionally, the high volume of network messages, due to every participant broadcasting to all others on the same channel, resulted in confusion and made meaningful project development challenging. Furthermore, a majority of IDEs used by the groups, it was only possible to connect and code one module at a time, which rendered the development of networking applications, which required coding on both the sender and the recipient side challenging when only using a single computer.\\
 
-These insights underscored the need for better onboarding support, including structured documentation, improved example code, and development tools to facilitate the learning process. These results have directly lead to the development of the various development and management tools in an effort to improve accessibility, which were introduced and used during Hackathon 2.
+These insights underscored the need for improved onboarding support, including structured documentation, enhanced example code, and development tools to streamline accessibility and flatten the learning curve. Consequently, these results have directly led to the development of the various development and management tools with the aim of improving accessibility, which were introduced and used during Hackathon 2.\\
 
-During the ideation phase, teams generated a wide range of creative concepts, from simple communication tools to more complex interactive experiences. Basic ideas included sending messages, smiley faces, custom images, and "poking" interactions between modules. Others explored game-based applications, such as hide and seek, tag, and a silent assassin-style game, where the modules used RSSI (Received Signal Strength Indicator) to help players locate their targets. More advanced concepts emerged as well, such as "Boop Among Us," a game inspired by social deduction mechanics, and virtual data ball throwing and catching, which utilises accelerometer data. Teams also proposed practical and educational applications, including mesh data logging for school science curricula, wireless collaborative reward/punishment-based training using networking, and a collaborative, sensor-driven navigation game. These ideas showcased the versatility of the Networking Library and its potential for playful, collaborative and educational use.
+During the ideation phase, teams generated a broad array of creative concepts, ranging from rudimentary communication tools to more complex interactive experiences. Some basic ideas included sending messages, smiley faces, custom images, and poking interactions between modules. Others explored game-based applications, such as hide and seek, tag, and a silent assassin-style game, where the modules used RSSI to help players locate their targets. More advanced concepts emerged as well, such as \textit{Boop Among Us}, a game inspired by social deduction mechanics, as well as virtual data ball throwing and catching, which utilises accelerometer data. Teams also proposed practical and educational applications, including mesh data logging for school science curricula, wireless collaborative reward/punishment-based training using networking, and a collaborative, sensor-driven navigation game. These ideas showcase the versatility of the Networking Library and its potential for playful, collaborative and educational use. Nonetheless, the majority of the proposed applications were linear in nature, with few proposals where behaviour and interaction depended on multiple interconnected Smart Modules.
 
 \subsection{\label{sec:res_hackathon2}Hackathon 2}
 
-During the second hackathon, teams were again challenged to brainstorm ideas and develop functional prototypes using the Networking Library and the SSP development tools. The primary goal of this activity was to see what the participants would come up with, and if the tools enabled them to rapidly design and develop their networked prototypes. The focus remained on exploring the potential of the Smart System Platform to facilitate efficient development and experimentation, enabling teams to build and iterate on their projects with minimal setup time.
+During the second hackathon, teams were again challenged to brainstorm ideas and develop functional prototypes using the Networking Library and the SSP development tools. The primary objective of this activity was to observe what the participants would come up with, and to ascertain the efficacy of the tools in enabling the rapid design and development of networked prototypes. The focus remained on exploring the potential of the Smart System Platform to facilitate efficient development and experimentation, enabling teams to build and iterate on their projects with minimal setup time.\\
 
-Teams proposed a variety of creative ideas, such as a game utilising the hive mode of Smart Modules, where motors were configured to respond to button presses, kicking a ball towards an opponent, a motor simulating a carnival ride, which can be controlled  with a networked module in terms of speed, rotations, and state (on/off) and a motion-based red-light green-light game where a Smart Splat displayed either a red or green light, while an accelerometer sensor on another module tracked player movement, enforcing the movement or no movement phases.
+The teams proposed a variety of creative ideas, including a game utilising the hive mode of Smart Modules, where motors were configured to respond to button presses, kicking a ball towards an opponent, a motor simulating a carnival ride, which could be controlled with a networked module in terms of speed, rotations, and state (on/off), as well as a motion-based red-light green-light game where a Smart Splat displayed either a red or green light, while an accelerometer sensor on another module tracked player movement, enforcing the movement or no movement phases.
 
 \begin{figure}[H]
     \centering
@@ -612,19 +637,28 @@ Teams proposed a variety of creative ideas, such as a game utilising the hive mo
     \label{fig:hack2_questions}
 \end{figure}
 
-While the tools received positive feedback, as discussed in Section \ref{sec:res_tools}, most teams were unable to develop a fully functional prototype during the hackathon, as shown in Figure \ref{fig:hack2_questions}. The limited time available was cited as the primary challenge, preventing participants from completing their projects, followed by the complexity and usability of tools provided. On the other hand, the participants indicated that they understood the goal and design of the Smart System Platform, with most somewhat agreeing that the system is logical and intuitive. The key takeaway from the hackathon remains that the entry barrier for using the provided tools was too high, especially given the limited amount of time available. Participants found the tools complex and unintuitive, making it difficult to prototype efficiently within the given time-frame. These insights highlighted the need for more user-friendly onboarding materials and an even more simplified development workflows to enhance accessibility in future iterations.
+As discussed in Section \ref{sec:res_tools}, the tools received mostly positive feedback. However, this is contrasted by the fact that a majority of teams were unable to develop a fully functional prototype during the hackathon, as shown in Figure \ref{fig:hack2_questions}. The limited time available was cited as the primary challenge, which prevented participants from completing their projects, followed by the complexity and usability of the tools provided. Conversely, the participants expressed that they understood the goal and design of the Smart System Platform, with a majority concurring that the system is both logical and intuitive. The key conclusion of the hackathon was that the entry barrier for using the provided tools was too high, especially given the limited amount of time available. Participants found the tools complex and unintuitive, making it difficult to prototype efficiently within the given time-frame. These insights highlighted the need for more user-friendly onboarding materials and an even more simplified development workflows to enhance accessibility in future iterations.
 
 \subsection{\label{sec:res_smartplayground}\label{sec:res_honourablementions}Smart Playground}
 
-The Smart Playground project successfully integrated the Networking Library to enable communication between various interactive modules, some of which based on the Dahal Board and the ESP32C3 MCBs, others custom-built and based on the ESP32C6. The various modules have been introduced in Section \ref{fig:met_hardware} and are shown in Figure \ref{fig:hardware_examples}. The project has designed two games:
+The Smart Playground project successfully integrated the Networking Library, thereby enabling communication between various interactive modules. Some of these modules were based on the Dahal Board and the ESP32C3 MCBs, while others were custom-built and based on the ESP32C6. The various modules have been introduced in Section \ref{fig:met_hardware} and are shown in Figure \ref{fig:hardware_examples}. Two game modes were designed:
 \begin{itemize}
     \item \textbf{Sequence Game:}\\
-    Smart Buttons, each with a number and an assigned colour, are distributed across the playground. At a central control board, one of the handheld stuffed animal modules is held close to the control board, and is assigned the coder role. This person then goes around the playground with their module collecting a sequence by going to the various buttons, and adding a sequence step to their module by pressing the button. When accepted, the step is represented in the form of a coloured dot on the modules LED matrix. Once a sequence has been collected, the coder returns to the control board, where they send the sequence to the control board. The sequence of colours is then shown on the control board and up to four players then receive the task to reproduce the sequence in the right order, by themselves going to the various button and adding the steps to their modules, while the control board keeps track of their progress.
+    Smart Buttons, each assigned a number and an assigned colour, are distributed across the playground area. At a central control board, one of the handheld stuffed animal modules is held in close proximity of the control board, and is assigned the coder role. The individual who is assigned this role then goes around the playground with their module, collecting a sequence. This is achieved by pressing the button on the Smart Button module, which sends out a \textit{ping} command that detects which module is closest based on the RSSI values. By pressing the button on the handheld stuffed animal module, the sequence step is added to their module. The step is represented in the form of a coloured dot on the module's LED matrix. Once a complete sequence has been collected, the coder returns to the control board, where the sequence is sent to the control board. The sequence of colours is then displayed on the control board and up to four players are then tasked to reproduce the sequence in the correct order. This is done by retracing the steps of the coder and going to the various button modules and adding the steps to their stuffed animal modules, while the control board keeps track of their progress. A player has completed the game once they have collected all the steps of the given sequence.
     \item \textbf{Music Game:}
-    The music game functions similar to the sequence game, however instead of Smart Buttons distributed around locations, the Smart Splats are kept in a central location and are assigned a sound and colour. The user can then collect these sounds on their modules by stomping on the Smart Splats and once the notes have been collected, they can then send them to the control board, which in turn will play the sequence of notes collected.
+    The music game functions in a similar manner to the sequence game. However, in lieu of Smart Buttons distributed around locations, the Smart Splats are kept in a central location and are assigned a sound and colour. The user can then collect these sounds on their modules by stomping on the Smart Splats. Once the notes have been collected, they can then send them to the control board, which in turn will play the sequence of notes collected.
 \end{itemize}
-The interaction and wireless communication, as well as proximity detection based on RSSI is provided by the Smart System Platform Networking Library. Furthermore, all the developed hardware is compatible and in line with the concept of the Smart System Platform. The collaboration between Tufts CEEO and Boston University highlights the potential for real-world educational applications using the networking capabilities and tools of the Smart System Platform.\\\\
-While the system successfully met the project's communication requirements, feedback and observations during use highlighted areas for further refinement. In particular, user feedback from various applications led to targeted tests and improvements in the Networking Library and Smart System Platform throughout their development. Notably, battery performance and RSSI angle tests were directly influenced by anecdotal reports from users working with the system.
+
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=0.5\linewidth]{}
+%    \caption{Caption}
+%    \label{fig:smartplayground}
+%\end{figure}
+
+The interaction and wireless communication, as well as proximity detection based on RSSI, are both facilitated by the Smart System Platform Networking Library. In addition, all the developed hardware is compatible and in line with the concept of the Smart System Platform. The collaboration between Tufts CEEO and Boston University highlights the potential for real-world educational applications using the networking capabilities and tools of the Smart System Platform.\\
+
+While the system successfully fulfilled the communication and networking requirements of that project, feedback and observations during use highlighted areas for further refinement. In particular, user feedback from various applications led to targeted tests and improvements in the Networking Library and Smart System Platform throughout their development. Notably, battery performance and RSSI angle tests were directly influenced by anecdotal reports from users working with the system.
 
 % \subsubsection{\label{sec:res_me35}ME35}
 
