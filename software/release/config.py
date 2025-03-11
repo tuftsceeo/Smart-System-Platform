@@ -1,10 +1,10 @@
 config = {"name": "Nickname", "configuration": None, "id": None, "version": None, "sta_channel": 1, "ap_channel": 1}
 version = {'adxl345.py': 3,
             'splat.py': 1,
-            'sp1.py': 2,
-            'hm3.py': 2,
+'sp1.py': 3,
+'hm3.py': 3,
             'am1.py': 1,
-            'ssp_networking.py': 5,
+'ssp_networking.py': 6,
             'files.py': 2,
             'icons.py': 2,
             'prefs.py': 2,
@@ -14,7 +14,7 @@ version = {'adxl345.py': 3,
             'sm3.py': 1,
             'sl1.py': 1,
             'smartlight.py': 1,
-            'networking.py': 8,
+'networking.py': 9,
             'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}

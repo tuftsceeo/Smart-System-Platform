@@ -1,63 +1,68 @@
 \cleardoublepage%
-\chapter*{\label{chap:apx_e}Appendix E - Code and Experimental Data\chaptermark{Appendix E}}%
+\chapter*{\label{chap:apx_e}Appendix E - Test Code\chaptermark{Appendix E}}%
 \chaptermark{Appendix E}%
 \addcontentsline{toc}{section}{Appendix E - Code and Experimental Data}
 
-\section*{Maximum Range Test and Reliability and Robustness Test Code}
-\addcontentsline{toc}{subsection}{Maximum Range Test and Reliability and Robustness Test Code}
+\section*{Maximum Range Test and Reliability Test Code}
+\addcontentsline{toc}{subsection}{Maximum Range Test and Reliability Test Code}
 \subsection*{boop-o-meter Code:}
-\lstinputlisting[breaklines]{./software/applications/boop-o-meters/boop-o-meter 300.py}
-\subsection*{Results:}
+%[...]
+{\tiny\lstinputlisting[breaklines]{./software/applications/boop-o-meters/boop-o-meter 300.py}}
+% \subsection*{Results:}
 
-During the robustness test, no outages of devices was observed when sending out messages with 19 devices at the same time. \\\\
-With regards to the maximum range test, the longest distance at which messages could still be sent and received by both devices was 242 meters as shown in Figure \ref{fig:range}
+% During the robustness test, no outages of devices was observed when sending out messages with 19 devices at the same time. \\\\
+% With regards to the maximum range test, the longest distance at which messages could still be sent and received by both devices was 242 meters as shown in Figure \ref{fig:range}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\linewidth]{overleaf/images/range.png}
-    \vspace{\ftspace}
-    \caption{Maximum message transmission range}
-    \label{fig:apx:range}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\linewidth]{overleaf/images/range.png}
+%     \vspace{\ftspace}
+%     \caption{Maximum message transmission range}
+%     \label{fig:apx:range}
+% \end{figure}
 
-\section*{Ping Response Time}
-\addcontentsline{toc}{subsection}{Ping Response Time}
-\subsection*{Code:}
-\subsubsection*{Shout:}
-\lstinputlisting[breaklines]{./software/applications/ping/shout.py}
-\subsubsection*{Echo:}
-\lstinputlisting[breaklines]{./software/applications/ping/echo.py}
-\subsection*{Results:}
-\begin{table}[H]
-    \centering
-    \begin{tabular}{c|c}
-         &  \\
-         & 
-    \end{tabular}
-    \vspace{\ftspace}
-    \caption{Caption}
-    \label{tab:apx:ping_results}
-\end{table}
+\section*{Ping Response Time Code}
+\addcontentsline{toc}{subsection}{Ping Response Time Code}
+%\subsection*{Code:}
+%\subsubsection*{Shout:}
+%[...]
+{\tiny\lstinputlisting[breaklines]{./software/applications/ping/shout.py}}
+%\subsubsection*{Echo:}
+%[...]
+%\lstinputlisting[breaklines]{./software/applications/ping/echo.py}
+% \subsection*{Results:}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{c|c}
+%          &  \\
+%          & 
+%     \end{tabular}
+%     \vspace{\ftspace}
+%     \caption{Caption}
+%     \label{tab:apx:ping_results}
+% \end{table}
 
 \section*{Response Time, RSSI and Packet Loss Rate Depending on Range Test Code}
 \addcontentsline{toc}{subsection}{Response Time, RSSI and Packet Loss Rate Depending on Range Test Code}
-\subsection*{Code:}
-\lstinputlisting[breaklines]{./software/applications/rssi_testing/rssi.py}
-\subsection*{Results:}
-\begin{table}[H]
-    \centering
-    \begin{tabular}{c|c}
-         &  \\
-         & 
-    \end{tabular}
-    \vspace{\ftspace}
-    \caption{Caption}
-    \label{tab:apx:rssi_results}
-\end{table}
+%\subsection*{Code:}
+%[...]
+{\tiny\lstinputlisting[breaklines]{./software/applications/rssi_testing/rssi.py}}
+% \subsection*{Results:}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{c|c}
+%          &  \\
+%          & 
+%     \end{tabular}
+%     \vspace{\ftspace}
+%     \caption{Caption}
+%     \label{tab:apx:rssi_results}
+% \end{table}
 
-\section*{Battery Consumption}
-\addcontentsline{toc}{subsection}{Battery Consumption}
-\subsection*{Code:}
-\lstinputlisting[breaklines]{./software/applications/rssi_testing/rssi.py}
-\subsection*{Results:}
-...
+\section*{Power Consumption and Battery Endurance Test Code}
+\addcontentsline{toc}{subsection}{Battery Consumption Test Code}
+%\subsection*{Code:}
+%[...]
+{\tiny\lstinputlisting[breaklines]{./software/applications/rssi_testing/rssi.py}}
+%\subsection*{Results:}
+%...
