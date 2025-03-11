@@ -1,24 +1,21 @@
-config = {
-    "name": "Nickname",
-    "configuration": "AM1",
-    "id": None,
-    "version": None
-    }
+config = {"name": "Nickname", "configuration": None, "id": None, "version": None, "sta_channel": 1, "ap_channel": 1}
 version = {'adxl345.py': 3,
-           'hm1.py': 1,
-           'ssp_networking.py': 2,
-           'files.py': 2,
-           'icons.py': 2,
-           'prefs.py': 2,
-           'sensors.py': 4,
-           'servo.py': 2,
-           'ssd1306.py': 2,
-           'sm3.py': 1,
-           'sl1.py': 1,
-           'smartlight.py': 1,
-           'networking.py': 4,
-           'main.py': 2,
-           'boot.py': 0
+            'splat.py': 1,
+            'sp1.py': 2,
+            'hm3.py': 2,
+            'am1.py': 1,
+            'ssp_networking.py': 5,
+            'files.py': 2,
+            'icons.py': 2,
+            'prefs.py': 2,
+            'sensors.py': 4,
+            'servo.py': 2,
+            'ssd1306.py': 2,
+            'sm3.py': 1,
+            'sl1.py': 1,
+            'smartlight.py': 1,
+            'networking.py': 8,
+            'boot.py': 0
             }
 mysecrets = {"SSID": "Tufts_Robot", "key": ""}
 msg_codes = {"cmd": 0x01, "inf": 0x02, "ack": 0x03}
@@ -42,6 +39,7 @@ msg_subcodes = {
         "Resend": 0x16,
         "Hive-Set": 0x17,
         "Hive-Configure": 0x18,
+        "Web-Repl": 0x20,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
         "AP-Enable": 0x23,
@@ -79,9 +77,5 @@ i2c_dict = {
     "0x3C": ["pca9685", 0, "screen"],
     "0x53": ["ACCEL", 1, "accelerometer"]
 }  #key is i2c address: ["device name", Output (0) or Input (1), "Description"]
-hive_config = {
-    "hive": False,
-    "recipients": [],
-    "controller": {"kp": None, "ki": None, "kd": None},
-    "formula": lambda data: data["some_mac"]["accelerometer"] + data["some_mac"]["sensor"]
-}
+sensor_dict = {"sensor": [0,4095], "potentiometer": [0,180], "select": [0,1], "up": [0,1], "down": [0,1], "button": [0,1], "sw1": [0,1],  "sw2": [0,1],  "sw3": [0,1],  "sw4": [0,1]}
+hive_config = {"hive": False, "refreshrate": 0, "recipients": [], "sender_sensor_list": [], "mode": None}

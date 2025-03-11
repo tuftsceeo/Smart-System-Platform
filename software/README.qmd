@@ -35,8 +35,10 @@ A short description of the directories can be found below.
 
 | name         | description                             | contribution |
 |--------------|-----------------------------------------|--------------|
+| release      | Release ready code files and libraries  | Nick         |
 | libraries    | Useful libraries for inputs and outputs | Nick         |
 | networking   | Smart Module Networking library         | Nick         |
+| main         | Main program files                      | Nick         |
 | applications | Various coding tools and applications   | Nick         |
 | archive      | Old or outdated code or examples        | Nick         |
 

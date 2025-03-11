@@ -41,10 +41,17 @@ class Networking:
         self._staif.active(False)
         self._apif.active(False)
 
+    def log(self, text):
+        if self.admin:
+            with open("log.txt", "a") as f:
+                f.write(f"{text}\n")
+
     def iprint(self, message):
         if self.infmsg:
             try:
-                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Info: {message}")
+                text = f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Info: {message}"
+                print(text)
+                self.log(text)
             except Exception as e:
                 print(f"Error printing Networking Info: {e}")
         return
@@ -52,7 +59,9 @@ class Networking:
     def dprint(self, message):
         if self.dbgmsg:
             try:
-                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Debug: {message}")
+                text = f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Debug: {message}"
+                print(text)
+                self.log(text)
             except Exception as e:
                 print(f"Error printing Networking Debug: {e}")
         return
@@ -60,7 +69,9 @@ class Networking:
     def eprint(self, message):
         if self.errmsg:
             try:
-                print(f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Error: {message}")
+                text = f"{(time.ticks_ms() - self.inittime) / 1000:.3f} Networking Error: {message}"
+                print(text)
+                self.log(text)
             except Exception as e:
                 print(f"Error printing Networking Error: {e}")
         return
