@@ -272,7 +272,7 @@ p_ssp <- ggplot(ssp_counts, aes(x = Aspect, y = Count, fill = Response)) +
   coord_flip() + 
   scale_fill_manual(values = custom_colours2, name = "Options:", drop = FALSE) +  
   scale_x_discrete(labels = ssp_description0) + 
-  scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 10, by = 2)) +
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 9), breaks = seq(0, 9, by = 2)) +
   labs(title = "Feedback for the Smart System Platform Development Tools",
        subtitle = "The SSP Dev Tools...",
        x = "",
@@ -283,7 +283,7 @@ p_ssp <- ggplot(ssp_counts, aes(x = Aspect, y = Count, fill = Response)) +
         plot.subtitle = element_text(hjust = -0.29, size = 10, color = "grey30")
         )
 
-ggsave(filename = paste0("plots/ssp.png"), plot = p_ssp, width = 10, height = 6, dpi = 300, bg = "white")
+ggsave(filename = paste0("plots/ssp.png"), plot = p_ssp, width = 10, height = 5.5, dpi = 300, bg = "white")
 
 ```
 
@@ -449,13 +449,13 @@ p_toolpage <- ggplot(toolpage_counts, aes(x = Aspect, y = Count, fill = Response
   scale_x_discrete(labels = c("Fully agree \n\n\n\n\n Somewhat agree \n\n\n\n\n Neither agree nor disagree \n\n\n\n\n Somewhat disagree \n\n\n\n\n Disagree")) + 
   scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 11, by = 2)) +
   labs(title = "Hackathon Feedback",
-       subtitle = "The Smart System Platform Development Tool page is intuitive and easy to use",#toolpage_description,
+       subtitle = "The Smart System Platform Development Tool page is intuitive and easy to use:",#toolpage_description,
        x = "",
        y = "Count") +
   theme_light() +
   theme(legend.position = "none",
         plot.title = element_text(hjust = 0.3),
-        plot.subtitle = element_text(hjust = 9.2)
+        plot.subtitle = element_text(hjust = -5.0, size = 10, color = "grey30")
         )
 
 ggsave(filename = paste0("plots/toolpage.png"), plot = p_toolpage, width = 8, height = 5.5, dpi = 300, bg = "white")
