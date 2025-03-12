@@ -555,7 +555,7 @@ p_ssp2 <- ggplot(ssp2_counts, aes(x = Aspect, y = Count, fill = Response)) +
   coord_flip() + 
   scale_fill_manual(values = custom_colours2, name = "Options:", drop = FALSE) +  
   scale_x_discrete(labels = ssp2_description0) + 
-  scale_y_continuous(expand = c(0, 0), , limits = c(0, 9), breaks = seq(0, 9, by = 2)) +
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 11, by = 2)) +
   labs(title = "Feedback for the Smart System Platform Development Tools",
        subtitle = "The SSP Dev Tools...",
        x = "",
