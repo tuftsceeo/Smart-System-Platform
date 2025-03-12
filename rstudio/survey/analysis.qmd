@@ -518,7 +518,7 @@ p_component <- ggplot(component_counts, aes(x = Aspect, y = Count, fill = Respon
   theme_light() +
   theme(legend.position = "Bottom",
         plot.title = element_text(hjust = 0),
-        plot.subtitle = element_text(hjust = -1.3)
+        plot.subtitle = element_text(hjust = 33)
         )
 
 ggsave(filename = paste0("plots/component.png"), plot = p_component, width = 8, height = 5.5, dpi = 300, bg = "white")
