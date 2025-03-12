@@ -1,0 +1,277 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyverse)
+library(tidyr)
+library(mgcv)
+
+#custom_colours <- c("#F8766D","#00BFC4")
+custom_colours <- c("#F8766D", "#00BFC4", "#7CAE00", "#C77CFF", "#F564E3", "#619CFF", "#00BA38")
+
+```
+
+```{r}
+
+data <- read.csv("data/Smart System Platform Feedback_February 11, 2025_23.18.csv", header = TRUE, sep = ",")
+
+descriptions <- data[1, , drop = FALSE]
+data <- data %>% slice(-c(1:3))
+
+options1 <- c("Very Bad", "Bad", "Neither Good nor Bad", "Good", "Perfect")
+description1 <- c("Usability", "Accessibility", "Performance", "Features")
+
+ide_data <- data[, c(45, 46, 47, 48)]
+nmmct_data <- data[, c(49, 50, 51, 52)]
+website_data <- data[, c(53, 54, 55, 56)]
+
+options2 <- c("Disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Fully agree")
+website_description0 <- c("...is intuitive and easy to use", "...contains all  \n necessary information", "...provides necessary \n information and guidance")
+website_description <- descriptions[, c(66, 67, 70)]
+website_data2 <- data[, c(66, 67, 70)]
+
+ssp_description0 <- c("...offered all \n necessary capabilities", "...facilitated the development", "...are useful")
+ssp_description <- descriptions[, c( 57, 59, 61)]
+ssp_data <- data[, c( 57, 59, 61)]
+
+
+component_description <- descriptions[, c(42)]
+component_data <- data[, c(42)]
+
+options3 <- c("Yes", "No")
+completion_description <- descriptions[, c(62)]
+completion_data <- data[, c(62)]
+
+architecture_data <- descriptions[, c(65)]
+architecture_description <- data[, c(65)]
+
+toolpage_data <- descriptions[, c(69)]
+toolpage_description <- data[, c(69)]
+
+```
+
+```{r}
+
+nmmct_long <- nmmct_data %>%
+  pivot_longer(cols = everything(), names_to = "Aspect", values_to = "Response") %>%
+  drop_na() %>%
+  filter(Response != "")  
+
+nmmct_long$Response <- factor(nmmct_long$Response, levels = options1)
+
+nmmct_counts <- nmmct_long %>%
+  count(Aspect, Response, name = "Count")
+missing_levels <- expand.grid(Aspect = unique(nmmct_counts$Aspect), Response = options1) %>%
+  anti_join(nmmct_counts, by = c("Aspect", "Response"))
+
+if (nrow(missing_levels) > 0) {
+  missing_levels$Count <- 0.05
+  nmmct_counts <- bind_rows(nmmct_counts, missing_levels)
+}
+
+custom_colours <- c("Very Bad" = "#F8766D", 
+                    "Bad" = "#00BFC4", 
+                    "Neither Good nor Bad" = "#7CAE00", 
+                    "Good" = "#C77CFF", 
+                    "Perfect" = "#F564E3")
+
+p_nmmct <- ggplot(nmmct_counts, aes(x = Aspect, y = Count, fill = Response)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  coord_flip() + 
+  scale_fill_manual(values = custom_colours, name = "Ratings:", drop = FALSE) +  
+  scale_x_discrete(labels = description1) + 
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 8)) +
+  labs(title = "Feedback for the Network Management and Module Configuration Tool",
+       x = "Aspects",
+       y = "Count") +
+  theme_light() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5)) 
+
+ggsave(filename = paste0("plots/nmmct.png"), plot = p_nmmct, width = 10, height = 6, dpi = 300, bg = "white")
+
+```
+
+
+```{r}
+
+ide_long <- ide_data %>%
+  pivot_longer(cols = everything(), names_to = "Aspect", values_to = "Response") %>%
+  drop_na() %>%
+  filter(Response != "")  
+
+ide_long$Response <- factor(ide_long$Response, levels = options1)
+
+ide_counts <- ide_long %>%
+  count(Aspect, Response, name = "Count")
+missing_levels <- expand.grid(Aspect = unique(ide_counts$Aspect), Response = options1) %>%
+  anti_join(ide_counts, by = c("Aspect", "Response"))
+
+if (nrow(missing_levels) > 0) {
+  missing_levels$Count <- 0.05
+  ide_counts <- bind_rows(ide_counts, missing_levels)
+}
+
+custom_colours <- c("Very Bad" = "#F8766D", 
+                    "Bad" = "#00BFC4", 
+                    "Neither Good nor Bad" = "#7CAE00", 
+                    "Good" = "#C77CFF", 
+                    "Perfect" = "#F564E3")
+
+p_ide <- ggplot(ide_counts, aes(x = Aspect, y = Count, fill = Response)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  coord_flip() + 
+  scale_fill_manual(values = custom_colours, name = "Ratings:", drop = FALSE) +  
+  scale_x_discrete(labels = description1) + 
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 10), breaks = seq(0, 10, by = 2)) +
+  labs(title = "Feedback for the Custom Web-IDE",
+       x = "Aspects",
+       y = "Count") +
+  theme_light() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5)) 
+
+ggsave(filename = paste0("plots/ide.png"), plot = p_ide, width = 10, height = 6, dpi = 300, bg = "white")
+
+```
+
+
+```{r}
+
+website_long <- website_data %>%
+  pivot_longer(cols = everything(), names_to = "Aspect", values_to = "Response") %>%
+  drop_na() %>%
+  filter(Response != "")  
+
+website_long$Response <- factor(website_long$Response, levels = options1)
+
+website_counts <- website_long %>%
+  count(Aspect, Response, name = "Count")
+missing_levels <- expand.grid(Aspect = unique(website_counts$Aspect), Response = options1) %>%
+  anti_join(website_counts, by = c("Aspect", "Response"))
+
+if (nrow(missing_levels) > 0) {
+  missing_levels$Count <- 0.05
+  website_counts <- bind_rows(website_counts, missing_levels)
+}
+
+custom_colours <- c("Very Bad" = "#F8766D", 
+                    "Bad" = "#00BFC4", 
+                    "Neither Good nor Bad" = "#7CAE00", 
+                    "Good" = "#C77CFF", 
+                    "Perfect" = "#F564E3")
+
+p_website <- ggplot(website_counts, aes(x = Aspect, y = Count, fill = Response)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  coord_flip() + 
+  scale_fill_manual(values = custom_colours, name = "Ratings:", drop = FALSE) +  
+  scale_x_discrete(labels = description1) + 
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 10), breaks = seq(0, 10, by = 2)) +
+  labs(title = "Feedback for the Website",
+       x = "Aspects",
+       y = "Count") +
+  theme_light() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5)) 
+
+ggsave(filename = paste0("plots/website.png"), plot = p_website, width = 10, height = 6, dpi = 300, bg = "white")
+
+```
+
+```{r}
+
+website_long <- website_data2 %>%
+  pivot_longer(cols = everything(), names_to = "Aspect", values_to = "Response") %>%
+  drop_na() %>%
+  filter(Response != "")  
+
+website_long$Response <- factor(website_long$Response, levels = options2)
+
+website_counts <- website_long %>%
+  count(Aspect, Response, name = "Count")
+missing_levels <- expand.grid(Aspect = unique(website_counts$Aspect), Response = options2) %>%
+  anti_join(website_counts, by = c("Aspect", "Response"))
+
+if (nrow(missing_levels) > 0) {
+  missing_levels$Count <- 0.05
+  website_counts <- bind_rows(website_counts, missing_levels)
+}
+
+custom_colours2 <- c("Disagree" = "#F8766D", 
+                    "Somewhat disagree" = "#00BFC4", 
+                    "Neither agree nor disagree" = "#7CAE00", 
+                    "Somewhat agree" = "#C77CFF", 
+                    "Fully agree" = "#F564E3")
+
+p_website2 <- ggplot(website_counts, aes(x = Aspect, y = Count, fill = Response)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  coord_flip() + 
+  scale_fill_manual(values = custom_colours2, name = "Ratings:", drop = FALSE) +  
+  scale_x_discrete(labels = website_description0) + 
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 10, by = 2)) +
+  labs(title = "Feedback for the Website",
+       subtitle = "The website...",
+       x = "",
+       y = "Count") +
+  theme_light() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = -0.24, size = 10, color = "grey30")
+        ) 
+
+ggsave(filename = paste0("plots/website2.png"), plot = p_website2, width = 10, height = 6, dpi = 300, bg = "white")
+
+```
+
+```{r}
+
+ssp_long <- ssp_data %>%
+  pivot_longer(cols = everything(), names_to = "Aspect", values_to = "Response") %>%
+  drop_na() %>%
+  filter(Response != "")  
+
+ssp_long$Response <- factor(ssp_long$Response, levels = options2)
+
+ssp_counts <- ssp_long %>%
+  count(Aspect, Response, name = "Count")
+missing_levels <- expand.grid(Aspect = unique(ssp_counts$Aspect), Response = options2) %>%
+  anti_join(ssp_counts, by = c("Aspect", "Response"))
+
+if (nrow(missing_levels) > 0) {
+  missing_levels$Count <- 0.05
+  ssp_counts <- bind_rows(ssp_counts, missing_levels)
+}
+
+custom_colours2 <- c("Disagree" = "#F8766D", 
+                    "Somewhat disagree" = "#00BFC4", 
+                    "Neither agree nor disagree" = "#7CAE00", 
+                    "Somewhat agree" = "#C77CFF", 
+                    "Fully agree" = "#F564E3")
+
+p_ssp <- ggplot(ssp_counts, aes(x = Aspect, y = Count, fill = Response)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  coord_flip() + 
+  scale_fill_manual(values = custom_colours2, name = "Ratings:", drop = FALSE) +  
+  scale_x_discrete(labels = ssp_description0) + 
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 10, by = 2)) +
+  labs(title = "Feedback for the Smart System Platform Development Tools",
+       subtitle = "The SSP Dev Tools...",
+       x = "",
+       y = "Count") +
+  theme_light() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = -0.29, size = 10, color = "grey30")
+        )
+
+ggsave(filename = paste0("plots/ssp.png"), plot = p_ssp, width = 10, height = 6, dpi = 300, bg = "white")
+
+
+```
+
+
+```{r}
+
+
+
+```
