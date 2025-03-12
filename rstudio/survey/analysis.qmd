@@ -225,7 +225,7 @@ custom_colours2 <- c("Disagree" = "#ffad02",
 p_website2 <- ggplot(website_counts, aes(x = Aspect, y = Count, fill = Response)) +
   geom_bar(stat = "identity", position = "dodge") + 
   coord_flip() + 
-  scale_fill_manual(values = custom_colours2, name = "Ratings:", drop = FALSE) +  
+  scale_fill_manual(values = custom_colours2, name = "Options:", drop = FALSE) +  
   scale_x_discrete(labels = website_description0) + 
   scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 10, by = 2)) +
   labs(title = "Website Feedback",
@@ -270,7 +270,7 @@ custom_colours2 <- c("Disagree" = "#ffad02",
 p_ssp <- ggplot(ssp_counts, aes(x = Aspect, y = Count, fill = Response)) +
   geom_bar(stat = "identity", position = "dodge") + 
   coord_flip() + 
-  scale_fill_manual(values = custom_colours2, name = "Ratings:", drop = FALSE) +  
+  scale_fill_manual(values = custom_colours2, name = "Options:", drop = FALSE) +  
   scale_x_discrete(labels = ssp_description0) + 
   scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 10, by = 2)) +
   labs(title = "Feedback for the Smart System Platform Development Tools",
@@ -313,20 +313,20 @@ custom_colours2 <- c("Yes" = "#ffad02",
 p_completion <- ggplot(completion_counts, aes(x = Aspect, y = Count, fill = Response)) +
   geom_bar(stat = "identity", position = "dodge") + 
   coord_flip() + 
-  scale_fill_manual(values = custom_colours2, name = "Ratings:", drop = FALSE) +  
-  scale_x_discrete(labels = c("No \n\n\n\n\n\n\n\n\n\n\n\n Yes")) + 
+  scale_fill_manual(values = custom_colours2, name = "Options:", drop = FALSE) +  
+  scale_x_discrete(labels = c("No \n\n\n\n\n\n\n\n\n Yes")) + 
   scale_y_continuous(expand = c(0, 0), , limits = c(0, 13), breaks = seq(0, 10, by = 2)) +
   labs(title = "Hackathon Feedback",
        subtitle = "Were you able to complete your project using the SSP Dev Tools?",#completion_description,
        x = "",
        y = "Count") +
   theme_light() +
-  theme(legend.position = "bottom",
+  theme(legend.position = "none",
         #plot.title = element_text(hjust = 0.5),
         #plot.subtitle = element_text(hjust = -0.29, size = 10, color = "grey30")
         )
 
-ggsave(filename = paste0("plots/completion.png"), plot = p_completion, width = 6, height = 6, dpi = 300, bg = "white")
+ggsave(filename = paste0("plots/completion.png"), plot = p_completion, width = 6, height = 4, dpi = 300, bg = "white")
 
 ```
 
@@ -356,19 +356,19 @@ p_logic <- ggplot(logic_counts, aes(x = Aspect, y = Count, fill = Response)) +
   geom_bar(stat = "identity", position = "dodge") + 
   coord_flip() + 
   scale_fill_manual(values = custom_colours2, name = "Ratings:", drop = FALSE) +  
-  scale_x_discrete(labels = c("No \n\n\n\n\n\n\n\n\n\n\n\n Yes")) + 
+  scale_x_discrete(labels = c("No \n\n\n\n\n\n\n\n\n Yes")) + 
   scale_y_continuous(expand = c(0, 0), , limits = c(0, 14), breaks = seq(0, 14, by = 2)) +
   labs(title = "Hackathon Feedback",
        subtitle = logic_description,
        x = "",
        y = "Count") +
   theme_light() +
-  theme(legend.position = "bottom",
+  theme(legend.position = "none",
         #plot.title = element_text(hjust = 0.5),
         #plot.subtitle = element_text(hjust = -0.29, size = 10, color = "grey30")
         )
 
-ggsave(filename = paste0("plots/logic.png"), plot = p_logic, width = 6, height = 6, dpi = 300, bg = "white")
+ggsave(filename = paste0("plots/logic.png"), plot = p_logic, width = 6, height = 4, dpi = 300, bg = "white")
 
 ```
 
@@ -413,7 +413,7 @@ p_architecture <- ggplot(architecture_counts, aes(x = Aspect, y = Count, fill = 
         plot.subtitle = element_text(hjust = 1)
         )
 
-ggsave(filename = paste0("plots/architecture.png"), plot = p_architecture, width = 8, height = 6, dpi = 300, bg = "white")
+ggsave(filename = paste0("plots/architecture.png"), plot = p_architecture, width = 8, height = 5.5, dpi = 300, bg = "white")
 
 ```
 
@@ -446,7 +446,7 @@ p_toolpage <- ggplot(toolpage_counts, aes(x = Aspect, y = Count, fill = Response
   geom_bar(stat = "identity", position = "dodge") + 
   coord_flip() + 
   scale_fill_manual(values = custom_colours2, name = "", drop = FALSE) +  
-  scale_x_discrete(labels = c("Fully agree \n\n\n\n\n\n Somewhat agree \n\n\n\n\n\n Neither agree nor disagree \n\n\n\n\n\n Somewhat disagree \n\n\n\n\n\n Disagree")) + 
+  scale_x_discrete(labels = c("Fully agree \n\n\n\n\n Somewhat agree \n\n\n\n\n Neither agree nor disagree \n\n\n\n\n Somewhat disagree \n\n\n\n\n Disagree")) + 
   scale_y_continuous(expand = c(0, 0), , limits = c(0, 11), breaks = seq(0, 11, by = 2)) +
   labs(title = "Hackathon Feedback",
        subtitle = "The Smart System Platform Development Tool page is intuitive and easy to use",#toolpage_description,
@@ -458,7 +458,7 @@ p_toolpage <- ggplot(toolpage_counts, aes(x = Aspect, y = Count, fill = Response
         plot.subtitle = element_text(hjust = 9.2)
         )
 
-ggsave(filename = paste0("plots/toolpage.png"), plot = p_toolpage, width = 8, height = 6, dpi = 300, bg = "white")
+ggsave(filename = paste0("plots/toolpage.png"), plot = p_toolpage, width = 8, height = 5.5, dpi = 300, bg = "white")
 
 ```
 
@@ -518,6 +518,6 @@ p_component <- ggplot(component_counts, aes(x = Aspect, y = Count, fill = Respon
         plot.subtitle = element_text(hjust = 1)
         )
 
-ggsave(filename = paste0("plots/component.png"), plot = p_component, width = 8, height = 6, dpi = 300, bg = "white")
+ggsave(filename = paste0("plots/component.png"), plot = p_component, width = 8, height = 5.5, dpi = 300, bg = "white")
 
 ```
