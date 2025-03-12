@@ -85,6 +85,7 @@ The repository has the following directory tree.
     │   ├── ide_rating.jpg
     │   ├── ide_raw.png
     │   ├── logos.png
+    │   ├── mcb.png
     │   ├── module_back.png
     │   ├── module_front.png
     │   ├── networking_structure.drawio.png
@@ -117,6 +118,7 @@ The repository has the following directory tree.
     │   ├── receive_logic.drawio.png
     │   ├── remove.png
     │   ├── right.png
+    │   ├── scb.png
     │   ├── science_familiarity.jpg
     │   ├── send_logic.drawio.png
     │   ├── sm_back.jpg
