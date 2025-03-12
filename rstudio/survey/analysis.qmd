@@ -34,6 +34,9 @@ ssp_description0 <- c("...offered all \n necessary capabilities", "...facilitate
 ssp_description <- descriptions[, c( 57, 59, 61)]
 ssp_data <- data[, c( 57, 59, 61)]
 
+ssp2_description0 <- c("...offered all \n necessary capabilities", "...facilitated the development", "...are useful", "...are intuitive \n and easy to use")
+ssp2_data <- data[, c( 57, 59, 61, 69)]
+
 
 component_description <- descriptions[, c(42)]
 component_data <- data[, c(42)]
@@ -521,3 +524,49 @@ p_component <- ggplot(component_counts, aes(x = Aspect, y = Count, fill = Respon
 ggsave(filename = paste0("plots/component.png"), plot = p_component, width = 8, height = 5.5, dpi = 300, bg = "white")
 
 ```
+
+```{r}
+
+ssp2_long <- ssp2_data %>%
+  pivot_longer(cols = everything(), names_to = "Aspect", values_to = "Response") %>%
+  drop_na() %>%
+  filter(Response != "")  
+
+ssp2_long$Response <- factor(ssp2_long$Response, levels = options2)
+
+ssp2_counts <- ssp2_long %>%
+  count(Aspect, Response, name = "Count")
+missing_levels <- expand.grid(Aspect = unique(ssp2_counts$Aspect), Response = options2) %>%
+  anti_join(ssp2_counts, by = c("Aspect", "Response"))
+
+if (nrow(missing_levels) > 0) {
+  missing_levels$Count <- 0.05
+  ssp2_counts <- bind_rows(ssp2_counts, missing_levels)
+}
+
+custom_colours2 <- c("Disagree" = "#ffad02", 
+                    "Somewhat disagree" = "#67cd5b", 
+                    "Neither agree nor disagree" = "#20908d", 
+                    "Somewhat agree" = "#3b528b", 
+                    "Fully agree" = "#440c54")
+
+p_ssp2 <- ggplot(ssp2_counts, aes(x = Aspect, y = Count, fill = Response)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  coord_flip() + 
+  scale_fill_manual(values = custom_colours2, name = "Options:", drop = FALSE) +  
+  scale_x_discrete(labels = ssp2_description0) + 
+  scale_y_continuous(expand = c(0, 0), , limits = c(0, 9), breaks = seq(0, 9, by = 2)) +
+  labs(title = "Feedback for the Smart System Platform Development Tools",
+       subtitle = "The SSP Dev Tools...",
+       x = "",
+       y = "Count") +
+  theme_light() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.),
+        plot.subtitle = element_text(hjust = -0.29, size = 10, color = "grey30")
+        )
+
+ggsave(filename = paste0("plots/ssp2.png"), plot = p_ssp2, width = 10, height = 5.5, dpi = 300, bg = "white")
+
+```
+
