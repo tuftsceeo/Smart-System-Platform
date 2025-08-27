@@ -183,7 +183,7 @@
         </div>
         <div class="menu-items" id="menuItems">
             <a href="index.html" class="active">Home</a>
-            <a href="mission.html">Idea</a>
+            <a href="https://smartmotors.ai/">Idea</a>
             <a href="start.html">Resources</a>
             <a href="tools.html">Toolbox</a>
 <!--            <a href="technology.html">Platform</a>-->
@@ -241,25 +241,28 @@
         padding: 32px;
         border: 1px solid #e0e0e0;
         transition: all 0.2s ease;
+        text-decoration: none;
     }
 
     .resource-card:hover {
         background-color: #f8f8f8;
     }
 
-    .resource-card a {
+    .resource-card h3 {
         font-size: 24px;
         font-weight: 500;
         color: #000;
         text-decoration: none;
         display: block;
         margin-bottom: 16px;
+        margin-top: 0;
     }
 
     .resource-card p {
         font-size: 16px;
         margin: 0;
         color: #666;
+        text-decoration: none;
     }
     .resources-grid, .additional-resources-grid {
         display: grid;
@@ -291,7 +294,7 @@
             margin: 24px 0 0px;
         }
 
-        .resource-card a {
+        .resource-card h3 {
             font-size: 20px;
         }
 
@@ -309,40 +312,40 @@
     <section>
         <h2>Quick Links</h2>
         <div class="resources-grid">
-            <div class="resource-card">
-                <a href="start.html">Getting Started</a>
+            <a href="start.html" class="resource-card">
+                <h3>Getting Started</h3>
                 <p>Get an idea about the platform and its functionality, how to get started with the management and development tools and find information on related projects, supporting materials and additional resources.</p>
-            </div>
-            <div class="resource-card">
-                <a href="tools.html">Toolbox</a>
+            </a>
+            <a href="tools.html" class="resource-card">
+                <h3>Toolbox</h3>
                 <p>Explore the suite of tools and resources designed to streamline your use and management of Smart Modules, as well as enable the development of custom projects using the Smart System Platform.</p>
-            </div>
-            <div class="resource-card">
-                <a href="mission.html">Concept, Platform and Technology</a>
+            </a>
+            <a href="mission.html" class="resource-card">
+                <h3>Concept, Platform and Technology</h3>
                 <p>Learn more about the systems and architecture of the Smart System Platform, the motivation behind its design the technology used, both in terms of hardware and software, the networking approach, and more.</p>
-            </div>
+            </a>
         </div>
     </section>
 
     <hr>
     <section>
         <h2>Showcases</h2>
-        <div class="resources-grid">
-            <div class="resource-card">
-                <a href="https://smartmotors.notion.site/Smart-Motors-8d8f49ff9f6243ddbf0847b2806df6ba">Smart Motors</a>
-                <img src="images/smartmotor.png" alt="Smart Motors Showcase" width=100%>
+        <div href="https://smartmotors.ai/" class="resources-grid">
+            <a class="resource-card">
+                <h3>Smart Motors</h3>
+                <img src="images/smartmotor.png" alt="Smart Motors Showcase" height=250vh>
 <!--                <p>Description</p>-->
-            </div>
-            <div class="resource-card">
-                <a>Example Kit and Program Showcase</a>
-                <img src="images/hive.png" alt="Example Smart Hive Project Showcase" width=100%>
+            </a>
+            <a class="resource-card">
+                <h3>Example Kit and Program Showcase</h3>
+                <img src="images/hive.png" alt="Example Smart Hive Project Showcase" height=250vh>
 <!--                <p>Description</p>-->
-            </div>
-            <div class="resource-card">
-                <a>Smart Playground</a>
-                <img src="images/SmartPlayground.png" alt="Smart Playground Showcase" width=100%>
+            </a>
+            <a href="https://www.ceeoinnovations.org/fetlab/?project=smartplayground" class="resource-card">
+                <h3>Smart Playground</h3>
+                <img src="images/playground.png" alt="Smart Playground Showcase" height=250vh>
 <!--                <p>Description</p>-->
-            </div>
+            </a>
         </div>
     </section>
 </main>
@@ -353,7 +356,7 @@
         <img src="images/SOE_CEEO_horiz_white.svg" width="274" height="63" alt="Tufts University; Center for Engineering Education and Outreach Logo" class="footer-logo-left">
         <div class="footer-text">
             <p><span>© 2025 Smart System Platform.</span> All rights reserved.</p>
-            <p><a href="community.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+            <p><a href="community.html">Contact Us</a></p>
         </div>
         <img src="images/eth_logo_kurz_neg.svg" width="206" height="75" alt="Swiss Federal Institute of Technology Zurich (ETH Zürich) Logo" class="footer-logo-right">
     </div>
