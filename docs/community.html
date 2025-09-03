@@ -186,7 +186,7 @@
         </div>
         <div class="menu-items" id="menuItems">
             <a href="index.html">Home</a>
-            <a href="mission.html">Idea</a>
+            <a href="https://smartmotors.ai/">Idea</a>
             <a href="start.html">Resources</a>
             <a href="tools.html">Toolbox</a>
             <!--            <a href="technology.html">Platform</a>-->
@@ -224,10 +224,14 @@
         color: #000;
         letter-spacing: -0.3px;
     }
+    a {
+         text-decoration: none;
+    }
+
 
     .resources-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Force three columns */
+        grid-template-columns: repeat(4, 1fr); /* Force three columns */
         gap: 40px;
         margin-top: 32px;
     }
@@ -243,29 +247,32 @@
         padding: 32px;
         border: 1px solid #e0e0e0;
         transition: all 0.2s ease;
+        text-decoration: none;
     }
 
     .resource-card:hover {
         background-color: #f8f8f8;
     }
 
-    .resource-card a {
+    .resource-card h3 {
         font-size: 24px;
         font-weight: 500;
         color: #000;
         text-decoration: none;
         display: block;
         margin-bottom: 16px;
+        margin-top: 0;
     }
 
     .resource-card p {
         font-size: 16px;
+        text-decoration: none;
         margin: 0;
         color: #666;
     }
     .resources-grid, .additional-resources-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 40px;
         margin-top: 32px;
     }
@@ -293,7 +300,7 @@
             margin: 24px 0 0px;
         }
 
-        .resource-card a {
+        .resource-card h3 {
             font-size: 20px;
         }
 
@@ -305,7 +312,31 @@
 
 <main>
     <h1>Community & Outreach</h1>
-    <p>Contact details, link CEEO and FETLab and showcase how you can get involved as well as show some CEEO and community made projects</p>
+<!--    <p>Contact details, link CEEO and FETLab and showcase how you can get involved as well as show some CEEO and community made projects</p>-->
+    <section>
+        <div class="resources-grid">
+            <a href="https://smartmotors.ai/" class="resource-card">
+                <h3>Smart Motors</h3>
+                <p>The main Smart Motors webpage</p>
+<!--                <img src="images/smartmotor.png" alt="Smart Motors Showcase" height=250vh>-->
+            </a>
+            <a href="https://www.ceeoinnovations.org/fetlab/" class="resource-card">
+                <h3>CEEO FetLab</h3>
+                <p>The CEEO FETLab project page</p>
+<!--                <img src="images/hive.png" alt="Example Smart Hive Project Showcase" height=250vh>-->
+            </a>
+            <a href="https://www.ceeoinnovations.org/fetlab/?project=smartplayground" class="resource-card">
+                <h3>Smart Playground</h3>
+                <p>The Smart Playground webpage</p>
+<!--                <img src="images/playground.png" alt="Smart Playground Showcase" height=250vh>-->
+            </a>
+            <a href="https://nick4rt.github.io/personal/index.html" class="resource-card">
+                <h3>Nick</h3>
+                <p>Nick's personal website</p>
+<!--                <img src="images/logo.png" alt="Smart Playground Showcase" height=250vh>-->
+            </a>
+        </div>
+    </section>
 </main>
 
 <footer>
@@ -313,7 +344,7 @@
         <img src="images/SOE_CEEO_horiz_white.svg" width="274" height="63" alt="Tufts University; Center for Engineering Education and Outreach Logo" class="footer-logo-left">
         <div class="footer-text">
             <p><span>© 2025 Smart System Platform.</span> All rights reserved.</p>
-            <p><a href="community.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+            <p><a href="community.html">Contact Us</a></p>
         </div>
         <img src="images/eth_logo_kurz_neg.svg" width="206" height="75" alt="Swiss Federal Institute of Technology Zurich (ETH Zürich) Logo" class="footer-logo-right">
     </div>

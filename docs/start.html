@@ -203,6 +203,7 @@
             padding: 32px;
             border: 1px solid #e0e0e0;
             transition: all 0.2s ease;
+            text-decoration: none;
         }
         .tool-item {
             margin-bottom: 20px;
@@ -212,13 +213,14 @@
         .resource-card:hover {
             background-color: #f8f8f8;
         }
-        .resource-card a {
+        .resource-card h3 {
             font-size: 24px;
             font-weight: 500;
             color: #000;
             text-decoration: none;
             display: block;
             margin-bottom: 16px;
+            margin-top: 0;
         }
         .resource-card u a {
             font-size: 24px;
@@ -239,6 +241,7 @@
             font-size: 16px;
             margin: 0;
             color: #666;
+            text-decoration: none;
         }
         .tool-item p {
             font-size: 16px;
@@ -354,7 +357,7 @@
                 font-size: 24px;
                 margin: 24px 0 0px;
             }
-            .resource-card, .tool-item a {
+            .resource-card, .tool-item h3 {
                 font-size: 20px;
             }
             main {
@@ -397,7 +400,7 @@
         </div>
         <div class="menu-items" id="menuItems">
             <a href="index.html">Home</a>
-            <a href="mission.html">Idea</a>
+            <a href="https://smartmotors.ai/">Idea</a>
             <a href="start.html" class="active">Resources</a>
             <a href="tools.html">Toolbox</a>
             <!--            <a href="technology.html">Platform</a>-->
@@ -700,15 +703,15 @@ switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
             <p><strong>Troubleshooting:</strong> File uploading for larger files is prone to break. Furthermore, viewing and uploading files while the module is executing code will likely break the module and page. Reloading of the webpage becomes necessary should this occur. </p>
             <p>&nbsp;</p>
             <p><strong>Step 4: AI Code Assistant</strong></p>
-            <p>In an effort to the aid with the developmant and coding using the SSP-specific networking and other libraries, an AI chatbot has been primed on code documentation, which should be able to provide you with basic code blocks and functionalities to aid in your development efforts. The primed LLM is linked below.</p>
+            <p>In an effort to aid with the development and coding using the SSP-specific networking and other libraries, an AI chatbot has been primed on code documentation, which should be able to provide you with basic code blocks and functionalities to aid in your development efforts. The primed LLM is linked below.</p>
             <p>&nbsp;</p>
             <div class="additional-resources-grid">
-                <div class="resource-card">
-                    <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/">To the Custom Web IDE</a>
-                </div>
-                <div class="resource-card">
-                    <a href="https://chatgpt.com/g/g-67a77e3b1f588191bfdf22051df0340b-smart-system-platform-ai-coding-assistant">To the AI Coding Assistant</a>
-                </div>
+                <a href="https://nickart.pyscriptapps.com/auroral-firefly/latest/" class="resource-card">
+                    <h3>To the Custom Web IDE</h3>
+                </a>
+                <a href="https://chatgpt.com/g/g-67a77e3b1f588191bfdf22051df0340b-smart-system-platform-ai-coding-assistant" class="resource-card">
+                    <h3>To the AI Coding Assistant</h3>
+                </a>
             </div>
         </div>
 
@@ -717,9 +720,9 @@ switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
             <img src="images/module-management.png" alt="Module Management Screenshot" width="300">
             <p>The Module Management Portal allows you to easily update the software on your modules. It checks the <code>config.py</code> file for versions numbers against the latest <code>config.py</code> file on the release branch of the GitHub. If a discrepancy exists the respective files are downloaded directly onto the device from GitHub, updating the software on the device to its newest version, based on its specific configuration.</p>
             <div class="additional-resources-grid">
-                <div class="resource-card">
-                    <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A">To the Module Management UI</a>
-                </div>
+                <a href="https://www.youtube.com/watch?v=GFq6wH5JR2A" class="resource-card">
+                    <h3>To the Module Management UI</h3>
+                </a>
             </div>
         </div>
     </section>
@@ -768,34 +771,38 @@ switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
     <section id="additional-resources">
         <h2>Useful Resources</h2>
         <div class="resources-grid">
-            <div class="resource-card">
-                <a href="https://smartmotors.notion.site/Smart-Motors-8d8f49ff9f6243ddbf0847b2806df6ba">Smart Motors</a>
-                <p>The original Smart Motors notion page. Provides documentation, guides, and resources to help you understand and utilize the original Smart Motors, which forms the basis for the Smart System Platform.</p>
-            </div>
-            <div class="resource-card">
-                <a href="https://micropython.org/webrepl/">MicroPython WebREPL</a>
+            <a href="https://smartmotors.notion.site/Smart-Motors-8d8f49ff9f6243ddbf0847b2806df6ba" class="resource-card">
+                <h3>Smart Motors</h3>
+                <p>The original Smart Motors notion page. Provides documentation, guides, and resources to help you understand and utilise the original Smart Motors, which forms the basis for the Smart System Platform.</p>
+            </a>
+            <a href="https://smartmotors.ai/" class="resource-card">
+                <h3>Smart Motors</h3>
+                <p>The new Smart Motors webpage. Provides documentation, guides, and resources to help you understand and utilise the original Smart Motors, which forms the basis for the Smart System Platform.</p>
+            </a>
+            <a href="https://micropython.org/webrepl/" class="resource-card">
+                <h3>MicroPython WebREPL</h3>
                 <p>Provides a MicroPython interactive interpreter directly in your web browser, allowing wireless access to a webREPL-enabled device on your local network.</p>
-            </div>
-            <div class="resource-card">
-                <a href="https://thonny.org/">Thonny</a>
+            </a>
+            <a href="https://thonny.org/" class="resource-card">
+                <h3>Thonny</h3>
                 <p>A beginner-friendly Python IDE that provides a user-friendly interface and debugging tools, which is fully compatible with the ESP32-SoC-based hardware and MicroPython code of the Smart Modules.</p>
-            </div>
-            <div class="resource-card">
-                <a href="https://github.com/tuftsceeo/SmartMotors">Smart Motor GitHub</a>
+            </a>
+            <a href="https://github.com/tuftsceeo/SmartMotors" class="resource-card">
+                <h3>Smart Motor GitHub</h3>
                 <p>Link to the Smart Motors GitHub</p>
-            </div>
-            <div class="resource-card">
-                <a href="https://github.com/tuftsceeo/Smart-System-Platform">Smart System Platform GitHub</a>
+            </a>
+            <a href="https://github.com/tuftsceeo/Smart-System-Platform" class="resource-card">
+                <h3>Smart System Platform GitHub</h3>
                 <p>Link to the Smart System Platform GitHub</p>
-            </div>
-            <div class="resource-card">
-                <a href="https://github.com/shanki01/Playground-Code">Smart Playground GitHub</a>
+            </a>
+            <a href="https://github.com/shanki01/Playground-Code" class="resource-card">
+                <h3>Smart Playground GitHub</h3>
                 <p>Link to the Smart Playground GitHub</p>
-            </div>
-            <div class="resource-card">
-                <a href="https://tufts-ai-robotics-group.github.io/SmartMotor/">Smart App</a>
+            </a>
+            <a href="https://tufts-ai-robotics-group.github.io/SmartMotor/" class="resource-card">
+                <h3>Smart App</h3>
                 <p>Link to the Smart App webpage</p>
-            </div>
+            </a>
         </div>
     </section>
 </main>
@@ -805,7 +812,7 @@ switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
         <img src="images/SOE_CEEO_horiz_white.svg" width="274" height="63" alt="Tufts University; Center for Engineering Education and Outreach Logo" class="footer-logo-left">
         <div class="footer-text">
             <p><span>© 2024 Smart System Platform.</span> All rights reserved.</p>
-            <p><a href="community.html">Contact Us</a> | <a href="privacy.html">Privacy Policy</a></p>
+            <p><a href="community.html">Contact Us</a></p>
         </div>
         <img src="images/eth_logo_kurz_neg.svg" width="206" height="75" alt="Swiss Federal Institute of Technology Zurich (ETH Zürich) Logo" class="footer-logo-right">
     </div>
