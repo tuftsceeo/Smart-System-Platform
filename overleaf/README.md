@@ -13,8 +13,6 @@ This directory hosts the latex thesis report.
 The repository has the following directory tree.
 
     .
-    ├── Master_Thesis.pdf
-    ├── Master_Thesis_compressed.pdf
     ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
@@ -156,7 +154,6 @@ The repository has the following directory tree.
     │   └── xiaoesp32c6.png
     ├── main.tex
     ├── main.tex.bak
-    ├── plagiat-eigenstaendigkeitserklaerung.pdf
     └── unsrtDOI.bst
 
 A short description of the directories can be found below.
