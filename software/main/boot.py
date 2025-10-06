@@ -1,4 +1,4 @@
-from config import config
+import config
 import time
 from machine import Pin
 import machine
@@ -10,7 +10,7 @@ try:
 except Exception as e:
     print(f"Error {e}")
 
-module_name = config["configuration"].lower()
+module_name = config.config["configuration"].lower()
 
 import gc
 
@@ -27,14 +27,16 @@ sta.active(False)
 ap.active(False)
 
 from ssp_networking import SSP_Networking
+import ssp_networking
 
 # Network
 infmsg = True
 dbgmsg = False
 errmsg = True
-configuration = config["configuration"]
+configuration = config.config["configuration"]
 
-networking = SSP_Networking(infmsg, dbgmsg, errmsg)
+config.networking = SSP_Networking(infmsg, dbgmsg, errmsg)
+networking = config.networking
 
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
