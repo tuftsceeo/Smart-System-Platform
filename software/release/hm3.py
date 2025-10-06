@@ -25,8 +25,6 @@ infmsg = True
 dbgmsg = False
 errmsg = True
 configuration = config["configuration"]
-if configuration == "AM1":
-    infmsg = True
 
 networking = SSP_Networking(infmsg, dbgmsg, errmsg)
 
@@ -36,33 +34,16 @@ import time
 
 global timer
 
-if config["sta_channel"]:
-    networking.networking._staif.config(channel=config["sta_channel"])
-if config["ap_channel"]:
-    networking.networking._apif.config(channel=config["ap_channel"])
+print("Hello")
 
-print(
-    "{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Sta channel: {}, Ap mac: {}, Ap channel: {}, Version: {}".format(
-        (time.ticks_ms() - networking.inittime) / 1000,
-        networking.config["name"],
-        networking.config["id"],
-        networking.config["configuration"],
-        networking.config["sta_mac"],
-        networking.config["sta_channel"],
-        networking.config["ap_mac"],
-        networking.config["ap_channel"],
-        networking.config["version"]
-    ))
 def deinit():
     networking.cleanup()
     try:
         timer.deinit()
+        #call boot deinit?
     except Exception as e:
         print(e)
     machine.reset()
-
-
-print("Hello")
 
 from config import hive_config
 
