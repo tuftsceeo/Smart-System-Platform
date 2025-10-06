@@ -2,7 +2,7 @@ config = {"name": "Nickname", "configuration": None, "id": None, "version": None
 version = {'adxl345.py': 3,
             'splat.py': 1,
 'sp1.py': 3,
-'hm3.py': 3,
+'hm3.py': 4,
 'am1.py': 2,
 'ssp_networking.py': 7,
             'files.py': 2,
