@@ -25,6 +25,8 @@ infmsg = True
 dbgmsg = False
 errmsg = True
 configuration = config["configuration"]
+if configuration == "AM1":
+    infmsg = True
 
 networking = SSP_Networking(infmsg, dbgmsg, errmsg)
 
@@ -34,16 +36,33 @@ import time
 
 global timer
 
-print("Hello")
+if config["sta_channel"]:
+    networking.networking._staif.config(channel=config["sta_channel"])
+if config["ap_channel"]:
+    networking.networking._apif.config(channel=config["ap_channel"])
 
+print(
+    "{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Sta channel: {}, Ap mac: {}, Ap channel: {}, Version: {}".format(
+        (time.ticks_ms() - networking.inittime) / 1000,
+        networking.config["name"],
+        networking.config["id"],
+        networking.config["configuration"],
+        networking.config["sta_mac"],
+        networking.config["sta_channel"],
+        networking.config["ap_mac"],
+        networking.config["ap_channel"],
+        networking.config["version"]
+    ))
 def deinit():
     networking.cleanup()
     try:
         timer.deinit()
-        #call boot deinit?
     except Exception as e:
         print(e)
     machine.reset()
+
+
+print("Hello")
 
 from config import hive_config
 
@@ -164,7 +183,7 @@ if hive_config["hive"]:
                                     sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
                     output = output / len(receive_list)
                     output = bool(int(output))
-                    print(f"Value: {output}")
+                    # print(f"Value: {output}")
                     oled.fill(0)
                     oled.show()
                     oled.text("hive mode", 0, 28, 1)
@@ -181,7 +200,7 @@ if hive_config["hive"]:
                                     sensor_dict[entry[1]][1] - sensor_dict[entry[1]][0])
                     output = output / len(receive_list)
                     output = int(output * 180)
-                    print(f"Value: {output}")
+                    # print(f"Value: {output}")
                     s.write_angle(output)
                 except Exception as e:
                     print(e)
@@ -202,7 +221,7 @@ if hive_config["hive"]:
 
         while hive_config["hive"]:
             get_sensor_data(None)
-            time.sleep(hive_config["refreshrate"]/1000)
+            time.sleep(hive_config["refreshrate"])
 
     except KeyboardInterrupt:
         #timer.deinit()
