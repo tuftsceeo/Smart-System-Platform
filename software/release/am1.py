@@ -8,7 +8,7 @@ gc.collect()
 
 import network
 
-print("Running am1.py")
+print("Running boot.py")
 
 # just to be safe
 sta = network.WLAN(network.STA_IF)
