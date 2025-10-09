@@ -2,7 +2,7 @@ config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac'
 version = {'adxl345.py': 3,
     'am1.py': 1,
            'hm1.py': 1,
-           'ssp_networking.py': 2,
+'ssp_networking.py': 3,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -12,7 +12,7 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-           'networking.py': 4,
+'networking.py': 5,
            'main.py': 2,
            'boot.py': 0
             }
