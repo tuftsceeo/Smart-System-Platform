@@ -106,7 +106,6 @@ jobs:
     
           echo "Processing $folder_name..."
     
-          # --- Copy files listed in README.qmd from 'all/' ---
           files=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' "$qmd_file" | tr -d ' ')
           for file in $files; do
             src="$all_folder/$file"
@@ -119,60 +118,53 @@ jobs:
             fi
           done
     
-          # --- Update config.py ---
           config_file="$folder/config.py"
           if [ ! -f "$config_file" ]; then
             echo "Warning: $config_file not found, skipping config update"
             continue
           fi
     
-          python3 - <<EOF
-          import os, re, datetime
-          
-          file_path = "$config_file"
-          folder_name = "$folder_name"
-          
-          with open(file_path) as f:
-              content = f.read()
-          
-          # List of Python files in the folder
-          py_files = [f for f in os.listdir(os.path.dirname(file_path)) if f.endswith('.py') and f != "config.py"]
-          
-          # Update config dict with timestamp including minutes & seconds
-          version_str = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
-          new_config = (
-              "{'ap_channel': 1, 'id': None, 'name': 'Nick', "
-              f"'sta_mac': None, 'ap_mac': None, 'configuration': '{folder_name}', "
-              "'sta_channel': 1, 'version': '" + version_str + "'}"
-          )
-          content = re.sub(r"config\s*=\s*\{.*?\}", f"config = {new_config}", content, flags=re.DOTALL)
-          
-          # Clean and rebuild version dict
-          match = re.search(r"version\s*=\s*\{(.*?)\}", content, flags=re.DOTALL)
-          version_dict = {}
-          if match:
-              existing_versions = match.group(1)
-              for line in existing_versions.splitlines():
-                  m = re.search(r"'([^']+)':\s*(\d+)", line)
-                  if m:
-                      version_dict[m.group(1)] = int(m.group(2))
-          
-          # Keep only existing files, add missing ones with version 1
-          version_dict = {f: v for f, v in version_dict.items() if f in py_files}
-          for f in py_files:
-              if f not in version_dict:
-                  version_dict[f] = 1
-          
-          # Rebuild version block
-          version_lines = ",\n    ".join([f"'{k}': {v}" for k, v in sorted(version_dict.items())])
-          new_version_block = f"version = {{\n    {version_lines}\n}}"
-          
-          content = re.sub(r"version\s*=\s*\{.*?\}", new_version_block, content, flags=re.DOTALL)
-          
-          with open(file_path, "w") as f:
-              f.write(content)
-EOF
-
+          bash -c "python3 - <<'PYEOF'
+        import os, re, datetime
+        
+        file_path = \"$config_file\"
+        folder_name = \"$folder_name\"
+        
+        with open(file_path) as f:
+            content = f.read()
+        
+        py_files = [f for f in os.listdir(os.path.dirname(file_path)) if f.endswith('.py') and f != 'config.py']
+        
+        version_str = datetime.datetime.now().strftime('%Y.%m.%d-%H%M%S')
+        new_config = (
+            '{\"ap_channel\": 1, \"id\": None, \"name\": \"Nick\", '
+            f'\"sta_mac\": None, \"ap_mac\": None, \"configuration\": \"{folder_name}\", '
+            '\"sta_channel\": 1, \"version\": \"' + version_str + '\"}'
+        )
+        content = re.sub(r'config\s*=\s*\{.*?\}', f'config = {new_config}', content, flags=re.DOTALL)
+        
+        match = re.search(r'version\s*=\s*\{(.*?)\}', content, flags=re.DOTALL)
+        version_dict = {}
+        if match:
+            existing_versions = match.group(1)
+            for line in existing_versions.splitlines():
+                m = re.search(r"'([^']+)':\s*(\d+)", line)
+                if m:
+                    version_dict[m.group(1)] = int(m.group(2))
+        
+        version_dict = {f: v for f, v in version_dict.items() if f in py_files}
+        for f in py_files:
+            if f not in version_dict:
+                version_dict[f] = 1
+        
+        version_lines = ',\n    '.join([f'\"{k}\": {v}' for k, v in sorted(version_dict.items())])
+        new_version_block = f'version = {{\n    {version_lines}\n}}'
+        
+        content = re.sub(r'version\s*=\s*\{.*?\}', new_version_block, content, flags=re.DOTALL)
+        
+        with open(file_path, 'w') as f:
+            f.write(content)
+        PYEOF"
         done
             
     - name: Set up R
