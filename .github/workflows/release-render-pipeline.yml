@@ -138,7 +138,7 @@ jobs:
     - name: Set up Quarto
       uses: quarto-dev/quarto-actions/setup@v2
 
-    - name: Find and Render README.qmd Files 
+    - name: Find and Render README.qmd Files
       run: |
         find . -name "README.qmd" | while read qmd_file; do
           quarto render "$qmd_file" --to gfm
