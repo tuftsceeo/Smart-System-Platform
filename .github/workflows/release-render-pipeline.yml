@@ -120,38 +120,51 @@ jobs:
           done
     
           config_file="$folder/config.py"
+          folder_path="$folder"
+          
           if [ ! -f "$config_file" ]; then
-            echo "Warning: $config_file not found, skipping config update"
-            continue
-          fi
-    
-          # Update config dict version string (to current date/time)
-          version_str=$(date +'%Y.%m.%d-%H%M%S')
-          sed -i "s/^config\s*=\s*{.*}/config = {\"ap_channel\": 1, \"id\": None, \"name\": \"Nick\", \"sta_mac\": None, \"ap_mac\": None, \"configuration\": \"$folder_name\", \"sta_channel\": 1, \"version\": \"$version_str\"}/" "$config_file"
-    
-          # Update version numbers for changed files in this folder
-          changed_files=$(git diff --name-only)
-          new_files=$(git ls-files --others --exclude-standard)
-          all_changed_files=$(echo "$changed_files $new_files" | tr ' ' '\n')
-    
-          for file in $files; do
-            base_file=$(basename "$file")
-            if echo "$all_changed_files" | grep -q "$base_file"; then
-              if grep -q "$base_file" "$config_file"; then
-                current_version=$(sed -n "s/^.*'$base_file': \([0-9]*\),.*$/\1/p" "$config_file")
-                current_version=${current_version:-0}
-                new_version=$((current_version + 1))
-                sed -i "s/^.*'$base_file': $current_version,.*$/'$base_file': $new_version,/g" "$config_file"
-                echo "Updated $base_file version from $current_version to $new_version"
-              else
-                sed -i "/^version = {/a \ \ \ \ '$base_file': 1," "$config_file"
-                echo "Added $base_file with version 1"
+            echo "Warning: $config_file not found, skipping cleanup"
+          else
+            echo "Cleaning version entries in $config_file..."
+          
+            # Get list of .py files in folder (excluding config.py)
+            py_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \; | sort)
+          
+            # Build a temporary cleaned version of config.py
+            tmp_file=$(mktemp)
+            in_version_block=0
+          
+            while IFS= read -r line; do
+              if [[ "$line" =~ ^version[[:space:]]*=\s*\{ ]]; then
+                echo "$line" >> "$tmp_file"
+                in_version_block=1
+                continue
               fi
-            else
-              echo "No change detected for $base_file"
-            fi
-          done
-        done
+          
+              if [[ $in_version_block -eq 1 ]]; then
+                if [[ "$line" =~ \} ]]; then
+                  in_version_block=0
+                  echo "$line" >> "$tmp_file"
+                  continue
+                fi
+          
+                if [[ "$line" =~ \'([^\']+)\':[[:space:]]*([0-9]+) ]]; then
+                  file_in_version="${BASH_REMATCH[1]}"
+                  if echo "$py_files" | grep -qx "$file_in_version"; then
+                    echo "$line" >> "$tmp_file"
+                  else
+                    echo "Removed unused version entry: $file_in_version"
+                  fi
+                else
+                  echo "$line" >> "$tmp_file"
+                fi
+              else
+                echo "$line" >> "$tmp_file"
+              fi
+            done < "$config_file"
+          
+            mv "$tmp_file" "$config_file"
+          fi
             
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
