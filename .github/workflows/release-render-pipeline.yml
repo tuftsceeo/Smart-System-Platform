@@ -122,53 +122,35 @@ jobs:
             fi
           done
         done
-
-    - name: Populate config.py in each release folder
+    
+    - name: Update config.py
       run: |
-        release_root="software/release"
-        today=$(date +%Y%m%d)
-
-        # Detect changed files (staged or new)
-        changed_files=$(git diff --name-only)
-        new_files=$(git ls-files --others --exclude-standard)
-        all_changed_files=$(echo "$changed_files $new_files" | tr ' ' '\n')
-
-        for folder in "$release_root"/*/; do
-          folder_name=$(basename "$folder")
-          if [ "$folder_name" = "all" ]; then
-            continue
-          fi
-
-          config_file="$folder/config.py"
-
-          # Determine version — update only if any file in this folder changed
-          if echo "$all_changed_files" | grep -q "$folder_name"; then
-            version="$today"
-          else
-            if [ -f "$config_file" ]; then
-              version=$(grep -oP "(?<=\'version\': )'?[0-9]*'?" "$config_file" | tr -d "'")
-              version=${version:-$today}
-            else
-              version="$today"
-            fi
-          fi
-
-          echo "Updating $config_file"
-
-          cat > "$config_file" <<EOF
-config = {
-    'ap_channel': 1,
-    'sta_channel': 1,
-    'id': None,
-    'name': 'Nick',
-    'sta_mac': None,
-    'ap_mac': None,
-    'configuration': '${folder_name}',
-    'version': '${version}'
-}
-EOF
-        done
-
+        python3 - <<'EOF'
+        import os, re, datetime
+        
+        file_path = "config.py"
+        
+        with open(file_path) as f:
+            content = f.read()
+        
+        folder_name = os.path.basename(os.getcwd())
+        version = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
+        
+        new_config = (
+            "{'ap_channel': 1, 'id': None, 'name': 'Nick', "
+            f"'sta_mac': None, 'ap_mac': None, 'configuration': '{folder_name}', "
+            "'sta_channel': 1, 'version': '" + version + "'}"
+        )
+        
+        pattern = r"config\s*=\s*\{.*?\}"
+        replacement = f"config = {new_config}"
+        
+        new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        
+        with open(file_path, "w") as f:
+            f.write(new_content)
+        EOF
+        
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
