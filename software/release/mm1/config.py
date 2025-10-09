@@ -1,6 +1,5 @@
-config = {"ap_channel": 1, "id": None, "name": "Nick", "sta_mac": None, "ap_mac": None, "configuration": "mm1", "sta_channel": 1, "version": "2025.10.09-104624"}
+config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': None}
 version = {'adxl345.py': 3,
-    'config.py': 1,
     'am1.py': 1,
            'hm1.py': 1,
 'ssp_networking.py': 3,
@@ -80,4 +79,3 @@ i2c_dict = {
 sensor_dict = {"sensor": [0,4095], "potentiometer": [0,180], "select": [0,1], "up": [0,1], "down": [0,1], "button": [0,1], "sw1": [0,1],  "sw2": [0,1],  "sw3": [0,1],  "sw4": [0,1]}
 hive_config = {'hive': True, 'recipients': [b'd\xe83\x84\xd8\x18'], 'sender_sensor_list': [[b'd\xe83\x84\xd8\x18', 'None']], 'refreshrate': 200, 'mode': 'None'}
 
-networking = None

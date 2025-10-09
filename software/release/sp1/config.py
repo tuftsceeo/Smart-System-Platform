@@ -1,12 +1,8 @@
-config = {"ap_channel": 1, "id": None, "name": "Nick", "sta_mac": None, "ap_mac": None, "configuration": "sp1", "sta_channel": 1, "version": "2025.10.09-104624"}
+config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': None}
 version = {'adxl345.py': 3,
-    'variableLED.py': 1,
-    'splat.py': 1,
-    'sp1.py': 1,
-    'config.py': 1,
     'am1.py': 1,
            'hm1.py': 1,
-'ssp_networking.py': 4,
+'ssp_networking.py': 3,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -16,7 +12,7 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-'networking.py': 6,
+'networking.py': 5,
            'main.py': 2,
            'boot.py': 0
             }
@@ -83,4 +79,3 @@ i2c_dict = {
 sensor_dict = {"sensor": [0,4095], "potentiometer": [0,180], "select": [0,1], "up": [0,1], "down": [0,1], "button": [0,1], "sw1": [0,1],  "sw2": [0,1],  "sw3": [0,1],  "sw4": [0,1]}
 hive_config = {'hive': True, 'recipients': [b'd\xe83\x84\xd8\x18'], 'sender_sensor_list': [[b'd\xe83\x84\xd8\x18', 'None']], 'refreshrate': 200, 'mode': 'None'}
 
-networking = None
