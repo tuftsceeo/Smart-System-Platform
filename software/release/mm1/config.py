@@ -1,9 +1,9 @@
-config = {"ap_channel": 1, "id": None, "name": "Nick", "sta_mac": None, "ap_mac": None, "configuration": "min", "sta_channel": 1, "version": "2025.10.09-103844"}
+config = {"ap_channel": 1, "id": None, "name": "Nick", "sta_mac": None, "ap_mac": None, "configuration": "mm1", "sta_channel": 1, "version": "2025.10.09-104624"}
 version = {'adxl345.py': 3,
     'config.py': 1,
     'am1.py': 1,
            'hm1.py': 1,
-'ssp_networking.py': 4,
+'ssp_networking.py': 3,
            'files.py': 2,
            'icons.py': 2,
            'prefs.py': 2,
@@ -13,7 +13,7 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-'networking.py': 6,
+'networking.py': 5,
            'main.py': 2,
            'boot.py': 0
             }
