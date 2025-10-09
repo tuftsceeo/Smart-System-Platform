@@ -122,7 +122,35 @@ jobs:
             fi
           done
         done
-
+    
+    - name: Update config.py
+      run: |
+        python3 - <<'EOF'
+        import os, re, datetime
+        
+        file_path = "config.py"
+        
+        with open(file_path) as f:
+            content = f.read()
+        
+        folder_name = os.path.basename(os.getcwd())
+        version = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
+        
+        new_config = (
+            "{'ap_channel': 1, 'id': None, 'name': 'Nick', "
+            f"'sta_mac': None, 'ap_mac': None, 'configuration': '{folder_name}', "
+            "'sta_channel': 1, 'version': '" + version + "'}"
+        )
+        
+        pattern = r"config\s*=\s*\{.*?\}"
+        replacement = f"config = {new_config}"
+        
+        new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        
+        with open(file_path, "w") as f:
+            f.write(new_content)
+        EOF
+        
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
