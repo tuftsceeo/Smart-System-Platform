@@ -13,6 +13,7 @@ This directory hosts release ready code for the smart module min.
 The repository has the following directory tree.
 
     .
+    ├── README.md
     ├── README.qmd
     ├── README.rmarkdown
     ├── boot.py
