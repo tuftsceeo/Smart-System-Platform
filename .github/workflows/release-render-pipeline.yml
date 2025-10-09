@@ -126,31 +126,60 @@ jobs:
     - name: Update config.py
       run: |
         python3 - <<'EOF'
-        import os, re, datetime
+        import os, re, datetime, hashlib
         
         file_path = "config.py"
         
         with open(file_path) as f:
             content = f.read()
         
+        # --- Determine folder name and file list ---
         folder_name = os.path.basename(os.getcwd())
-        version = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
+        py_files = [f for f in os.listdir('.') if f.endswith('.py') and f != "config.py"]
+        
+        # --- Update config dict ---
+        version_str = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
         
         new_config = (
             "{'ap_channel': 1, 'id': None, 'name': 'Nick', "
             f"'sta_mac': None, 'ap_mac': None, 'configuration': '{folder_name}', "
-            "'sta_channel': 1, 'version': '" + version + "'}"
+            "'sta_channel': 1, 'version': '" + version_str + "'}"
         )
         
-        pattern = r"config\s*=\s*\{.*?\}"
-        replacement = f"config = {new_config}"
+        content = re.sub(r"config\s*=\s*\{.*?\}", f"config = {new_config}", content, flags=re.DOTALL)
         
-        new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        # --- Parse and clean version dict ---
+        match = re.search(r"version\s*=\s*\{(.*?)\}", content, flags=re.DOTALL)
+        if match:
+            existing_versions = match.group(1)
+            version_dict = {}
+            for line in existing_versions.splitlines():
+                m = re.search(r"'([^']+)':\s*(\d+)", line)
+                if m:
+                    version_dict[m.group(1)] = int(m.group(2))
+        else:
+            version_dict = {}
         
+        # Remove entries for missing files
+        version_dict = {f: v for f, v in version_dict.items() if f in py_files}
+        
+        # Add missing files with version 1
+        for f in py_files:
+            if f not in version_dict:
+                version_dict[f] = 1
+        
+        # --- Rebuild version dict as formatted string ---
+        version_lines = ",\n    ".join([f"'{k}': {v}" for k, v in sorted(version_dict.items())])
+        new_version_block = f"version = {{\n    {version_lines}\n}}"
+        
+        # --- Replace old version block ---
+        content = re.sub(r"version\s*=\s*\{.*?\}", new_version_block, content, flags=re.DOTALL)
+        
+        # --- Write back ---
         with open(file_path, "w") as f:
-            f.write(new_content)
+            f.write(content)
         EOF
-        
+            
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
