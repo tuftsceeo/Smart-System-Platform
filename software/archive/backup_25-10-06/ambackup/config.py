@@ -1,0 +1,1 @@
+config = {'ap_channel': 1, 'id': '64e83384d818', 'name': 'GodAdmin', 'sta_mac': '64:e8:33:84:d8:18', 'ap_mac': '64:e8:33:84:d8:19', 'configuration': 'AM1', 'sta_channel': 1, 'version': '111422222410322'}
