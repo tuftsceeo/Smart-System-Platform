@@ -87,18 +87,17 @@ jobs:
           fi
         done
         
-    - name: Copy files from "all" to individual release folders
+    - name: Copy files from "all" and update config.py
       run: |
         release_root="software/release"
         all_folder="$release_root/all"
     
-        # Loop through each folder inside release/, skipping 'all'
         for folder in "$release_root"/*/; do
           folder_name=$(basename "$folder")
           if [ "$folder_name" = "all" ]; then
             continue
           fi
-  
+    
           qmd_file="$folder/README.qmd"
           if [ ! -f "$qmd_file" ]; then
             echo "Skipping $folder_name — no README.qmd found."
@@ -107,13 +106,11 @@ jobs:
     
           echo "Processing $folder_name..."
     
-          # Extract filenames from the table in README.qmd
+          # --- Copy files listed in README.qmd from 'all/' ---
           files=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' "$qmd_file" | tr -d ' ')
-    
           for file in $files; do
             src="$all_folder/$file"
             dest="$folder"
-    
             if [ -f "$src" ]; then
               echo "Copying $file → $folder_name/"
               cp "$src" "$dest/"
@@ -121,64 +118,62 @@ jobs:
               echo "Warning: $file not found in all/"
             fi
           done
-        done
     
-    - name: Update config.py
-      run: |
-        python3 - <<'EOF'
-        import os, re, datetime, hashlib
-        
-        file_path = "config.py"
-        
-        with open(file_path) as f:
-            content = f.read()
-        
-        # --- Determine folder name and file list ---
-        folder_name = os.path.basename(os.getcwd())
-        py_files = [f for f in os.listdir('.') if f.endswith('.py') and f != "config.py"]
-        
-        # --- Update config dict ---
-        version_str = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
-        
-        new_config = (
-            "{'ap_channel': 1, 'id': None, 'name': 'Nick', "
-            f"'sta_mac': None, 'ap_mac': None, 'configuration': '{folder_name}', "
-            "'sta_channel': 1, 'version': '" + version_str + "'}"
-        )
-        
-        content = re.sub(r"config\s*=\s*\{.*?\}", f"config = {new_config}", content, flags=re.DOTALL)
-        
-        # --- Parse and clean version dict ---
-        match = re.search(r"version\s*=\s*\{(.*?)\}", content, flags=re.DOTALL)
-        if match:
-            existing_versions = match.group(1)
-            version_dict = {}
-            for line in existing_versions.splitlines():
-                m = re.search(r"'([^']+)':\s*(\d+)", line)
-                if m:
-                    version_dict[m.group(1)] = int(m.group(2))
-        else:
-            version_dict = {}
-        
-        # Remove entries for missing files
-        version_dict = {f: v for f, v in version_dict.items() if f in py_files}
-        
-        # Add missing files with version 1
-        for f in py_files:
-            if f not in version_dict:
-                version_dict[f] = 1
-        
-        # --- Rebuild version dict as formatted string ---
-        version_lines = ",\n    ".join([f"'{k}': {v}" for k, v in sorted(version_dict.items())])
-        new_version_block = f"version = {{\n    {version_lines}\n}}"
-        
-        # --- Replace old version block ---
-        content = re.sub(r"version\s*=\s*\{.*?\}", new_version_block, content, flags=re.DOTALL)
-        
-        # --- Write back ---
-        with open(file_path, "w") as f:
-            f.write(content)
-        EOF
+          # --- Update config.py ---
+          config_file="$folder/config.py"
+          if [ ! -f "$config_file" ]; then
+            echo "Warning: $config_file not found, skipping config update"
+            continue
+          fi
+    
+          python3 - <<EOF
+          import os, re, datetime
+          
+          file_path = "$config_file"
+          folder_name = "$folder_name"
+          
+          with open(file_path) as f:
+              content = f.read()
+          
+          # List of Python files in the folder
+          py_files = [f for f in os.listdir(os.path.dirname(file_path)) if f.endswith('.py') and f != "config.py"]
+          
+          # Update config dict with timestamp including minutes & seconds
+          version_str = datetime.datetime.now().strftime("%Y.%m.%d-%H%M%S")
+          new_config = (
+              "{'ap_channel': 1, 'id': None, 'name': 'Nick', "
+              f"'sta_mac': None, 'ap_mac': None, 'configuration': '{folder_name}', "
+              "'sta_channel': 1, 'version': '" + version_str + "'}"
+          )
+          content = re.sub(r"config\s*=\s*\{.*?\}", f"config = {new_config}", content, flags=re.DOTALL)
+          
+          # Clean and rebuild version dict
+          match = re.search(r"version\s*=\s*\{(.*?)\}", content, flags=re.DOTALL)
+          version_dict = {}
+          if match:
+              existing_versions = match.group(1)
+              for line in existing_versions.splitlines():
+                  m = re.search(r"'([^']+)':\s*(\d+)", line)
+                  if m:
+                      version_dict[m.group(1)] = int(m.group(2))
+          
+          # Keep only existing files, add missing ones with version 1
+          version_dict = {f: v for f, v in version_dict.items() if f in py_files}
+          for f in py_files:
+              if f not in version_dict:
+                  version_dict[f] = 1
+          
+          # Rebuild version block
+          version_lines = ",\n    ".join([f"'{k}': {v}" for k, v in sorted(version_dict.items())])
+          new_version_block = f"version = {{\n    {version_lines}\n}}"
+          
+          content = re.sub(r"version\s*=\s*\{.*?\}", new_version_block, content, flags=re.DOTALL)
+          
+          with open(file_path, "w") as f:
+              f.write(content)
+          EOF
+          
+        done
             
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
