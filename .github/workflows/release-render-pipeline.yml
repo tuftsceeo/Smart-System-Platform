@@ -1,76 +1,223 @@
-- name: Copy files from "all" and clean config.py
-  run: |
-    release_root="software/release"
-    all_folder="$release_root/all"
+name: release-render-pipeline
 
-    for folder in "$release_root"/*/; do
-      folder_name=$(basename "$folder")
-      if [ "$folder_name" = "all" ]; then
-        continue
-      fi
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 
-      qmd_file="$folder/README.qmd"
-      if [ ! -f "$qmd_file" ]; then
-        echo "Skipping $folder_name — no README.qmd found."
-        continue
-      fi
+jobs:
+  release-render:
+    runs-on: ubuntu-latest
 
-      echo "Processing $folder_name..."
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        ssh-key: ${{ secrets.RENDER_KEY }}
 
-      # Copy files
-      files=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' "$qmd_file" | tr -d ' ')
-      for file in $files; do
-        src="$all_folder/$file"
-        dest="$folder"
-        if [ -f "$src" ]; then
-          echo "Copying $file → $folder_name/"
-          cp "$src" "$dest/"
-        else
-          echo "Warning: $file not found in all/"
-        fi
-      done
+    - name: Set up SSH for Git
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.RENDER_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_rsa
 
-      # Clean version entries in config.py
-      config_file="$folder/config.py"
-      folder_path="$folder"
-      if [ ! -f "$config_file" ]; then
-        echo "Warning: $config_file not found, skipping cleanup"
-        continue
-      fi
+    - name: Parse File List from release/all/README.qmd
+      id: parse
+      run: |
+        # Extract the table section and parse the file paths
+        raw_file_list=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' software/release/all/README.qmd | tr -d ' ')
+    
+        file_list=$(echo "$raw_file_list" | sed 's/^/software\//')
+    
+        echo "Files to monitor:"
+        echo "$file_list"
+    
+        echo "file_list<<EOF" >> $GITHUB_OUTPUT
+        echo "$file_list" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
-      echo "Cleaning version entries in $config_file..."
-      py_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \; | sort)
-      tmp_file=$(mktemp)
-      in_version_block=0
-
-      while IFS= read -r line; do
-        if [[ "$line" =~ ^version[[:space:]]*=\s*\{ ]]; then
-          echo "$line" >> "$tmp_file"
-          in_version_block=1
-          continue
-        fi
-
-        if [[ $in_version_block -eq 1 ]]; then
-          if [[ "$line" =~ \} ]]; then
-            in_version_block=0
-            echo "$line" >> "$tmp_file"
+    - name: Copy Files to Release All Folder
+      run: |
+        mkdir -p software/release/all  # Ensure the release all folder exists
+        echo "${{ steps.parse.outputs.file_list }}" | while read file; do
+          # Skip the config.py file
+          if [[ "$(basename $file)" == "config.py" ]]; then
+            echo "Skipping config.py"
             continue
           fi
+          
+          # Copy the file, overwriting if it already exists
+          cp "$file" software/release/all/  # Overwrite files directly to the root of the release all folder
+        done
 
-          if [[ "$line" =~ \'([^\']+)\':[[:space:]]*([0-9]+) ]]; then
-            file_in_version="${BASH_REMATCH[1]}"
-            if echo "$py_files" | grep -qx "$file_in_version"; then
-              echo "$line" >> "$tmp_file"
+    - name: List Files in Release All Folder
+      run: |
+        echo "Files copied to the release all folder:"
+        find software/release/all -type f
+
+
+    - name: Update Version in Config.py
+      run: |
+        changed_files=$(git diff --name-only)
+        new_files=$(git ls-files --others --exclude-standard)
+        all_changed_files=$(echo "$changed_files $new_files" | tr ' ' '\n')
+
+        echo "${{ steps.parse.outputs.file_list }}" | while read file; do
+          base_file=$(basename "$file")
+
+          if echo "$all_changed_files" | grep -q "$base_file"; then
+            if grep -q "$base_file" software/release/all/config.py; then
+              current_version=$(sed -n "s/^.*'$base_file': \([0-9]*\),.*$/\1/p" software/release/all/config.py)
+              current_version=${current_version:-0}   # Default to 0 if empty
+              new_version=$((current_version + 1))
+
+              sed -i "s/^.*'$base_file': $current_version,.*$/'$base_file': $new_version,/g" software/release/all/config.py
+              echo "Updated $base_file version from $current_version to $new_version"
             else
-              echo "Removed unused version entry: $file_in_version"
+              sed -i "/^version = {/a \ \ \ \ '$base_file': 1," software/release/all/config.py
+              echo "Added $base_file with version 1"
             fi
           else
-            echo "$line" >> "$tmp_file"
+            echo "No change detected for $base_file"
+          fi
+        done
+        
+    - name: Copy files from "all" and update config.py
+      run: |
+        release_root="software/release"
+        all_folder="$release_root/all"
+    
+        for folder in "$release_root"/*/; do
+          folder_name=$(basename "$folder")
+          if [ "$folder_name" = "all" ]; then
+            continue
+          fi
+    
+          qmd_file="$folder/README.qmd"
+          if [ ! -f "$qmd_file" ]; then
+            echo "Skipping $folder_name — no README.qmd found."
+            continue
+          fi
+    
+          echo "Processing $folder_name..."
+    
+          # Copy files listed in README.qmd
+          files=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' "$qmd_file" | tr -d ' ')
+          for file in $files; do
+            src="$all_folder/$file"
+            dest="$folder"
+            if [ -f "$src" ]; then
+              echo "Copying $file → $folder_name/"
+              cp "$src" "$dest/"
+            else
+              echo "Warning: $file not found in all/"
+            fi
+          done
+    
+          config_file="$folder/config.py"
+          folder_path="$folder"
+          
+          if [ ! -f "$config_file" ]; then
+            echo "Warning: $config_file not found, skipping cleanup"
+          else
+            echo "Cleaning version entries in $config_file..."
+          
+            # Get list of .py files in folder (excluding config.py)
+            py_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \; | sort)
+          
+            # Build a temporary cleaned version of config.py
+            tmp_file=$(mktemp)
+            in_version_block=0
+          
+            while IFS= read -r line; do
+              if [[ "$line" =~ ^version[[:space:]]*=\s*\{ ]]; then
+                echo "$line" >> "$tmp_file"
+                in_version_block=1
+                continue
+              fi
+          
+              if [[ $in_version_block -eq 1 ]]; then
+                if [[ "$line" =~ \} ]]; then
+                  in_version_block=0
+                  echo "$line" >> "$tmp_file"
+                  continue
+                fi
+          
+                if [[ "$line" =~ \'([^\']+)\':[[:space:]]*([0-9]+) ]]; then
+                  file_in_version="${BASH_REMATCH[1]}"
+                  if echo "$py_files" | grep -qx "$file_in_version"; then
+                    echo "$line" >> "$tmp_file"
+                  else
+                    echo "Removed unused version entry: $file_in_version"
+                  fi
+                else
+                  echo "$line" >> "$tmp_file"
+                fi
+              else
+                echo "$line" >> "$tmp_file"
+              fi
+            done < "$config_file"
+          
+            mv "$tmp_file" "$config_file"
+          fi
+            
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+
+    - name: Install Required R Packages
+      run: |
+        Rscript -e 'if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", repos = "https://cloud.r-project.org/")'
+        Rscript -e 'if (!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr", repos = "https://cloud.r-project.org/")'
+
+    - name: Set up Quarto
+      uses: quarto-dev/quarto-actions/setup@v2
+
+    - name: Find and Render README.qmd Files
+      run: |
+        find . -name "README.qmd" | while read qmd_file; do
+          quarto render "$qmd_file" --to gfm
+        done
+
+    # --- Step 4: Commit and Push All Changes Once ---
+    - name: Commit and Push All Changes
+      run: |
+        # Configure Git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Check if there are changes to commit (release folder or rendered README files)
+        git diff --exit-code || (git add software/release/ && git add . && git commit -m "Release and Render")
+
+        # Push the changes if there were any
+        git push origin main || echo "No changes to push"
+
+    - name: Set up Pull Request from main to original branch
+      env:
+          GH_TOKEN: ${{ github.token }}
+      run: |
+        # Ensure the latest changes from remote are fetched
+        git fetch origin
+        
+        # Get the original branch from the pull request
+        original_branch="dev/nick"
+        
+        # Check if the original branch exists
+        if git show-ref --verify --quiet "refs/remotes/origin/$original_branch"; then
+          # Create a pull request from main to the original branch
+          pr_url=$(gh pr create --base "$original_branch" --head "main" --title "Sync main with $original_branch" --body "Automated sync from main branch" --fill || echo "")
+          
+          # Merge the pull request if created
+          if [[ -n "$pr_url" ]]; then
+            pr_number=$(echo "$pr_url" | grep -oP '\d+$')
+            gh pr merge "$pr_number" --merge --admin || echo "Failed to merge PR $pr_number"
+          else
+            echo "No new pull request was created."
           fi
         else
-          echo "$line" >> "$tmp_file"
+          echo "Error: The branch '$original_branch' does not exist remotely."
         fi
-      done < "$config_file"
-
-      mv "$tmp_file" "$config_file"
-    done
