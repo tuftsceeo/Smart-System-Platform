@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/software/release/README.qmd
+## Location: /work/Smart-System-Platform/Smart-System-Platform/software/release/all/README.qmd
 
 ### Description
 
