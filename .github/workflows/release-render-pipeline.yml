@@ -91,6 +91,42 @@ jobs:
           fi
         done
 
+        - name: Copy files from "all" to individual release folders
+          run: |
+            release_root="software/release"
+            all_folder="$release_root/all"
+    
+            # Loop through each folder inside release/, skipping 'all'
+            for folder in "$release_root"/*/; do
+              folder_name=$(basename "$folder")
+              if [ "$folder_name" = "all" ]; then
+                continue
+              fi
+    
+              qmd_file="$folder/README.qmd"
+              if [ ! -f "$qmd_file" ]; then
+                echo "Skipping $folder_name — no README.qmd found."
+                continue
+              fi
+    
+              echo "Processing $folder_name..."
+    
+              # Extract filenames from the table in README.qmd
+              files=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' "$qmd_file" | tr -d ' ')
+    
+              for file in $files; do
+                src="$all_folder/$file"
+                dest="$folder"
+    
+                if [ -f "$src" ]; then
+                  echo "Copying $file → $folder_name/"
+                  cp "$src" "$dest/"
+                else
+                  echo "Warning: $file not found in all/"
+                fi
+              done
+            done
+
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
