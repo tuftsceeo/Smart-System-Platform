@@ -87,85 +87,63 @@ jobs:
           fi
         done
         
-    - name: Copy files from "all" and update config.py
+    - name: Copy files from "all" and clean config.py
       run: |
         release_root="software/release"
         all_folder="$release_root/all"
-    
+
         for folder in "$release_root"/*/; do
           folder_name=$(basename "$folder")
-          if [ "$folder_name" = "all" ]; then
-            continue
-          fi
-    
+          [ "$folder_name" = "all" ] && continue
+
           qmd_file="$folder/README.qmd"
-          if [ ! -f "$qmd_file" ]; then
-            echo "Skipping $folder_name — no README.qmd found."
-            continue
-          fi
-    
+          [ ! -f "$qmd_file" ] && echo "Skipping $folder_name — no README.qmd found." && continue
+
           echo "Processing $folder_name..."
-    
+
           # Copy files listed in README.qmd
           files=$(awk '/\| name/ {f=1; next} /\|----/ {next} f && /\|/ {print $2}' "$qmd_file" | tr -d ' ')
           for file in $files; do
             src="$all_folder/$file"
-            dest="$folder"
-            if [ -f "$src" ]; then
-              echo "Copying $file → $folder_name/"
-              cp "$src" "$dest/"
-            else
-              echo "Warning: $file not found in all/"
-            fi
+            [ -f "$src" ] && cp "$src" "$folder/" && echo "Copying $file → $folder_name/" || echo "Warning: $file not found in all/"
           done
-    
+
           config_file="$folder/config.py"
-          folder_path="$folder"
-          
-          if [ ! -f "$config_file" ]; then
-            echo "Warning: $config_file not found, skipping cleanup"
-          else
-            echo "Cleaning version entries in $config_file..."
-          
-            # Get list of .py files in folder (excluding config.py)
-            py_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \; | sort)
-          
-            # Build a temporary cleaned version of config.py
-            tmp_file=$(mktemp)
-            in_version_block=0
-          
-            while IFS= read -r line; do
-              if [[ "$line" =~ ^version[[:space:]]*=\s*\{ ]]; then
+          [ ! -f "$config_file" ] && echo "Warning: $config_file not found, skipping cleanup" && continue
+
+          echo "Cleaning version entries in $config_file..."
+          py_files=$(find "$folder" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \; | sort)
+          tmp_file=$(mktemp)
+          in_block=0
+
+          while IFS= read -r line; do
+            if [[ "$line" =~ ^version[[:space:]]*=\s*\{ ]]; then
+              echo "$line" >> "$tmp_file"
+              in_block=1
+              continue
+            fi
+
+            if [[ $in_block -eq 1 ]]; then
+              if [[ "$line" =~ \} ]]; then
+                in_block=0
                 echo "$line" >> "$tmp_file"
-                in_version_block=1
                 continue
               fi
-          
-              if [[ $in_version_block -eq 1 ]]; then
-                if [[ "$line" =~ \} ]]; then
-                  in_version_block=0
-                  echo "$line" >> "$tmp_file"
-                  continue
-                fi
-          
-                if [[ "$line" =~ \'([^\']+)\':[[:space:]]*([0-9]+) ]]; then
-                  file_in_version="${BASH_REMATCH[1]}"
-                  if echo "$py_files" | grep -qx "$file_in_version"; then
-                    echo "$line" >> "$tmp_file"
-                  else
-                    echo "Removed unused version entry: $file_in_version"
-                  fi
-                else
-                  echo "$line" >> "$tmp_file"
-                fi
+
+              if [[ "$line" =~ \'([^\']+)\':[[:space:]]*([0-9]+) ]]; then
+                file_in_version="${BASH_REMATCH[1]}"
+                echo "$py_files" | grep -qx "$file_in_version" && echo "$line" >> "$tmp_file" || echo "Removed unused version entry: $file_in_version"
               else
                 echo "$line" >> "$tmp_file"
               fi
-            done < "$config_file"
-          
-            mv "$tmp_file" "$config_file"
-          fi
-            
+            else
+              echo "$line" >> "$tmp_file"
+            fi
+          done < "$config_file"
+
+          mv "$tmp_file" "$config_file"
+        done
+
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
 
