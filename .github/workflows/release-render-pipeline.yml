@@ -171,8 +171,8 @@ jobs:
           
           with open(file_path, "w") as f:
               f.write(content)
-          EOF
-          
+EOF
+
         done
             
     - name: Set up R
