@@ -82,28 +82,10 @@ The repository has the following directory tree.
     │   ├── ssp_networking.py
     │   └── ssp_networking_test.py
     └── release
-        ├── README.md
-        ├── README.qmd
-        ├── adxl345.py
-        ├── am1.py
-        ├── boot.py
-        ├── config.py
-        ├── files.py
-        ├── hm3.py
-        ├── icons.py
-        ├── main.py
-        ├── networking.py
-        ├── sensors.py
-        ├── servo.py
-        ├── sl1.py
-        ├── sm3.py
-        ├── smartlight.py
-        ├── smartmotor.py
-        ├── sp1.py
-        ├── splat.py
-        ├── ssd1306.py
-        ├── ssp_networking.py
-        └── variableLED.py
+        ├── all
+        ├── am1
+        ├── hm3
+        └── min
 
 A short description of the directories can be found below.
 
