@@ -1,4 +1,4 @@
-config = {'ap_channel': 1, 'id': '8cbfeafffecb', 'name': 'Nick', 'sta_mac': '8c:bf:ea:cb:c1:84', 'ap_mac': '8c:bf:ea:cb:c1:85', 'configuration': 'AM1', 'sta_channel': 1, 'version': '111422222410322'}
+config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': None}
 version = {'adxl345.py': 3,
     'am1.py': 1,
            'hm1.py': 1,
