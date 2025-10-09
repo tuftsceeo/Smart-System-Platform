@@ -82,10 +82,14 @@ The repository has the following directory tree.
     │   ├── ssp_networking.py
     │   └── ssp_networking_test.py
     └── release
+        ├── README.md
+        ├── README.qmd
         ├── all
         ├── am1
         ├── hm3
-        └── min
+        ├── mm1
+        ├── sl1
+        └── sp1
 
 A short description of the directories can be found below.
 
