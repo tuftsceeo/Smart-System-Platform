@@ -64,7 +64,7 @@ def am1():
     networking.ping(peer_mac)
 
     def boop(pin):
-        global lastPressed
+        nonlocal lastPressed
         if (time.ticks_ms() - lastPressed > 1000):
             # lastPressed = time.ticks_ms()
             networking.ping(peer_mac)

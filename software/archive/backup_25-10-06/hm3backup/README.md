@@ -2,7 +2,7 @@
 
 # Smart System Education Platform
 
-## Location: /work/Smart-System-Platform/Smart-System-Platform/software/release/README.qmd
+## Location: /work/Smart-System-Platform/Smart-System-Platform/software/archive/backup_25-10-06/hm3backup/README.qmd
 
 ### Description
 
@@ -20,11 +20,13 @@ The repository has the following directory tree.
     ├── am1.py
     ├── boot.py
     ├── config.py
+    ├── data.py
     ├── files.py
     ├── hm3.py
     ├── icons.py
     ├── main.py
     ├── networking.py
+    ├── prefs.py
     ├── sensors.py
     ├── servo.py
     ├── sl1.py
@@ -35,7 +37,8 @@ The repository has the following directory tree.
     ├── splat.py
     ├── ssd1306.py
     ├── ssp_networking.py
-    └── variableLED.py
+    ├── variableLED.py
+    └── version.py
 
 A short description of the directories can be found below.
 
