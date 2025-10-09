@@ -14,7 +14,6 @@ class SSP_Networking:
             print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Smart System Platform Networking")
         self.networking = Networking(infmsg, dbgmsg, errmsg, admin, inittime)
         config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
-        config["version"] = ''.join(str(value) for value in version.values())
         config["ap_mac"] = self.networking.ap.mac_decoded()
         config["sta_mac"] = self.networking.sta.mac_decoded()
         self.networking.config = config
