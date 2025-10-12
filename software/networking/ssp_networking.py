@@ -127,9 +127,9 @@ class SSP_Networking:
         self.networking.dprint("net.cmd.hive_configure")
         self.send_custom("Hive-Configure", mac, f"{hive_config}", channel, ifidx, sudo)
 
-    def hive_file(self, mac, hive_file, channel=None, ifidx=None, sudo=False):
+    def hive_file(self, mac, file_name, hive_file, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.hive_file")
-        self.send_custom("Hive-File", mac, f"{hive_file}", channel, ifidx, sudo)
+        self.send_custom("Hive-File", mac, f"{[file_name, hive_file]}", channel, ifidx, sudo)
 
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
@@ -292,10 +292,10 @@ class SSP_Networking:
                     if __check_authorisation(sender_mac, payload):
                         try:
                             # Insert write file logic here
-                            file_hive = eval(payload[0])
+                            file_path = eval(payload[0])
+                            file_hive = eval(payload[1])
                             if isinstance(file_hive, str):
                                 file_hive = [file_hive]
-                            file_path = "hive.py"
                             with open(file_path, "w") as f:
                                 f.write(f"{file_hive}\n")
                             self.master.networking.iprint("No file-hive logic written just yet")
