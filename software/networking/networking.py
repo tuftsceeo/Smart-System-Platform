@@ -19,10 +19,10 @@ class Networking:
         self.dbgmsg = dbgmsg
         self.errmsg = errmsg
         self.admin = admin
-        self.config = {"Name": None,
-                       "Configuration": None,
+        self.config = {"name": None,
+                       "configuration": None,
                        "id": None,
-                       "Version": None,
+                       "version": None,
         } #Just as an example, can include more information here, but for interoperability purposes please keep the basic four attributes
 
         self._staif = network.WLAN(network.STA_IF)
@@ -693,7 +693,7 @@ class Networking:
                     self.boops = self.boops + 1
                     self.master.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.peer_name(sender_mac)}), Received total of {self.boops} boops!")
                     try:
-                        self._compose(sender_mac, [self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
+                        self._compose(sender_mac, [self.master.config, self.master.sta.mac, self.master.ap.mac, self.rssi()], 0x02, 0x20)  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
                     except Exception as e:
                         self.master.aen.__send_confirmation(self, "Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Echo") and subtype == subtype == 0x02 or subtype == 0x15:  # Echo
