@@ -45,16 +45,16 @@ import time
 global timer
 
 print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Sta channel: {}, Ap mac: {}, Ap channel: {}, Version: {}".format(
-        (time.ticks_ms() - networking.inittime) / 1000,
-        networking.config["name"],
-        networking.config["id"],
-        networking.config["configuration"],
-        networking.config["sta_mac"],
-        networking.config["sta_channel"],
-        networking.config["ap_mac"],
-        networking.config["ap_channel"],
-        networking.config["version"]
-    ))
+    (time.ticks_ms() - networking.inittime) / 1000,
+    networking.config["name"],
+    networking.config["id"],
+    networking.config["configuration"],
+    networking.config["sta_mac"],
+    networking.config["sta_channel"],
+    networking.config["ap_mac"],
+    networking.config["ap_channel"],
+    networking.config["version"]
+))
 
 def am1():
     lastPressed = 0
