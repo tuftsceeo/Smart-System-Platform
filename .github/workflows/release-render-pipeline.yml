@@ -79,7 +79,7 @@ jobs:
               sed -i "s/^.*'$base_file': $current_version,.*$/'$base_file': $new_version,/g" software/release/all/config.py
               echo "Updated $base_file version from $current_version to $new_version"
             else
-              indent="           "
+              indent="\ \ \ \ "
               sed -i "/^version = {/a ${indent}'$base_file': 1," software/release/all/config.py
               echo "Added $base_file with version 1"
             fi
