@@ -1,4 +1,4 @@
-config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': '2025-10-12-152242'}
+config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': '2025-10-12-155152'}
 version = {
     'adxl345.py': 3,
     'am1.py': 1,
@@ -13,7 +13,7 @@ version = {
     'sm3.py': 1,
     'sl1.py': 1,
     'smartlight.py': 1,
-'networking.py': 7,
+    'networking.py': 6,
     'main.py': 2,
     'boot.py': 0
 }
