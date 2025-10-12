@@ -39,6 +39,7 @@ msg_subcodes = {
         "Resend": 0x16,
         "Hive-Set": 0x17,
         "Hive-Configure": 0x18,
+        "Hive-File": 0x19,
         "Web-Repl": 0x20,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,

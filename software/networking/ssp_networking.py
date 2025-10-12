@@ -283,6 +283,18 @@ class SSP_Networking:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+                elif (msg_subkey := "File-Hive") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Hive
+                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                    if __check_authorisation(sender_mac, payload):
+                        try:
+                            # Insert write file logic here
+                            self.master.networking.iprint("No file-hive logic written just yet")
+                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
+                        except Exception as e:
+                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
+                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
+                    else:
+                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "Firmware-Update") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Firmware-Update
                     self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
