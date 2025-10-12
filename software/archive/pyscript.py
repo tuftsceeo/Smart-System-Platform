@@ -258,7 +258,7 @@ def highlight_matrix_row_col(peer_mac: str, highlight: bool):
 peerBoxes = []
 
 
-def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, sta_channel, last_ping, rssi):
+def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, sta_channel, rssi, last_ping, ping):
     container = document.getElementById("peer-container")
     box = document.createElement("div")
     if not gui_init:
@@ -269,8 +269,8 @@ def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, s
         box.innerHTML = admin_peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel)
     else:
         box.className = "peer-box"
-        box.innerHTML = peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, last_ping,
-                                      rssi)
+        box.innerHTML = peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, rssi,
+                                      last_ping, ping)
     box.dataset.mac = mac
     box.id = id
 
@@ -317,7 +317,7 @@ def position_peer_boxes():
         window.redraw(box.id)
 
 
-def update_peer_box(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, last_ping, rssi):
+def update_peer_box(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, rssi, last_ping, ping):
     box = document.getElementById(id)
     if not box:
         console.warn(f"Element with id '{id}' not found")
@@ -326,8 +326,8 @@ def update_peer_box(mac, ap_mac, name, id, configuration, version, sta_channel, 
     if mac == admin_mac:
         box.innerHTML = admin_peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel)
     else:
-        box.innerHTML = peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, last_ping,
-                                      rssi)
+        box.innerHTML = peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, rssi,
+                                      last_ping, ping)
     console.log("updates box")
 
 
@@ -335,15 +335,14 @@ existing_recs = []
 existing_senders = []
 
 
-def peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, last_ping, rssi):
+def peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, rssi, last_ping, ping):
     global device_ms, timeticks_ms_offset
-    console.log(f"device time: {device_ms}, last ping time: {last_ping}, last relative ping: {device_ms - last_ping}")
-
-    if last_ping == 0 or device_ms == 0:
-        pingt = "NA"
+    if last_ping == 0 or timeticks_ms_offset == 0:
+        ping_text = "NA"
     else:
         last_relative_ping = (device_ms - last_ping) / 1000
-        pingt = f"{0}ms {last_relative_ping:.1f}s ago"
+        # last_relative_ping = (time.ticks_ms() - (device_ms + timeticks_ms_offset)) / 1000
+        ping_text = f"{ping}ms {last_relative_ping:.1f}s ago"
     return f"""
         <div class="peer-box-header">
             <div class="peer-box-handle" title="Drag to move"></div>
@@ -356,7 +355,7 @@ def peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap
             <div class='peer-inner peer-id'>{id}</div>
             <div class='peer-inner peer-version'>Ver: {version}</div>
             <div class='peer-inner peer-mac'>sta: {mac}</div>
-            <div class='peer-inner peer-mac'>Ping: {pingt}</div>
+            <div class='peer-inner peer-mac'>Ping: {ping_text}</div>
             <div class='peer-inner peer-mac'>RSSI: {rssi}</div>
         </div>
 
@@ -566,7 +565,7 @@ async def build_html(peer_dict):
         c = cfg["config"]
         mac = c["sta_mac"]
         create_peer_box(mac, c["ap_mac"], c["name"], c["id"], c["configuration"], c["version"], c["sta_channel"],
-                        c["ap_channel"], None, None)
+                        c["ap_channel"], None, None, None)
         module_dict[mac] = c
         peers = list(module_dict.keys()) + ["ff:ff:ff:ff:ff:ff"]
 
@@ -577,17 +576,20 @@ async def build_html(peer_dict):
         mac = ":".join(f"{x:02x}" for x in key)
         if mac not in module_dict:
             console.log("Create box for " + mac)
-            create_peer_box(mac, info.get("ap_mac", "?"), info.get("name", "?"), info.get("id", "?"),
-                            info.get("configuration", "?"), info.get("version", "?"),
-                            info.get("sta_channel", "?"), info.get("ap_channel", "?"),
-                            info.get("last_ping", "?"), info.get("rssi", "?")
+            create_peer_box(mac, info.get("ap_mac", "?"), info.get("name", "?"),
+                            info.get("id", "?"), info.get("configuration", "?"),
+                            info.get("version", "?"), info.get("sta_channel", "?"),
+                            info.get("ap_channel", "?"), info.get("rssi", "?"),
+                            info.get("last_ping", "?"), info.get("ping", "?")
                             )
             module_dict[mac] = info
             peers = list(module_dict.keys()) + ["ff:ff:ff:ff:ff:ff"]
             build_matrix(peers)
         else:
             console.log("Update box for " + mac)
-            update_peer_box(mac, info.get("ap_mac", "?"), info.get("name", "?"), info.get("id", "?"),
-                            info.get("configuration", "?"), info.get("version", "?"),
-                            info.get("sta_channel", "?"), info.get("ap_channel", "?"),
-                            info.get("last_ping", "?"), info.get("rssi", "?"))
+            update_peer_box(mac, info.get("ap_mac", "?"), info.get("name", "?"),
+                            info.get("id", "?"), info.get("configuration", "?"),
+                            info.get("version", "?"), info.get("sta_channel", "?"),
+                            info.get("ap_channel", "?"), info.get("rssi", "?"),
+                            info.get("last_ping", "?"), info.get("ping", "?")
+                            )

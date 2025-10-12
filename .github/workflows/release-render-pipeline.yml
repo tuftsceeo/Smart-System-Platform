@@ -79,7 +79,8 @@ jobs:
               sed -i "s/^.*'$base_file': $current_version,.*$/'$base_file': $new_version,/g" software/release/all/config.py
               echo "Updated $base_file version from $current_version to $new_version"
             else
-              sed -i "/^version = {/a \ \ \ \ '$base_file': 1," software/release/all/config.py
+              indent="           "
+              sed -i "/^version = {/a ${indent}'$base_file': 1," software/release/all/config.py
               echo "Added $base_file with version 1"
             fi
           else
@@ -110,6 +111,12 @@ jobs:
 
           config_file="$folder/config.py"
           [ ! -f "$config_file" ] && echo "Warning: $config_file not found, skipping cleanup" && continue
+          
+          new_version=$(date +"%Y-%m-%d-%H%M%S")
+          if [ -n "$files" ]; then
+            echo "Updating config version to $new_version"
+            sed -i "s/\('version'[[:space:]]*:[[:space:]]*\)[^,}]\+/\1'$new_version'/" "$config_file"
+          fi
 
           echo "Cleaning version entries in $config_file..."
           py_files=$(find "$folder" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \; | sort)
