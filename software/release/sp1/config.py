@@ -1,9 +1,9 @@
-config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': '2025-10-12-155152'}
+config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': '2025-10-12-175607'}
 version = {
     'adxl345.py': 3,
     'am1.py': 1,
     'hm1.py': 1,
-    'ssp_networking.py': 3,
+    'ssp_networking.py': 4,
     'files.py': 2,
     'icons.py': 2,
     'prefs.py': 2,
