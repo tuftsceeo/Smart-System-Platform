@@ -127,6 +127,10 @@ class SSP_Networking:
         self.networking.dprint("net.cmd.hive_configure")
         self.send_custom("Hive-Configure", mac, f"{hive_config}", channel, ifidx, sudo)
 
+    def hive_file(self, mac, hive_file, channel=None, ifidx=None, sudo=False):
+        self.networking.dprint("net.cmd.hive_file")
+        self.send_custom("Hive-File", mac, f"{hive_file}", channel, ifidx, sudo)
+
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
         self.send_custom("Firmware-Update", mac, None, channel, ifidx, sudo)
@@ -283,11 +287,17 @@ class SSP_Networking:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "File-Hive") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Hive
+                elif (msg_subkey := "Hive-File") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Hive
                     self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
                             # Insert write file logic here
+                            file_hive = eval(payload[0])
+                            if isinstance(file_hive, str):
+                                file_hive = [file_hive]
+                            file_path = "hive.py"
+                            with open(file_path, "w") as f:
+                                f.write(f"{file_hive}\n")
                             self.master.networking.iprint("No file-hive logic written just yet")
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
