@@ -48,6 +48,7 @@ The repository has the following directory tree.
     │   ├── networking_old copy.py
     │   ├── networking_old.py
     │   ├── networkingtest.py
+    │   ├── pyscript.py
     │   ├── pyscript_main.py
     │   └── secrets.py
     ├── libraries
