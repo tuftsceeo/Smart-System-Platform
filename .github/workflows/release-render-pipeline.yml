@@ -117,6 +117,7 @@ jobs:
             echo "Updating config version to $new_version"
             sed -i "s/\('version'[[:space:]]*:[[:space:]]*\)[^,}]\+/\1'$new_version'/" "$config_file"
           fi
+        done
 
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
