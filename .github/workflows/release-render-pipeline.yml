@@ -119,11 +119,14 @@ jobs:
           fi
 
           echo "Cleaning version entries in $config_file..."
-          py_files=$(find "$folder" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \;)
+          # Collect all .py files in the folder except config.py
+          mapfile -t py_files < <(find "$folder" -maxdepth 1 -type f -name "*.py" ! -name "config.py" -exec basename {} \;)
+          
           tmp_file=$(mktemp)
           in_block=0
           
           while IFS= read -r line; do
+            # Detect start of version block
             if [[ "$line" =~ ^([[:space:]]*)version[[:space:]]*=\s*\{ ]]; then
               indent="${BASH_REMATCH[1]}"
               echo "$line" >> "$tmp_file"
@@ -131,34 +134,40 @@ jobs:
               continue
             fi
             
+            # Inside version block
             if [[ $in_block -eq 1 ]]; then
+              # Detect end of block
               if [[ "$line" =~ \} ]]; then
                 in_block=0
                 echo "$line" >> "$tmp_file"
                 continue
               fi
-              
+            
+              # Match entries like 'filename.py': 3,
               if [[ "$line" =~ ([[:space:]]*)\'([^\']+)\':[[:space:]]*([0-9]+),? ]]; then
                 entry_indent="${BASH_REMATCH[1]}"
                 file_in_version="${BASH_REMATCH[2]}"
                 version_value="${BASH_REMATCH[3]}"
-                
-                # Keep only if file exists
-                if echo "$py_files" | grep -qx "$file_in_version"; then
+            
+                # Keep only if file exists in py_files
+                if [[ " ${py_files[*]} " == *" $file_in_version "* ]]; then
                   echo "${entry_indent}'$file_in_version': $version_value," >> "$tmp_file"
                 else
                   echo "Removed unused version entry: $file_in_version"
                 fi
               else
+                # Preserve any non-matching lines
                 echo "$line" >> "$tmp_file"
               fi
             else
+              # Outside version block
               echo "$line" >> "$tmp_file"
             fi
           done < "$config_file"
           
           mv "$tmp_file" "$config_file"
-        done
+          
+          done
 
     - name: Set up R
       uses: r-lib/actions/setup-r@v2

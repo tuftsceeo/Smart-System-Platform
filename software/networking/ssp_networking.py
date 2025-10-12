@@ -265,7 +265,7 @@ class SSP_Networking:
                     if __check_authorisation(sender_mac, payload):
                         try:
                             from config import hive_config
-                            new_config = payload[0]
+                            new_config = eval(payload[0])
                             hive_config.update(new_config)
                             file_path = "config.py"
                             with open(file_path, "r") as f:
@@ -390,7 +390,8 @@ class SSP_Networking:
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            self.master.config.update(payload[0])
+                            new_config = eval(payload[0])
+                            self.master.config.update(new_config)
                             if payload[1]:
                                 file_path = "config.py"
                                 with open(file_path, "r") as f:
@@ -619,4 +620,3 @@ class SSP_Networking:
             self.master.networking.aen.cmd(custom_cmd_handler)
             self.master.networking.aen.inf(custom_inf_handler)
             self.master.networking.aen.ack(custom_ack_handler)
-
