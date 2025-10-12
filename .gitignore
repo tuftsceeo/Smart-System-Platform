@@ -4,6 +4,7 @@ project.Rproj
 .RData
 .Ruserdata
 .DS_Store
+.idea
 keys/ACTIONS_RENDER
 keys/ACTIONS_RENDER.pub
 docs/.idea
