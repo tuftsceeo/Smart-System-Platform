@@ -785,7 +785,3 @@ class Networking:
 
 # message structure (what kind of message types do I need?: Command which requires me to do something (ping, pair, change state(update, code, mesh mode, run a certain file), Informational Message (Sharing Sensor Data and RSSI Data)
 # | Header (1 byte) | Type (1 byte) | Subtype (1 byte) | Timestamp (ms ticks) (4 bytes) | Payload type (1) | Payload (variable) | Checksum (1 byte) |
-
-
-
-
