@@ -13,7 +13,7 @@ version = {
     'sm3.py': 1,
     'sl1.py': 1,
     'smartlight.py': 1,
-'networking.py': 7,
+    'networking.py': 6,
     'main.py': 2,
     'boot.py': 0
 }
