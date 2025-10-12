@@ -241,7 +241,14 @@ class Networking:
                         self._peers[peer_mac].update({'ifidx': ifidx})
                     if peer_config is not None:
                         self._peers[peer_mac].update(peer_config)
-                    self._peers[peer_mac].update({'rssi': None, 'time': None, 'last_ping': 0})
+                    if peer_mac in self._aen.peers_table:
+                        _rssi = self._aen.peers_table[peer_mac][0]
+                        _time = self._aen.peers_table[peer_mac][1] - self.master.inittime
+                    else:
+                        self.master.dprint(f"Error getting RSSI and time for {peer_mac}: {e}")
+                        _rssi = None
+                        _time = None
+                    self._peers[peer_mac].update({'rssi': _rssi, 'time': _time, 'last_ping': None, 'ping': None})
                     self.master.dprint(f"Peer {peer_mac} added with channel {channel}, ifidx {ifidx} and name {self.peer_name(peer_mac)}")
                 except OSError as e:
                     self.master.eprint(f"Error adding peer {peer_mac}: {e}")
@@ -738,9 +745,10 @@ class Networking:
                 if (msg_subkey := "Pong") and subtype == 0x10:  # Pong
                     self.add_peer(sender_mac, payload[2], payload[0], payload[1])
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {receive_timestamp - payload[3]}")
+                    self._peers[sender_mac].update({'ping': receive_timestamp - payload[3]})
                 elif (msg_subkey := "Echo") and subtype == 0x15:  # Echo
                     self.master.iprint(f"{msg_subkey} ({subtype})  received from {sender_mac} ({self.peer_name(sender_mac)}), {payload}")
-                    self.last_echo = payload
+                    #self.last_echo = payload #Not sure wtf this is
                 elif (msg_subkey := "Success") and subtype == 0x11:  # Success
                     # payload should return a list with a cmd type and payload
                     self.master.iprint(f"{msg_subkey} ({subtype}) received from {sender_mac} ({self.peer_name(sender_mac)}) for type {payload[0]} with payload {payload[1]}")

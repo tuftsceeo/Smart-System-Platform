@@ -12,7 +12,7 @@ version = {'adxl345.py': 3,
            'sm3.py': 1,
            'sl1.py': 1,
            'smartlight.py': 1,
-'networking.py': 5,
+'networking.py': 6,
            'main.py': 2,
            'boot.py': 0
             }
