@@ -17,16 +17,26 @@ f.close()
 result
 """
 
+last_refresh = 0
+
 module_dict = {}
 wpeers_buffer = ''
 wpeers_buffer_count = 0
 wpeers_buffer_time = 0
+ninfo_buffer = ''
+ninfo_buffer_count = 0
+ninfo_buffer_time = 0
 device_ms = 0
 timeticks_ms_offset = 0
 auto_refresh = True
 gui_init = False
 admin_mac = ""
 admin_apmac = ""
+
+broadcast_mac_str = "ff:ff:ff:ff:ff:ff"
+broadcast_mac_bytes = b'\xff\xff\xff\xff\xff\xff'
+# broadcast_mac_bytestr = "b'\xff\xff\xff\xff\xff\xff'"
+broadcast_mac_id = "ffffffffffff"
 
 
 # -------------------------------- BUTTONS ------------------------------------
@@ -169,8 +179,8 @@ async def on_init(event):
     uboard.focus()
 
 
-@when("click", "#reset")
-async def on_init(event):
+@when("click", "#softreset")
+async def on_softreset(event):
     await uboard.board.write('\x04')
     await uboard.board.write('\x03')
     await uboard.paste("machine.reset()")
@@ -211,7 +221,8 @@ def stopbar(event):
 
 # -------------------------------- NETWORK ------------------------------------
 async def on_wpeers_init():
-    uboard.newData_callback = on_wpeers
+    uboard.newData_callback1 = on_wpeers
+    uboard.newData_callback2 = on_networking_info
     await uboard.paste('networking.wpeers()')
     uboard.focus()
 
@@ -223,7 +234,7 @@ def on_wpeers(chunk):
         wpeers_buffer_time = time.ticks_ms()
 
     if 'networking_peers_info_start' in chunk and 'networking_peers_info_end' in chunk:
-        uboard.newData_callback = None
+        uboard.newData_callback1 = None
         wpeers_buffer = ''
         wpeers_buffer_count = 0
         wpeers_buffer_time = 0
@@ -241,10 +252,218 @@ def on_wpeers(chunk):
     wpeers_buffer = chunk
     wpeers_buffer_count += 1
     if wpeers_buffer_count > 1000 or time.ticks_ms() - wpeers_buffer_time > 1000:
-        uboard.newData_callback = None
+        uboard.newData_callback1 = None
         wpeers_buffer = ''
         wpeers_buffer_count = 0
         wpeers_buffer_time = 0
+
+
+def on_networking_info(chunk):
+    global ninfo_buffer, ninfo_buffer_count, ninfo_buffer_time
+    chunk = ninfo_buffer + chunk
+    if ninfo_buffer_count == 0:
+        ninfo_buffer_time = time.ticks_ms()
+
+    start_patterns = (
+        "Networking Info: Success (17) received from",
+        "Networking Info: Fail (18) received from",
+        "Networking Info: Confirm (19) received from",
+        "Admin Info: Success (17) received from",
+        "Admin Info: Fail (18) received from",
+        "Admin Info: Confirm (19) received from"
+    )
+
+    while True:
+        start_idx = min(
+            (chunk.find(p) for p in start_patterns if p in chunk),
+            default=-1
+        )
+        if start_idx == -1:
+            break
+        console.log("mark1")
+
+        payload_start = chunk.find("with payload", start_idx)
+        if payload_start == -1:
+            break
+        console.log("mark2")
+
+        open_brackets = 0
+        end_idx = -1
+        for i in range(payload_start, len(chunk)):
+            if chunk[i] == '[':
+                open_brackets += 1
+            elif chunk[i] == ']':
+                open_brackets -= 1
+                if open_brackets == 0:
+                    end_idx = i
+                    break
+
+        if end_idx == -1:
+            break
+        console.log("mark3")
+
+        msg = chunk[start_idx:end_idx + 1]
+        console.log(f"mark4: {msg}")
+        handle_networking_info(msg)
+
+        console.log("mark5")
+        chunk = chunk[end_idx + 1:]
+
+        ninfo_buffer = ''
+        ninfo_buffer_count = 0
+        ninfo_buffer_time = 0
+
+    ninfo_buffer = chunk
+    ninfo_buffer_count += 1
+
+    if len(ninfo_buffer) > 10000:
+        ninfo_buffer = ninfo_buffer[len(ninfo_buffer) // 2:]
+        ninfo_buffer_count //= 2
+
+
+def dissect_networking_info(msg: str):
+    info = {}
+
+    # --- Status ---
+    if "Success (17)" in msg:
+        info["status"], info["status_code"] = "Success", 17
+    elif "Fail (18)" in msg:
+        info["status"], info["status_code"] = "Fail", 18
+    elif "Confirm (19)" in msg:
+        info["status"], info["status_code"] = "Confirm", 19
+    else:
+        return None
+
+    # --- Sender MAC ---
+    mac_start = msg.find("from b'")
+    if mac_start != -1:
+        mac_end = msg.find("'", mac_start + 7)
+        if mac_end != -1:
+            info["sender_mac"] = msg[mac_start + 5: mac_end + 1]
+        else:
+            info["sender_mac"] = "unknown"
+    else:
+        info["sender_mac"] = "unknown"
+
+    # --- Sender Name ---
+    name_start = msg.find("(", mac_end)
+    name_end = msg.find(")", name_start)
+    if name_start != -1 and name_end != -1:
+        info["sender_name"] = msg[name_start + 1: name_end]
+    else:
+        info["sender_name"] = "unknown"
+
+    # --- Command and Code ---
+    type_start = msg.find("for type")
+    payload_index = msg.find("with payload")
+    if type_start != -1 and payload_index != -1:
+        type_part = msg[type_start + 9: payload_index].strip()
+        if " (" in type_part:
+            command, code = type_part.split(" (")
+            info["command"] = command.strip()
+            try:
+                info["command_code"] = int(code.strip(") "))
+            except:
+                info["command_code"] = None
+        else:
+            info["command"] = type_part
+            info["command_code"] = None
+    else:
+        info["command"] = "unknown"
+        info["command_code"] = None
+
+    # --- Payload ---
+    payload_start = msg.find("[", payload_index)
+    payload_end = msg.rfind("]")
+    if payload_start != -1 and payload_end != -1:
+        payload_str = msg[payload_start: payload_end + 1]
+        try:
+            info["payload"] = eval(payload_str)
+        except:
+            info["payload"] = payload_str
+    else:
+        info["payload"] = None
+
+    return info
+
+
+def draw_network_line(sender_mac, target_mac, status, checkbox=None):
+    checked = checkbox.checked if checkbox else False
+    if status == 18:
+        console.log("Fail for 24")
+        window.drawLine(mac_to_id(sender_mac), mac_to_id(target_mac), checked, False, False)
+    else:
+        console.log("Success for 24")
+        window.drawLine(mac_to_id(sender_mac), mac_to_id(target_mac), checked, False, True)
+
+
+def handle_networking_info(msg):
+    global broadcast_mac_bytes, broadcast_mac_str
+    parsed = dissect_networking_info(msg)
+    console.log(f"Response {parsed} received")
+
+    if not parsed:
+        console.log("Failed to parse message")
+        return
+
+    cmd = parsed.get("command_code")
+    status = parsed.get("status_code")
+    sender_mac = bytes_to_mac(eval(parsed.get("sender_mac")))
+    box = document.getElementById(mac_to_id(sender_mac))
+
+    if cmd == 24:
+        payload = parsed.get("payload")
+        # console.log(str(payload))
+        config = eval(payload[0])
+        # console.log(str(config))
+        recipients = config["recipients"]
+        # console.log(str(recipients))
+
+        if broadcast_mac_bytes in recipients:
+            for key, _ in module_dict.items():
+                if key in (broadcast_mac_str, sender_mac):
+                    continue
+                if key not in [bytes_to_mac(r) for r in recipients] and key != sender_mac:
+                    checkbox = document.getElementById(f"{mac_to_id(sender_mac)}-{mac_to_id(broadcast_mac_str)}")
+                    draw_network_line(sender_mac, key, status, checkbox)
+        else:
+            recipient_macs = [bytes_to_mac(r) for r in recipients]
+            for recipient_mac in recipient_macs:
+                if recipient_mac == broadcast_mac_str:
+                    continue
+                console.log(f"{mac_to_id(sender_mac)}-{mac_to_id(recipient_mac)}")
+                checkbox = document.getElementById(f"{mac_to_id(sender_mac)}-{mac_to_id(recipient_mac)}")
+                draw_network_line(sender_mac, recipient_mac, status, checkbox)
+
+            for key, _ in module_dict.items():
+                if key not in recipient_macs and key != sender_mac and key != broadcast_mac_str:
+                    checkbox = document.getElementById(f"{mac_to_id(sender_mac)}-{mac_to_id(key)}")
+                    draw_network_line(sender_mac, key, status, checkbox)
+
+    elif cmd == 8:
+        if status == 18:
+            console.log("Fail for 8")
+            for field in box.querySelectorAll("input.set"):
+                field.classList.remove("set")
+                field.classList.add("pending")
+        else:
+            console.log("Success for 8")
+            for field in box.querySelectorAll("input.set"):
+                field.classList.remove("set")
+                field.classList.add("done")
+
+    elif cmd == 0:
+        btn = document.getElementById(f"rebootBtn{mac_to_id(sender_mac)}")
+        if status == 18:
+            console.log("Fail for 0")
+            btn.classList.remove("set")
+            btn.classList.add("pending")
+        else:
+            console.log("Confirm for 0")
+            btn.classList.remove("set")
+            btn.classList.add("done")
+    else:
+        console.log(f"Response {parsed} received")
 
 
 # -------------------------------- GUI ----------------------------------------
@@ -256,6 +475,22 @@ def mac_to_bytestr(mac: str) -> str:
 
 def mac_to_bytes(mac):
     return bytes(int(b, 16) for b in mac.split(':'))
+
+
+def bytes_to_mac(mac_bytes):
+    return ':'.join(f'{b:02x}' for b in mac_bytes)
+
+
+def str_bytes_to_mac(s):
+    if s.startswith("b'") and s.endswith("'"):
+        s = s[2:-1]
+    mac_bytes = bytes(s, "utf-8").decode("unicode_escape").encode("latin1")
+    return ':'.join(f'{b:02x}' for b in mac_bytes)
+
+
+def mac_to_id(mac: str) -> str | None:
+    """Return the ID for the given MAC address, or None if not found."""
+    return module_dict.get(mac, {}).get("id")
 
 
 def highlight_matrix_row_col(peer_mac: str, highlight: bool):
@@ -270,8 +505,8 @@ def highlight_matrix_row_col(peer_mac: str, highlight: bool):
 peerBoxes = []
 
 
-def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, sta_channel, rssi, rssi_time, last_ping,
-                    ping):
+def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, sta_channel, channel, ifidx, rssi,
+                    rssi_time, last_ping, ping):
     container = document.getElementById("peer-container")
     box = document.createElement("div")
     if not gui_init:
@@ -280,25 +515,27 @@ def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, s
         admin_apmac = ap_mac
         box.className = "peer-box admin-peer-box"
         box_content_innerHTML = admin_peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel,
-                                                    ap_channel)
+                                                    ap_channel, channel, ifidx)
+        box_advanced_innerHTML = admin_peer_box_advanced_html(mac, ap_mac, name, id, configuration, version,
+                                                              sta_channel, ap_channel, channel, ifidx)
     else:
         box.className = "peer-box"
         box_content_innerHTML = peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel,
-                                              rssi, rssi_time, last_ping, ping)
+                                              channel, ifidx, rssi, rssi_time, last_ping, ping)
+        box_advanced_innerHTML = peer_box_advanced_html(mac, ap_mac, name, id, configuration, version, sta_channel,
+                                                        ap_channel, channel, ifidx, rssi, rssi_time, last_ping, ping)
     box.innerHTML = f"""
         <div class="peer-box-header">
             <div class="peer-box-handle" title="Drag to move"></div>
-            <button class="peer-box-config" title="Configure"></button>
+            <button class="peer-box-config" title="Configure">↗</button>
         </div>
 
         <div class="peer-box-content">
             {box_content_innerHTML}
         </div>
 
-        <div class="peer-box-footer">
-            <button id="configBtn{id}" title="Set">Set</button>
-            <button id="cancelBtn{id}" title="Cancel">Cancel</button>
-            <button id="advBtn{id}" title="Advanced">Advanced</button>
+        <div class="peer-box-advanced" style='display:none;'>
+            {box_advanced_innerHTML}
         </div>
     """
     box.dataset.mac = mac
@@ -310,6 +547,84 @@ def create_peer_box(mac, ap_mac, name, id, configuration, version, ap_channel, s
     container.appendChild(box)
     position_peer_boxes()
     window.setupPeerBoxHighlighting(id)
+    window.setupPendingFields(id);
+
+    # --- Toggle advanced view on cog click ---
+    def toggle_advanced(event):
+        content_div = box.querySelector(".peer-box-content")
+        advanced_div = box.querySelector(".peer-box-advanced")
+        if advanced_div.style.display == "none":
+            content_div.style.display = "none"
+            advanced_div.style.display = "block"
+            box.classList.add("advanced-view")
+            box.querySelector(".peer-box-config").innerText = "↙"
+        else:
+            advanced_div.style.display = "none"
+            content_div.style.display = "block"
+            box.classList.remove("advanced-view")
+            box.querySelector(".peer-box-config").innerText = "↗"
+
+    box.querySelector(".peer-box-config").addEventListener("click", toggle_advanced)
+
+    # --- reboot btn setup ---
+    reboot_btn = box.querySelector(f"#rebootBtn{id}")
+
+    def on_reboot(evt):
+        console.log("Reboot clicked!", box.id)
+        evt.target.classList.add("pending")
+        code = f"networking.reboot({mac_to_bytes(box.getAttribute('data-mac'))}, channel=None, ifidx=None, sudo=True)"
+        asyncio.create_task(on_command(code))
+
+    def on_admin_reboot(evt):
+        console.log("Admin Reboot clicked!", box.id)
+        evt.target.classList.add("pending")
+        code = f"machine.reset()"
+        asyncio.create_task(on_command(code))
+
+    if gui_init:
+        reboot_btn.addEventListener("click", on_reboot)
+    else:
+        reboot_btn.addEventListener("click", on_admin_reboot)
+
+    # --- config btn setup ---
+    set_btn = box.querySelector(f"#configBtn{id}")
+
+    def on_set(evt):
+        console.log("Set clicked!", box.id)
+        new_config = {}
+        for field in box.querySelectorAll(".peer-box-advanced input.pending"):
+            if field.name in ("sta_channel", "ap_channel", "channel", "ifidx"):
+                new_config[field.name] = int(field.value)
+            else:
+                new_config[field.name] = field.value
+        console.log(f"Changed config for {box.id}:", str(new_config))
+        asyncio.create_task(config_change(mac_to_bytes(box.getAttribute("data-mac")), new_config))
+
+        for field in box.querySelectorAll(".peer-box-advanced input.pending"):
+            field.classList.remove("pending")
+            field.classList.add("set")
+
+    def on_admin_set(evt):
+        console.log("Admin set clicked!", box.id)
+        new_config = {}
+        for field in box.querySelectorAll(".peer-box-advanced input.pending"):
+            if field.name in ("sta_channel", "ap_channel", "channel", "ifidx"):
+                new_config[field.name] = int(field.value)
+            else:
+                new_config[field.name] = field.value
+        console.log(f"Changed config for {box.id}:", str(new_config))
+
+        asyncio.create_task(admin_config_change(new_config, box.getAttribute("data-mac")))
+
+        for field in box.querySelectorAll(".peer-box-advanced input.pending"):
+            field.classList.remove("pending")
+            field.classList.add("set")
+
+    if gui_init:
+        set_btn.addEventListener("click", on_set)
+    else:
+        set_btn.addEventListener("click", on_admin_set)
+
     console.log("created box")
 
 
@@ -339,7 +654,7 @@ def position_peer_boxes():
 
     n = len(peerBoxes)
     for i, box in enumerate(peerBoxes):
-        theta = -math.pi / 2 + (i) * (2 * math.pi / (n))
+        theta = math.pi / 2 + i * (2 * math.pi / n)
         x = center_x + radius * math.cos(theta) - box.offsetWidth / 2
         y = center_y + radius * math.sin(theta) - box.offsetHeight / 2
         box.style.left = f"{x}px"
@@ -347,8 +662,8 @@ def position_peer_boxes():
         window.redraw(box.id)
 
 
-def update_peer_box(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, rssi, rssi_time, last_ping,
-                    ping):
+def update_peer_box(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel, ifidx, rssi,
+                    rssi_time, last_ping, ping):
     box = document.getElementById(id)
     if not box:
         console.warn(f"Element with id '{id}' not found")
@@ -356,11 +671,16 @@ def update_peer_box(mac, ap_mac, name, id, configuration, version, sta_channel, 
     global admin_mac
     if mac == admin_mac:
         box_content_innerHTML = admin_peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel,
-                                                    ap_channel)
+                                                    ap_channel, channel, ifidx)
+        admin_peer_box_advanced_update(box, mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel,
+                                       channel, ifidx)
     else:
         box_content_innerHTML = peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel,
-                                              rssi, rssi_time, last_ping, ping)
+                                              channel, ifidx, rssi, rssi_time, last_ping, ping)
+        peer_box_advanced_update(box, mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel,
+                                 ifidx, rssi, rssi_time, last_ping, ping)
     box.querySelector(".peer-box-content").innerHTML = box_content_innerHTML
+    # box.querySelector(".peer-box-advanced").innerHTML = box_advanced_innerHTML #need a different approach, should write a function that updates specific fields based on if available, instead of overwriting everything
     console.log(f"updated box for {mac}")
 
 
@@ -368,112 +688,187 @@ existing_recs = []
 existing_senders = []
 
 
-def peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, rssi, rssi_time, last_ping,
-                  ping_value):
-    global device_ms, timeticks_ms_offset
-    # console.log(f"RSSI: {rssi}, time: {rssi_time}, last ping: {last_ping}, ping value: {ping_value}, offset: {timeticks_ms_offset}, device: {device_ms}")
-    if last_ping is None or timeticks_ms_offset == 0:
-        ping_text = "NA"
-    else:
-        # last_relative_ping = (device_ms - last_ping) / 1000
-        last_relative_ping = (time.ticks_ms() - (last_ping + timeticks_ms_offset)) / 1000
+def format_rssi_ping(value, timestamp, offset, compare_to=None, is_rssi=False):
+    import time
+    if value is None or offset == 0:
+        return "NA"
 
-        ping_ms_text = f"{ping_value}ms"
-        ping_s_text = f"{last_relative_ping:.1f}s"
+    last_relative = (time.ticks_ms() - (timestamp + offset)) / 1000
 
+    if is_rssi:
+        value_text = f"{value}"
         try:
-            if ping_value < 50:
-                ping_ms_colour = "green"
-            elif ping_value < 100:
-                ping_ms_colour = "orange"
+            if value > -40:
+                value_colour = "green"
+            elif value > -70:
+                value_colour = "orange"
             else:
-                ping_ms_colour = "red"
+                value_colour = "red"
         except (ValueError, TypeError):
-            ping_ms_text = "NA"
-            ping_ms_colour = "black"
-
-        if last_ping > rssi_time:
-            ping_ms_text = "NR"
-            ping_ms_colour = "red"
-
+            value_text = "NA"
+            value_colour = "black"
+    else:  # ping
+        value_text = f"{value}ms"
         try:
-            if last_relative_ping < 5:
-                ping_s_colour = "green"
-            elif last_relative_ping < 30:
-                ping_s_colour = "orange"
+            if value < 50:
+                value_colour = "green"
+            elif value < 100:
+                value_colour = "orange"
             else:
-                ping_s_colour = "red"
+                value_colour = "red"
         except (ValueError, TypeError):
-            ping_s_text = "NA"
-            ping_s_colour = "black"
+            value_text = "NA"
+            value_colour = "black"
 
-        ping_text = f'<span style="color:{ping_ms_colour}">{ping_ms_text}</span> <span style="color:{ping_s_colour}">{ping_s_text}</span> ago'
+        if compare_to is not None and timestamp > compare_to:
+            value_text = "NR"
+            value_colour = "red"
 
-    if rssi_time is None or timeticks_ms_offset == 0:
-        rssi_text = "NA"
-    else:
-        # last_relative_ping = (device_ms - rssi_time) / 1000
-        last_rssi = (time.ticks_ms() - (rssi_time + timeticks_ms_offset)) / 1000
+    time_text = f"{last_relative:.1f}s"
+    try:
+        if last_relative < 5:
+            time_colour = "green"
+        elif last_relative < 30:
+            time_colour = "orange"
+        else:
+            time_colour = "red"
+    except (ValueError, TypeError):
+        time_text = "NA"
+        time_colour = "black"
 
-        rssi_value_text = f"{rssi}"
-        rssi_s_text = f"{last_rssi:.1f}s"
+    return f'<span style="color:{value_colour}">{value_text}</span> <span style="color:{time_colour}">{time_text}</span> ago'
 
-        try:
-            if rssi > -40:
-                rssi_value_colour = "green"
-            elif rssi > -70:
-                rssi_value_colour = "orange"
-            else:
-                rssi_value_colour = "red"
-        except (ValueError, TypeError):
-            rssi_value_text = "NA"
-            rssi_value_colour = "black"
 
-        try:
-            if last_rssi < 5:
-                rssi_s_colour = "green"
-            elif last_rssi < 30:
-                rssi_s_colour = "orange"
-            else:
-                rssi_s_colour = "red"
-        except (ValueError, TypeError):
-            rssi_s_text = "NA"
-            rssi_s_colour = "black"
+def peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel, ifidx, rssi,
+                  rssi_time, last_ping, ping_value):
+    global timeticks_ms_offset
+    ping_text = format_rssi_ping(ping_value, last_ping, timeticks_ms_offset, compare_to=rssi_time, is_rssi=False)
+    rssi_text = format_rssi_ping(rssi, rssi_time, timeticks_ms_offset, is_rssi=True)
 
-        rssi_text = f'<span style="color:{rssi_value_colour}">{rssi_value_text}</span> <span style="color:{rssi_s_colour}">{rssi_s_text}</span> ago'
+    return f"""
+        <div class='peer-inner peer-name'><strong>{name}</strong></div>
+        <div class='peer-inner peer-mac'>{mac}</div>
+        <div class='peer-inner peer-config'>Config: {configuration}</div>
+        <div class='peer-inner peer-version'>Ver: {version}</div>
+        <div class='peer-inner peer-ping'>Ping: {ping_text}</div>
+        <div class='peer-inner peer-rssi'>RSSI: {rssi_text}</div>
+    """
 
+
+def peer_box_advanced_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel, ifidx, rssi,
+                           rssi_time, last_ping, ping_value):
+    ping_text = format_rssi_ping(ping_value, last_ping, timeticks_ms_offset, compare_to=rssi_time, is_rssi=False)
+    rssi_text = format_rssi_ping(rssi, rssi_time, timeticks_ms_offset, is_rssi=True)
+    return f"""
+        <div class='peer-name'><strong>Advanced Settings</strong></div>
+        <div>Name: &nbsp;&nbsp;&nbsp;<input type="text" class="peer-field" name="name" value="{name}"></div>
+        <div>ID: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{id}</div>
+        <div>Config:&nbsp;&nbsp; <input type="text" class="peer-field" name="configuration" value="{configuration}"></div>
+        <div>Version:&nbsp; <input type="text" class="peer-field" name="version" value="{version}"></div>
+        <div>sta MAC: {mac}, Ch: <input type="number" class="ch-field" name="sta_channel" value="{sta_channel}" min="1" max="14"></div>
+        <div>&nbsp;ap MAC: {ap_mac}, Ch: <input type="number" class="ch-field" name="ap_channel" value="{ap_channel}" min="1" max="14"></div>
+        <div>ifidx: <input type="number" class="ch-field" name="ifidx" value="{ifidx}" min="0" max="2" disabled>, channel: <input type="number" class="ch-field" name="channel" value="{channel}" min="0" max="14" disabled></div>
+        <div class='peer-ping peer-rssi'>Ping: {ping_text}, RSSI: {rssi_text}</div>
+        <div class="peer-box-footer">
+            <button id="configBtn{id}" title="Set">Set</button>
+            <button id="rebootBtn{id}" title="Reboot" >Reboot</button>
+            <button id="fileBtn{id}" title="Upload" disabled>Upload</button>
+            <button id="advBtn{id}" title="Adv Cmds" disabled>Adv</button>
+        </div>
+    """
+
+
+def peer_box_advanced_update(box, mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel,
+                             ifidx, rssi, rssi_time, last_ping, ping_value):
+    advanced = box.querySelector(".peer-box-advanced")
+    if not advanced:
+        return
+
+    def update_field(selector, value):
+        field = advanced.querySelector(selector)
+        if field and not (field.classList.contains("pending")):
+            field.value = value
+            field.classList.remove("set", "done")
+
+    update_field("input.peer-field:nth-of-type(1)", name)
+    update_field("input.peer-field:nth-of-type(2)", configuration)
+    update_field("input.peer-field:nth-of-type(3)", version)
+    update_field("input.ch-field:nth-of-type(1)", sta_channel)
+    update_field("input.ch-field:nth-of-type(2)", ap_channel)
+    update_field("input.ch-field:nth-of-type(3)", ifidx)
+    update_field("input.ch-field:nth-of-type(4)", channel)
+
+    ping_text = format_rssi_ping(ping_value, last_ping, timeticks_ms_offset, compare_to=rssi_time, is_rssi=False)
+    rssi_text = format_rssi_ping(rssi, rssi_time, timeticks_ms_offset, is_rssi=True)
+    ping_rssi_div = advanced.querySelector(".peer-rssi.peer-ping")
+    if ping_rssi_div:
+        ping_rssi_div.innerHTML = f"Ping: {ping_text}, RSSI: {rssi_text}"
+
+    reboot_btn = advanced.querySelector(f"#rebootBtn{mac_to_id(mac)}")
+    if reboot_btn:
+        reboot_btn.classList.remove("pending", "set", "done")
+
+
+def admin_peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel, ifidx):
     return f"""
             <div class='peer-inner peer-name'><strong>{name}</strong></div>
             <div class='peer-inner peer-mac'>{mac}</div>
             <div class='peer-inner peer-config'>Config: {configuration}</div>
             <div class='peer-inner peer-version'>Ver: {version}</div>
-            <div class='peer-inner peer-ping'>Ping: {ping_text}</div>
-            <div class='peer-inner peer-rssi'>RSSI: {rssi_text}</div>
     """
 
 
-def admin_peer_box_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel):
+def admin_peer_box_advanced_html(mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel,
+                                 ifidx):
     return f"""
-            <div class='peer-inner peer-name'><strong>{name}</strong></div>
-            <div class='peer-inner peer-mac'>{mac}</div>
-            <div class='peer-inner peer-config'>Config: {configuration}</div>
-            <div class='peer-inner peer-version'>Ver: {version}</div>
+        <div class='peer-name'><strong>Advanced Settings</strong></div>
+        <div>Name: &nbsp;&nbsp;&nbsp;<input type="text" class="peer-field" name="name" value="{name}"></div>
+        <div>ID: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{id}</div>
+        <div>Config:&nbsp;&nbsp; <input type="text" class="peer-field" name="configuration" value="{configuration}"></div>
+        <div>Version:&nbsp; <input type="text" class="peer-field" name="version" value="{version}"></div>
+        <div>sta MAC: {mac}, Ch: <input type="number" class="ch-field" name="sta_channel" value="{sta_channel}" min="1" max="14"></div>
+        <div>&nbsp;ap MAC: {ap_mac}, Ch: <input type="number" class="ch-field" name="ap_channel" value="{ap_channel}" min="1" max="14"></div>
+        <div>ifidx: <input type="number" class="ch-field" name="ifidx" value="{ifidx}" min="0" max="2" disabled>, channel: <input type="number" class="ch-field" name="channel" value="{channel}" min="0" max="14" disabled></div>
+        <div class='peer-ping peer-rssi'></div>
+        <div class="peer-box-footer">
+            <button id="configBtn{id}" title="Set">Set</button>
+            <button id="rebootBtn{id}" title="Reboot" >Reboot</button>
+            <button id="fileBtn{id}" title="Upload" disabled>Upload</button>
+            <button id="advBtn{id}" title="Adv Cmds" disabled>Adv</button>
+        </div>
     """
 
 
-def mac_to_id(mac: str) -> str | None:
-    """Return the ID for the given MAC address, or None if not found."""
-    return module_dict.get(mac, {}).get("id")
+def admin_peer_box_advanced_update(box, mac, ap_mac, name, id, configuration, version, sta_channel, ap_channel, channel,
+                                   ifidx):
+    advanced = box.querySelector(".peer-box-advanced")
+    if not advanced:
+        return
+
+    def update_field(selector, value):
+        field = advanced.querySelector(selector)
+        if field and not (field.classList.contains("pending")):
+            field.value = value
+            field.classList.remove("set", "done")
+
+    update_field("input.peer-field:nth-of-type(1)", name)
+    update_field("input.peer-field:nth-of-type(2)", configuration)
+    update_field("input.peer-field:nth-of-type(3)", version)
+    update_field("input.ch-field:nth-of-type(1)", sta_channel)
+    update_field("input.ch-field:nth-of-type(2)", ap_channel)
+
+    reboot_btn = advanced.querySelector(f"#rebootBtn{mac_to_id(mac)}")
+    if reboot_btn:
+        reboot_btn.classList.remove("pending", "set", "done")
 
 
 def build_matrix(peers):
     """Create/update peer matrix. FF:FF:FF:FF:FF:FF always last, no checkbox for self cells."""
+    global broadcast_mac_id, broadcast_mac_str
     container = document.getElementById("peer-matrix-container")
-    broadcast = "ff:ff:ff:ff:ff:ff"
-    peers_no_broadcast = [p for p in peers if p.lower() != broadcast]
-    sorted_peers = peers_no_broadcast + ([broadcast] if broadcast in peers else [])
+    peers_no_broadcast = [p for p in peers if p.lower() != broadcast_mac_str]
+    sorted_peers = peers_no_broadcast + ([broadcast_mac_str] if broadcast_mac_str in peers else [])
 
-    # Check if table exists
     table = container.querySelector("table")
     if not table:
         table = document.createElement("table")
@@ -481,7 +876,7 @@ def build_matrix(peers):
         table.id = "peer-matrix"
         container.appendChild(table)
     else:
-        table.innerHTML = ""  # reset existing rows
+        table.innerHTML = ""
 
     # --- header row ---
     header = document.createElement("tr");
@@ -491,7 +886,7 @@ def build_matrix(peers):
     topLeftCell.style.padding = "4px";
     header.appendChild(topLeftCell);
     for sender in sorted_peers:
-        if sender.lower() == broadcast:
+        if sender.lower() == broadcast_mac_str:
             continue
         th = document.createElement("th")
         th.classList.add("rotate-header")
@@ -503,7 +898,7 @@ def build_matrix(peers):
         header.appendChild(th)
     table.appendChild(header)
     for sender in sorted_peers:
-        if sender.lower() == broadcast:
+        if sender.lower() == broadcast_mac_str:
             continue
         # window.setupMatrixHighlighting("cell_" + mac_to_id(sender) + "-ff")
 
@@ -513,9 +908,9 @@ def build_matrix(peers):
         th = document.createElement("th")
         th.textContent = rec
         th.dataset.recipientMac = rec
-        if rec.lower() == broadcast:
-            th.dataset.recipient = "ffffffffffff"
-            th.id = "cell_ff-" + "ffffffffffff"
+        if rec.lower() == broadcast_mac_str:
+            th.dataset.recipient = broadcast_mac_id
+            th.id = "cell_ff-" + broadcast_mac_id
         else:
             th.id = "cell_ff-" + mac_to_id(rec)
             th.dataset.recipient = mac_to_id(rec)
@@ -523,7 +918,7 @@ def build_matrix(peers):
         tr.appendChild(th)
 
         for sender in sorted_peers:
-            if sender.lower() == broadcast:
+            if sender.lower() == broadcast_mac_str:
                 continue
             td = document.createElement("td")
             td.dataset.sender = sender
@@ -543,7 +938,7 @@ def build_matrix(peers):
                 checkbox.dataset.recipientMac = rec
                 td.appendChild(checkbox)
                 # attach handlers
-                if rec.lower() == broadcast:
+                if rec.lower() == broadcast_mac_str:
                     checkbox.addEventListener("change", on_broadcast_checkbox)
                 else:
                     checkbox.addEventListener("change", on_peer_checkbox)
@@ -552,7 +947,7 @@ def build_matrix(peers):
 
         # window.setupMatrixHighlighting("cell_ff-" + mac_to_id(rec))
         for sender in sorted_peers:
-            if sender.lower() == broadcast:
+            if sender.lower() == broadcast_mac_str:
                 continue
             # window.setupMatrixHighlighting(f"cell_{mac_to_id(sender)}-{mac_to_id(rec)}")
 
@@ -560,19 +955,19 @@ def build_matrix(peers):
 
 
 def on_peer_checkbox(event):
-    global admin_mac, admin_apmac
+    global admin_mac, admin_apmac, broadcast_mac_id
     checkbox = event.target
     sender = checkbox.dataset.sender
     recipient = checkbox.dataset.recipient
     senderMac = checkbox.dataset.senderMac
     recipientMac = checkbox.dataset.recipientMac
     console.log(f"Peer checkbox changed: {sender} -> {recipient}, checked={checkbox.checked}")
-    window.drawLine(sender, recipient, checkbox.checked)
+    window.drawLine(sender, recipient, checkbox.checked, True, False)
     # send config command
     rec_list = []
     for mac, info in module_dict.items():
         rec = mac
-        if rec.lower() == "ffffffffffff" or rec == senderMac:
+        if rec.lower() == broadcast_mac_id or rec == senderMac:
             continue
         cb = document.getElementById(f"{sender}-{mac_to_id(rec)}")
         if cb.checked:
@@ -599,13 +994,13 @@ def on_broadcast_checkbox(event):
 
     for mac, info in module_dict.items():
         rec = mac
-        if rec.lower() == "ffffffffffff" or rec == senderMac:
+        if rec.lower() == broadcast_mac_id or rec == senderMac:
             continue
         cb = document.getElementById(f"{sender}-{mac_to_id(rec)}")
         if cb:
             cb.checked = checkbox.checked
             cb.disabled = checkbox.checked
-            window.drawLine(sender, mac_to_id(rec), checkbox.checked)
+            window.drawLine(sender, mac_to_id(rec), checkbox.checked, True, False)
 
     # Send config command
     if checked:
@@ -649,10 +1044,36 @@ try:
                 f.write(f'hive_config = {{hive_config}}\\n')
             else:
                 f.write(line)
-    print("Success!")
-    machine.reset()
+    networking.networking.iprint(f"Success (17) received from {{repr({mac_to_bytes(rec)})}} ({module_dict[rec]["name"]}) for type Hive-Config-Change (24) with payload [{hive_config}, 'sudo']")
 except Exception as e:
-    print(f"Error: {{e}}")
+    networking.networking.iprint(f"Fail (18) received from {{repr({mac_to_bytes(rec)})}} ({module_dict[rec]["name"]}) for type Hive-Configure (24) with error [{{e}}] and payload [{hive_config}, 'sudo']")
+"""
+    await on_command(code)
+
+
+async def config_change(sen, new_config):
+    code = f"networking.config_change({sen}, {new_config}, hardcode=True, channel=None, ifidx=None, sudo=True)"
+    await on_command(code)
+
+
+async def admin_config_change(new_config, mac):
+    code = f"""
+try:
+    networking.config.update({new_config})
+    networking.networking.ap.set_channel(networking.config["ap_channel"])
+    networking.networking.sta.set_channel(networking.config["sta_channel"])
+    file_path = "config.py"
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+    with open(file_path, "w") as f:
+        for line in lines:
+            if line.startswith('config = '):
+                f.write(f'config = {{networking.config}}\\n')
+            else:
+                f.write(line)
+    networking.networking.iprint(f"Success (17) received from {{repr({mac_to_bytes(mac)})}} ({module_dict[mac]["name"]}) for type Config-Change (8) with payload [[{new_config}, True], 'sudo']")
+except Exception as e:
+    networking.networking.iprint(f"Fail (18) received from {{repr({mac_to_bytes(mac)})}} ({module_dict[mac]["name"]}) for type Config-Change (8) with error [{{e}}] and payload [[{new_config}, True], 'sudo']")
 """
     await on_command(code)
 
@@ -669,7 +1090,10 @@ def on_peer_hover_leave(event):
 
 # -------------------------------- BUILD HTML ---------------------------------
 async def build_html(peer_dict):
-    global gui_init, module_dict
+    global gui_init, module_dict, broadcast_mac_str, last_refresh
+
+    last_refresh = time.time()
+
     if not gui_init:
         result = await uboard.eval(read_code % "config.py", hidden=True)
         cfg = {}
@@ -677,33 +1101,75 @@ async def build_html(peer_dict):
         c = cfg["config"]
         mac = c["sta_mac"]
         create_peer_box(mac, c["ap_mac"], c["name"], c["id"], c["configuration"], c["version"], c["sta_channel"],
-                        c["ap_channel"], None, None, None, None)
+                        c["ap_channel"], None, None, None, None, None, None)
         module_dict[mac] = c
-        peers = list(module_dict.keys()) + ["ff:ff:ff:ff:ff:ff"]
+        peers = list(module_dict.keys()) + [broadcast_mac_str]
 
         build_matrix(peers)
         gui_init = True
+    else:
+        result = await uboard.eval(read_code % "config.py", hidden=True)
+        cfg = {}
+        exec(result, cfg)
+        c = cfg["config"]
+        mac = c["sta_mac"]
+        update_peer_box(mac, c["ap_mac"], c["name"], c["id"], c["configuration"], c["version"], c["sta_channel"],
+                        c["ap_channel"], None, None, None, None, None, None)
 
     for key, info in peer_dict.items():
         mac = ":".join(f"{x:02x}" for x in key)
         if mac not in module_dict:
             # console.log("Create box for " + mac)
-            create_peer_box(mac, info.get("ap_mac", "?"), info.get("name", "?"),
-                            info.get("id", "?"), info.get("configuration", "?"),
-                            info.get("version", "?"), info.get("sta_channel", "?"),
-                            info.get("ap_channel", "?"),
+            create_peer_box(mac, info.get("ap_mac", "?"),
+                            info.get("name", "?"), info.get("id", "?"),
+                            info.get("configuration", "?"), info.get("version", "?"),
+                            info.get("sta_channel", "?"), info.get("ap_channel", "?"),
+                            info.get("channel", "?"), info.get("ifidx", "?"),
                             info.get("rssi", "?"), info.get("time", "?"),
                             info.get("last_ping", "?"), info.get("ping", "NA")
                             )
             module_dict[mac] = info
-            peers = list(module_dict.keys()) + ["ff:ff:ff:ff:ff:ff"]
+            peers = list(module_dict.keys()) + [broadcast_mac_str]
             build_matrix(peers)
         else:
             # console.log("Update box for " + mac)
-            update_peer_box(mac, info.get("ap_mac", "?"), info.get("name", "?"),
-                            info.get("id", "?"), info.get("configuration", "?"),
-                            info.get("version", "?"), info.get("sta_channel", "?"),
-                            info.get("ap_channel", "?"),
+            update_peer_box(mac, info.get("ap_mac", "?"),
+                            info.get("name", "?"), info.get("id", "?"),
+                            info.get("configuration", "?"), info.get("version", "?"),
+                            info.get("sta_channel", "?"), info.get("ap_channel", "?"),
+                            info.get("channel", "?"), info.get("ifidx", "?"),
                             info.get("rssi", "?"), info.get("time", "?"),
                             info.get("last_ping", "?"), info.get("ping", "NA")
                             )
+
+
+# -------------------------------- REFRESH TIMER ---------------------------------
+
+def update_clock(*args):
+    global last_refresh
+    if last_refresh:
+        elapsed = int(time.time() - last_refresh)
+        hours = elapsed // 3600
+        minutes = (elapsed % 3600) // 60
+        seconds = elapsed % 60
+
+        time_parts = []
+        if hours > 0:
+            time_parts.append(f"{hours}h")
+        if minutes > 0 or hours > 0:
+            time_parts.append(f"{minutes}m")
+        time_parts.append(f"{seconds}s ago")
+
+        clock_elem = document.getElementById("lastupdatetimer")
+        clock_elem.innerText = " ".join(time_parts)
+
+        if hours > 0 or minutes > 1:
+            colour = "red"
+        elif seconds > 10:
+            colour = "orange"
+        else:
+            colour = "green"
+        clock_elem.style.color = colour
+
+
+setInterval(update_clock, 1000)
