@@ -412,7 +412,10 @@ class SSP_Networking:
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            new_config = eval(payload[0])
+                            if isinstance(payload[0], dict):
+                                new_config = payload[0]
+                            else:
+                                new_config = eval(payload[0])
                             self.master.config.update(new_config)
                             if payload[1]:
                                 file_path = "config.py"
@@ -424,6 +427,10 @@ class SSP_Networking:
                                             f.write(f'config = {self.master.config}\n')
                                         else:
                                             f.write(line)
+                            if "sta_channel" in new_config:
+                                self.master.networking.sta.set_channel(new_config["sta_channel"])
+                            if "ap_channel" in new_config:
+                                self.master.networking.ap.set_channel(new_config["ap_channel"])
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)

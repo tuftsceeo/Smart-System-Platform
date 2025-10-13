@@ -3,7 +3,7 @@ version = {
     'adxl345.py': 3,
     'am1.py': 1,
     'hm1.py': 1,
-    'ssp_networking.py': 4,
+    'ssp_networking.py': 5,
     'files.py': 2,
     'icons.py': 2,
     'prefs.py': 2,
@@ -13,7 +13,7 @@ version = {
     'sm3.py': 1,
     'sl1.py': 1,
     'smartlight.py': 1,
-    'networking.py': 7,
+    'networking.py': 8,
     'main.py': 2,
     'boot.py': 0
 }

@@ -1,9 +1,9 @@
-config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': '2025-10-12-192145'}
+config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'version': '2025-10-13-221423'}
 version = {
     'adxl345.py': 3,
     'am1.py': 1,
     'hm1.py': 1,
-    'ssp_networking.py': 4,
+    'ssp_networking.py': 5,
     'files.py': 2,
     'icons.py': 2,
     'prefs.py': 2,
@@ -13,7 +13,7 @@ version = {
     'sm3.py': 1,
     'sl1.py': 1,
     'smartlight.py': 1,
-    'networking.py': 7,
+    'networking.py': 8,
     'main.py': 2,
     'boot.py': 0
 }
@@ -39,6 +39,7 @@ msg_subcodes = {
         "Resend": 0x16,
         "Hive-Set": 0x17,
         "Hive-Configure": 0x18,
+        "Hive-File": 0x19,
         "Web-Repl": 0x20,
         "WiFi-Connect": 0x21,
         "WiFi-Disconnect": 0x22,
