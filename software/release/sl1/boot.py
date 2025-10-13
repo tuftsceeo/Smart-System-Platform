@@ -85,7 +85,7 @@ def am1():
         gc.collect()
 
     timer = machine.Timer(0)
-    timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
+    timer.init(period=10000, mode=machine.Timer.PERIODIC, callback=heartbeat)
 
 
 def deinit():
