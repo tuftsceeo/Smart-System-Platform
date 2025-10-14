@@ -10,8 +10,6 @@ try:
 except Exception as e:
     print(f"Error {e}")
 
-module_name = config.config["configuration"].lower()
-
 import gc
 
 gc.collect()
@@ -60,8 +58,8 @@ def deinit():
     machine.reset()
 
 try:
-    with open(module_name + ".py") as f:
+    with open(config.config["configuration"].lower() + ".py") as f:
         code = f.read()
     exec(code, {"networking": networking, "configuration": configuration, "__name__": "__main__"})
 except Exception as e:
-    print(f"Error running {module_name}: {e}")
+    print(f"Error running {config.config['configuration']}: {e}")

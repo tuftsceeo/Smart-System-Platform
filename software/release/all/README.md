@@ -24,6 +24,7 @@ The repository has the following directory tree.
     ├── hm3.py
     ├── icons.py
     ├── main.py
+    ├── mm1.py
     ├── networking.py
     ├── sensors.py
     ├── servo.py
@@ -45,6 +46,7 @@ A short description of the directories can be found below.
 | main/boot.py | Smart Module boot.py | Nick |
 | main/am1.py | Admin module main program | Nick |
 | main/hm3.py | Hive motor module main program | Nick |
+| main/mm1.py | Module module main program | Nick |
 | main/sl1.py | Smart light module main program | Milan |
 | main/sm3.py | Smart motor module main program | Milan |
 | main/sp1.py | Smart splat module main program | Nick |

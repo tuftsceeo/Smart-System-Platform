@@ -1,5 +1,6 @@
 config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'type': None, 'version': None}
 version = {
+    'mm1.py': 1,
     'adxl345.py': 3,
     'am1.py': 2,
     'hm1.py': 1,
