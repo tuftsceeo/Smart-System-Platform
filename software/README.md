@@ -32,7 +32,9 @@ The repository has the following directory tree.
     │   ├── 4sophie.py
     │   ├── aioespnow.py
     │   ├── am1.py
+    │   ├── backup nonworkign code
     │   ├── backup_25-10-06
+    │   ├── backupc3d
     │   ├── default_main.py
     │   ├── extended net code.py
     │   ├── hackathon
@@ -71,6 +73,7 @@ The repository has the following directory tree.
     │   ├── boot.py
     │   ├── hm3.py
     │   ├── main.py
+    │   ├── mm1.py
     │   ├── sl1.py
     │   ├── sm3.py
     │   └── sp1.py
