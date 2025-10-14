@@ -116,6 +116,8 @@ jobs:
           if [ -n "$files" ]; then
             echo "Updating config version to $new_version"
             sed -i "s/\('version'[[:space:]]*:[[:space:]]*\)[^,}]\+/\1'$new_version'/" "$config_file"
+            config_name_upper=$(echo "$folder_name" | tr '[:lower:]' '[:upper:]')
+            sed -i "s/\('configuration'[[:space:]]*:[[:space:]]*\)[^,}]\+/\1'$config_name_upper'/" "$config_file"
           fi
         done
 
