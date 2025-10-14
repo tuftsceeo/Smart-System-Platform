@@ -8,7 +8,6 @@ import gc
 import webrepl
 from sys import implementation
 
-
 class SSP_Networking:
     def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=0):
         if infmsg:
@@ -89,8 +88,7 @@ class SSP_Networking:
             else:
                 self.networking.iprint(
                     f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac} ({self.networking.aen.peer_name(mac)})")
-            self.networking.aen.send_custom(msg_codes[msg_key], msg_subcodes[msg_key][msg_subkey],
-                                            mac, payload, channel, ifidx)
+            self.networking.aen.send_custom(msg_codes[msg_key], msg_subcodes[msg_key][msg_subkey], mac, payload, channel, ifidx)
         else:
             self.networking.iprint(f"Command {msg_subkey} not found")
         gc.collect()
@@ -133,9 +131,7 @@ class SSP_Networking:
         self.networking.dprint("net.cmd.hive_configure")
         self.send_custom("Hive-Configure", mac, f"{hive_config}", channel, ifidx, sudo)
 
-    def hive_file(self, mac, file_name, hive_file, channel=None, ifidx=None, sudo=False):
-        self.networking.dprint("net.cmd.hive_file")
-        self.send_custom("Hive-File", mac, f"{[file_name, hive_file]}", channel, ifidx, sudo)
+    # hive-file cmd
 
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
@@ -189,7 +185,9 @@ class SSP_Networking:
     def directory_get(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.directory_get")
         self.send_custom("Directory-Get", mac, None, channel, ifidx, sudo)
+
     # resend cmd
+
     def wifi_connect(self, mac, name, password, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.wifi_connect")
         self.send_custom("Wifi-Connect", mac, [name, password], channel, ifidx, sudo)
@@ -273,13 +271,12 @@ class SSP_Networking:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Hive-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]: # Hive-Configure
+                elif (msg_subkey := "Hive-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]: #Hive-Configure
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            new_config = __eva(payload[0], dict)
-                            hive_config.update(new_config)
+                            hive_config.update(__eva(payload[0], dict))
                             file_path = "config.py"
                             with open(file_path, "r") as f:
                                 lines = f.readlines()
@@ -296,22 +293,7 @@ class SSP_Networking:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Hive-File") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Hive
-                    self.master.networking.iprint(
-                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            file_hive = __eva(payload[1], list)
-                            file_path = payload[0]
-                            with open(file_path, "w") as f:
-                                f.write(f"{file_hive}\n")
-                            self.master.networking.iprint("No file-hive logic written just yet")
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
+                #Hive-File Logic
                 elif (msg_subkey := "Firmware-Update") and subtype == msg_subcodes[msg_key][msg_subkey]: #Firmware-Update
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
