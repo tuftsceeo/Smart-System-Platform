@@ -1,4 +1,4 @@
-from config import mysecrets, config, whitelist, i2c_dict, version, msg_codes, msg_subcodes, networking_keys
+from config import mysecrets, config, whitelist, i2c_dict, version, msg_codes, msg_subcodes, networking_keys, hive_config
 from networking import Networking
 import ubinascii
 import machine
@@ -8,14 +8,13 @@ import gc
 import webrepl
 from sys import implementation
 
-
 class SSP_Networking:
     def __init__(self, infmsg=False, dbgmsg=False, errmsg=False, admin=False, inittime=0):
         if infmsg:
             print(f"{(time.ticks_ms() - inittime) / 1000:.3f} Initialising Smart System Platform Networking")
         self.networking = Networking(infmsg, dbgmsg, errmsg, admin, inittime)
         config["id"] = ubinascii.hexlify(machine.unique_id()).decode()
-        config["type"] = (implementation._machine if hasattr(implementation, "_machine") else implementation.name)
+        config["type"] = implementation._machine if hasattr(implementation, "_machine") else implementation.name
         config["ap_mac"] = self.networking.ap.mac_decoded()
         config["sta_mac"] = self.networking.sta.mac_decoded()
         self.networking.config = config
@@ -48,32 +47,32 @@ class SSP_Networking:
 
     def rssi(self):
         return self.networking.aen.rssi()
-    
+
     def peers(self):
         return self.networking.aen.peers()
-    
+
     def wpeers(self):
         self.networking.iprint(f"time.ticks_ms(): {time.ticks_ms()}")
         original_dict = self.networking.aen.peers()
-        #decoded_dict = {ubinascii.hexlify(key, ':').decode(): value for key, value in original_dict.items()}
+        # decoded_dict = {ubinascii.hexlify(key, ':').decode(): value for key, value in original_dict.items()}
         networking_peer_info = f"networking_peers_info_start{original_dict}networking_peers_info_end"
         print(networking_peer_info)
-    
+
     def irq(self, func):
         self.networking.aen.irq(func)
-    
+
     def check_messages(self):
         return self.networking.aen.check_messages()
 
     def return_message(self):
         return self.networking.aen.return_message()
-    
+
     def return_messages(self):
         return self.networking.aen.return_messages()
 
     def return_data(self):
         return self.networking.aen.return_data()
-    
+
     def send_custom(self, msg_subkey, mac, payload=None, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("aen.send_custom")
         if sudo and isinstance(payload, list):
@@ -84,9 +83,11 @@ class SSP_Networking:
             payload = [payload, "sudo"]
         if (msg_key := "cmd") and msg_subkey in msg_subcodes[msg_key]:
             if isinstance(mac, list):
-                self.networking.iprint(f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac}")
+                self.networking.iprint(
+                    f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac}")
             else:
-                self.networking.iprint(f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac} ({self.networking.aen.peer_name(mac)})")
+                self.networking.iprint(
+                    f"Sending {msg_subkey} ({bytes([msg_subcodes[msg_key][msg_subkey]])}) command to {mac} ({self.networking.aen.peer_name(mac)})")
             self.networking.aen.send_custom(msg_codes[msg_key], msg_subcodes[msg_key][msg_subkey], mac, payload, channel, ifidx)
         else:
             self.networking.iprint(f"Command {msg_subkey} not found")
@@ -113,7 +114,8 @@ class SSP_Networking:
         mac = b'\xff\xff\xff\xff\xff\xff'
         self.send(mac, message, channel, ifidx)
 
-    def send_data(self, mac, message, channel=None, ifidx=None):  # message is a dict, key is the sensor type and the value is the sensor value
+    def send_data(self, mac, message, channel=None, ifidx=None):
+        # message is a dict, key is the sensor type and the value is the sensor value
         self.networking.dprint("net.cmd.message")
         self.networking.aen.send_data(mac, message, channel, ifidx)
 
@@ -129,9 +131,7 @@ class SSP_Networking:
         self.networking.dprint("net.cmd.hive_configure")
         self.send_custom("Hive-Configure", mac, f"{hive_config}", channel, ifidx, sudo)
 
-    def hive_file(self, mac, file_name, hive_file, channel=None, ifidx=None, sudo=False):
-        self.networking.dprint("net.cmd.hive_file")
-        self.send_custom("Hive-File", mac, f"{[file_name, hive_file]}", channel, ifidx, sudo)
+    # hive-file cmd
 
     def firmware_update(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.firmware_update")
@@ -147,7 +147,8 @@ class SSP_Networking:
 
     def web_repl(self, mac, channel=None, ifidx=None, sudo=False):
         self.networking.dprint("net.cmd.web_repl")
-        self.networking.ap.set_ap(ap_name := self.networking.config["name"], password := networking_keys["default_ap_key"])
+        self.networking.ap.set_ap(ap_name := self.networking.config["name"],
+                                  password := networking_keys["default_ap_key"])
         self.send_custom("Web-Repl", mac, [ap_name, password], channel, ifidx, sudo)
         # await success message and if success False disable AP or try again
 
@@ -211,15 +212,12 @@ class SSP_Networking:
         self.networking.dprint("net.cmd.resume")
         self.send_custom("Resume", mac, None, channel, ifidx, sudo)
 
-
     class Orders:
         def __init__(self, master):
             self.master = master
             self.master.networking.dprint("net.cmd.orders")
             self._whitelist = whitelist
-
             self._pause_function = None
-
             # Flags
             self._pairing_enabled = True
             self._pairing = False
@@ -234,21 +232,28 @@ class SSP_Networking:
                 self.master.networking.dprint("net.order.__send_confirmation")
                 self.master.networking.aen.__send_confirmation(msg_type, recipient_mac, msg_subkey_type, payload, error)
 
+            def __eva(payload, _type):
+                if isinstance(payload, _type):
+                    return payload
+                else:
+                    return eval(payload)
+
             def custom_cmd_handler(data):
                 self.master.networking.dprint("net.order.custom_cmd_handler")
                 sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key = data
                 if (msg_subkey := "Reboot") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Reboot
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         machine.reset()
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "Hive-Set") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Hive-Set
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            from config import hive_config
                             hive_config["hive"] = payload[0]
                             file_path = "config.py"
                             with open(file_path, "r") as f:
@@ -266,13 +271,12 @@ class SSP_Networking:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Hive-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Hive-Configure
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                elif (msg_subkey := "Hive-Configure") and subtype == msg_subcodes[msg_key][msg_subkey]: #Hive-Configure
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            from config import hive_config
-                            new_config = eval(payload[0])
-                            hive_config.update(new_config)
+                            hive_config.update(__eva(payload[0], dict))
                             file_path = "config.py"
                             with open(file_path, "r") as f:
                                 lines = f.readlines()
@@ -289,26 +293,10 @@ class SSP_Networking:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Hive-File") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Hive
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
-                    if __check_authorisation(sender_mac, payload):
-                        try:
-                            # Insert write file logic here
-                            file_path = eval(payload[0])
-                            file_hive = eval(payload[1])
-                            if isinstance(file_hive, str):
-                                file_hive = [file_hive]
-                            with open(file_path, "w") as f:
-                                f.write(f"{file_hive}\n")
-                            self.master.networking.iprint("No file-hive logic written just yet")
-                            __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
-                        except Exception as e:
-                            self.master.networking.eprint(f"Error: {e} with payload: {payload}")
-                            __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
-                    else:
-                        __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
-                elif (msg_subkey := "Firmware-Update") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Firmware-Update
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                #Hive-File Logic
+                elif (msg_subkey := "Firmware-Update") and subtype == msg_subcodes[msg_key][msg_subkey]: #Firmware-Update
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
                             # Insert update logic here
@@ -320,7 +308,8 @@ class SSP_Networking:
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "File-Update") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Update
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
                             # Insert update logic here
@@ -332,7 +321,8 @@ class SSP_Networking:
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "File-Download") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File-Download
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     # should return a list with a link and the list of files to download
                     if __check_authorisation(sender_mac, payload):
                         try:
@@ -351,7 +341,8 @@ class SSP_Networking:
                     else:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, "Not authorised")
                 elif (msg_subkey := "Web-Repl") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Web-Repl
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     # should be a list with name and password
                     if __check_authorisation(sender_mac, payload):
                         try:
@@ -414,10 +405,7 @@ class SSP_Networking:
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
                         try:
-                            if isinstance(payload[0], dict):
-                                new_config = payload[0]
-                            else:
-                                new_config = eval(payload[0])
+                            new_config = __eva(payload[0], dict)
                             self.master.config.update(new_config)
                             if payload[1]:
                                 file_path = "config.py"
@@ -429,10 +417,10 @@ class SSP_Networking:
                                             f.write(f'config = {self.master.config}\n')
                                         else:
                                             f.write(line)
-                            if "sta_channel" in new_config:
-                                self.master.networking.sta.set_channel(new_config["sta_channel"])
-                            if "ap_channel" in new_config:
-                                self.master.networking.ap.set_channel(new_config["ap_channel"])
+                                if "sta_channel" in new_config:
+                                    self.master.networking.sta.set_channel(new_config["sta_channel"])
+                                if "ap_channel" in new_config:
+                                    self.master.networking.ap.set_channel(new_config["ap_channel"])
                             __send_confirmation("Success", sender_mac, f"{msg_subkey} ({subtype})", payload)
                         except Exception as e:
                             __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
@@ -462,8 +450,9 @@ class SSP_Networking:
                 elif (msg_subkey := "Ping") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Ping
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
-                    self.master.networking.aen.add_peer(sender_mac, payload[2]["name"], payload[2]["id"], payload[2]["configuration"],
-                                  payload[2]["version"], payload[0], payload[1])
+                    self.master.networking.aen.add_peer(sender_mac, payload[2]["name"], payload[2]["id"],
+                                                        payload[2]["configuration"],
+                                                        payload[2]["version"], payload[0], payload[1])
                     if bool(self.master.networking.aen.ifidx):
                         channel = self.master.ap.channel()
                     else:
@@ -514,7 +503,10 @@ class SSP_Networking:
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)}), Received total of {self.boops} boops!")
                     try:
-                        self.master.networking.aen.send_custom(0x02, 0x20, sender_mac,[self.master.config, self.master.version, self.master.sta.mac, self.master.ap.mac, self.master.networking.aen.rssi()])  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
+                        self.master.networking.aen.send_custom(0x02, 0x20, sender_mac,
+                                                               [self.master.config, self.master.version,
+                                                                self.master.sta.mac, self.master.ap.mac,
+                                                                self.master.networking.aen.rssi()])  # [ID, Name, Config, Version, sta mac, ap mac, rssi]
                     except Exception as e:
                         __send_confirmation("Fail", sender_mac, f"{msg_subkey} ({subtype})", payload, e)
                 elif (msg_subkey := "Directory-Get") and subtype == msg_subcodes[msg_key][
@@ -546,11 +538,11 @@ class SSP_Networking:
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)}): {payload}")  # Check i or d
                     self.master.networking.aen.send_custom(0x03, 0x15, sender_mac, payload)
-                elif (msg_subkey := "Resend") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Resend lost long messages
+                elif (msg_subkey := "Resend") and subtype == msg_subcodes[msg_key][msg_subkey]: #Resend lost long msgs
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     self.master.networking.iprint("Long_sent_buffer disabled due to memory constraints")
-                elif (msg_subkey := "WiFi-Connect") and subtype == msg_subcodes[msg_key][msg_subkey]:  # Connect to Wi-Fi
+                elif (msg_subkey := "WiFi-Connect") and subtype == msg_subcodes[msg_key][msg_subkey]: #Connect to Wi-Fi
                     self.master.networking.iprint(
                         f"{msg_subkey} ({subtype}) command received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)})")
                     if __check_authorisation(sender_mac, payload):
@@ -639,15 +631,15 @@ class SSP_Networking:
                 self.master.networking.dprint("net.order.custom_inf_handler")
                 sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key = data
                 if (msg_subkey := "Directory") and subtype == msg_subcodes[msg_key][msg_subkey]:  # File Directory
-                    self.master.networking.iprint(f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)}): {payload}")
+                    self.master.networking.iprint(
+                        f"{msg_subkey} ({subtype}) data received from {sender_mac} ({self.master.networking.aen.peer_name(sender_mac)}): {payload}")
                     # __send_confirmation("Confirm", sender_mac, f"{msg_subkey} ({subtype})", payload) #confirm message recv
 
             def custom_ack_handler(data):
                 self.master.networking.dprint("net.order.custom_ack_handler")
                 sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key = data
                 # data contains [sender_mac, subtype, send_timestamp, receive_timestamp, payload, msg_key]
-                
-            
+
             self.master.networking.aen.cmd(custom_cmd_handler)
             self.master.networking.aen.inf(custom_inf_handler)
             self.master.networking.aen.ack(custom_ack_handler)
