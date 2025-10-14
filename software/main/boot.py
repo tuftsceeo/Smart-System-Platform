@@ -1,5 +1,5 @@
 import config
-import time
+import utime as time
 from machine import Pin
 import machine
 
@@ -40,15 +40,12 @@ networking = config.networking
 
 peer_mac = b'\xff\xff\xff\xff\xff\xff'
 
-import time
-
-global timer
-
-print("{:.3f} Name: {}, ID: {}, Configuration: {}, Sta mac: {}, Sta channel: {}, Ap mac: {}, Ap channel: {}, Version: {}".format(
+print("{:.3f} Name: {}, ID: {}, Configuration: {}, Type: {}, Sta mac: {}, Sta channel: {}, Ap mac: {}, Ap channel: {}, Version: {}".format(
     (time.ticks_ms() - networking.inittime) / 1000,
     networking.config["name"],
     networking.config["id"],
     networking.config["configuration"],
+    networking.config["type"],
     networking.config["sta_mac"],
     networking.config["sta_channel"],
     networking.config["ap_mac"],
@@ -85,7 +82,7 @@ def am1():
         gc.collect()
 
     timer = machine.Timer(0)
-    timer.init(period=10000, mode=machine.Timer.PERIODIC, callback=heartbeat)
+    timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
 
 
 def deinit():
