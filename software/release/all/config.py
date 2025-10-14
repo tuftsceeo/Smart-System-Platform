@@ -1,7 +1,7 @@
 config = {'ap_channel': 1, 'id': None, 'name': 'Nick', 'sta_mac': None, 'ap_mac': None, 'configuration': None, 'sta_channel': 1, 'type': None, 'version': None}
 version = {
     'adxl345.py': 3,
-    'am1.py': 1,
+    'am1.py': 2,
     'hm1.py': 1,
     'ssp_networking.py': 7,
     'files.py': 2,

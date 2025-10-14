@@ -38,9 +38,6 @@ configuration = config.config["configuration"]
 config.networking = SSP_Networking(infmsg, dbgmsg, errmsg)
 networking = config.networking
 
-peer_mac = b'\xff\xff\xff\xff\xff\xff'
-global timer
-
 print("{:.3f} Name: {}, ID: {}, Configuration: {}, Type: {}, Sta mac: {}, Sta channel: {}, Ap mac: {}, Ap channel: {}, Version: {}".format(
         (time.ticks_ms() - networking.inittime) / 1000,
         networking.config["name"],
@@ -54,38 +51,6 @@ print("{:.3f} Name: {}, ID: {}, Configuration: {}, Type: {}, Sta mac: {}, Sta ch
         networking.config["version"]
     ))
 
-def am1():
-    lastPressed = 0
-
-    message = "Boop!"
-
-    networking.ping(peer_mac)
-
-    def boop(pin):
-        nonlocal lastPressed
-        if (time.ticks_ms() - lastPressed > 1000):
-            # lastPressed = time.ticks_ms()
-            networking.ping(peer_mac)
-            # networking.echo(peer_mac, message)
-        # networking.send(peer_mac, time.ticks_ms())
-        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: Sent {message} to {peer_mac}")
-        # print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool: RSSI table: {networking.rssi()}")
-
-    # Buttons
-    switch_select = Pin(9, Pin.IN, Pin.PULL_UP)
-    switch_select.irq(trigger=Pin.IRQ_FALLING, handler=boop)
-
-    def heartbeat(timer):
-        print("")
-        boop(None)
-        print(f"{(time.ticks_ms() - networking.inittime) / 1000:.3f} Networking Tool Heartbeat: {gc.mem_free()} bytes")
-        print("")
-        gc.collect()
-
-    timer = machine.Timer(0)
-    timer.init(period=5000, mode=machine.Timer.PERIODIC, callback=heartbeat)
-
-
 def deinit():
     networking.cleanup()
     try:
@@ -94,13 +59,9 @@ def deinit():
         print(e)
     machine.reset()
 
-
 try:
-    if configuration == "AM1":
-        am1()
-    else:
-        with open(module_name + ".py") as f:
-            code = f.read()
-        exec(code, {"networking": networking, "configuration": configuration, "__name__": "__main__"})
+    with open(module_name + ".py") as f:
+        code = f.read()
+    exec(code, {"networking": networking, "configuration": configuration, "__name__": "__main__"})
 except Exception as e:
     print(f"Error running {module_name}: {e}")
